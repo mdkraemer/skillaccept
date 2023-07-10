@@ -1,0 +1,172 @@
+---
+title: "First Results: Skill Building and Self-Acceptance as Mechanisms of Positive Personality Change"
+author: "Michael Krämer"
+toc: true
+toc-depth: 5
+toc-title: Contents
+number-sections: true
+format:
+#  docx:
+#    highlight-style: github
+  html:
+    link-external-icon: true
+    link-external-newwindow: true
+    code-block-bg: true
+    code-block-border-left: "#31BAE9"
+#comments:
+#  hypothesis: true
+editor: source
+#bibliography: references-zotero.bib
+#csl: apa.csl
+---
+<!--
+You can find the preregistration [here](https://osf.io/4syhg).
+-->
+
+## Load packages
+
+```{r}
+#| echo: true
+#| warning: false
+#| code-fold: true
+#| code-summary: "Show the code"
+library(renv)
+library(tidyverse)
+library(labelled)
+library(psych)
+library(GPArotation)
+#library(devtools)
+#install_github("cran/multicon") # not on CRAN atm
+library(multicon)
+library(correlation)
+library(corrplot)
+library(lavaan)
+```
+
+## Data cleaning
+
+```{r}
+#| echo: true
+#| warning: false
+#| output: false
+#| code-fold: true
+#| code-summary: "Show the code"
+source("clean_data.R")
+```
+
+## Confirmatory results
+
+### Hypothesis 1: Well-Being - Similarity Correlations {#hyp1}
+
+*All four psychological well-being indicators will be positively correlated with a greater similarity between current- and ideal self-ratings of personality.* 
+
+To examine this at the level of overall profiles, we will compute the correlations between the psychological well-being indicators and the Fisher z transformed correlations between the facet- and item-level real-ideal self-profiles. To examine this at the level of individual traits, we will compute the correlation between psychological well-being indicators and the squared difference between current- and ideal-self rating for each Big Five trait and facet. 
+
+#### Profile similarity
+
+Computations:
+```{r}
+#| echo: true
+#| warning: false
+#| code-fold: true
+#| code-summary: "Show the code"
+#| cache: true
+
+cormat_profile <- cor(df_sbsa[, c("swls", "meaning", "selfes", "concept",
+                                  "profile_corr_item_z", "profile_corr_facet_z")], use = "pairwise.complete.obs")
+
+rownames(cormat_profile) <- c("Life Satisfaction", "Meaning in Life", "Self-Esteem" , "Self Concept Clarity", 
+                              "Item-Level Profile Corr (z)", "Facet-Level Profile Corr (z)")
+colnames(cormat_profile) <- c("Life Satisfaction", "Meaning in Life", "Self-Esteem" , "Self Concept Clarity", 
+                              "Item-Level Profile Corr (z)", "Facet-Level Profile Corr (z)")
+
+```
+
+```{r}
+#| echo: true
+corrplot(cormat_profile, type = "lower", order = "original", tl.col = "black", tl.srt = 10,
+                      addCoef.col ='black', number.cex = 0.7, diag = FALSE) # also add numbers
+```
+
+::: {.callout-note appearance="minimal"}
+Positive correlations of well-being indicators with profile similarity between current self and ideal self personality. Especially high correlation with self-esteem. High congruence of item-level and facet-level profile similarity.
+:::
+
+#### Individual traits: squared differences
+
+Computations:
+```{r}
+#| echo: true
+#| warning: false
+#| code-fold: true
+#| code-summary: "Show the code"
+#| cache: true
+
+cormat_sqtraits <- cor(df_sbsa[, c("swls", "meaning", "selfes", "concept",
+                                   paste0(str_trunc(names(b5_vars)[1:5], 5, ellipsis = ""), "_sqdiff"))], 
+                       use = "pairwise.complete.obs")
+
+rownames(cormat_sqtraits) <- c("Life Satisfaction", "Meaning in Life", "Self-Esteem" , "Self Concept Clarity", 
+                               str_to_title(names(b5_vars)[1:5]))
+colnames(cormat_sqtraits) <- c("Life Satisfaction", "Meaning in Life", "Self-Esteem" , "Self Concept Clarity", 
+                               str_to_title(names(b5_vars)[1:5]))
+
+cormat_sqfacets <- cor(df_sbsa[, c("swls", "meaning", "selfes", "concept",
+                                   paste0(str_trunc(names(b5_vars)[6:20], 5, ellipsis = ""), "_sqdiff"))], 
+                       use = "pairwise.complete.obs")
+
+rownames(cormat_sqfacets) <- c("Life Satisfaction", "Meaning in Life", "Self-Esteem" , "Self Concept Clarity", 
+                               str_to_title(names(b5_vars)[6:20]))
+colnames(cormat_sqfacets) <- c("Life Satisfaction", "Meaning in Life", "Self-Esteem" , "Self Concept Clarity", 
+                               str_to_title(names(b5_vars)[6:20]))
+```
+
+Big Five traits
+```{r}
+#| echo: true
+corrplot(cormat_sqtraits, type = "lower", order = "original", tl.col = "black", tl.srt = 10,
+         addCoef.col ='black', number.cex = 0.7, diag = FALSE) # also add numbers
+```
+
+Big Five facets
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+corrplot(cormat_sqfacets, type = "lower", order = "original", tl.col = "black", tl.srt = 10,
+         addCoef.col ='black', number.cex = 0.6, diag = FALSE) # also add numbers
+```
+
+::: {.callout-note appearance="minimal"}
+Here we see negative correlations of well-being indicators with squared trait- and facet-level mean-score differences between current self and ideal self personality.
+:::
+
+------------------------------------------------------------------------
+
+### Hypothesis 2: Well-Being - Similarity Correlations {#hyp1}
+
+*Both groups will increase in all four psychological well-being indicators.* 
+
+We will test the mean-level difference between baseline and follow up using a latent change model.
+
+#### Life Satisfaction
+
+Model:
+```{r}
+#| echo: true
+#| warning: false
+#| code-fold: true
+#| code-summary: "Show the code"
+#| cache: true
+
+
+```
+
+
+
+<!--
+## References
+
+::: {#refs}
+:::
+-->

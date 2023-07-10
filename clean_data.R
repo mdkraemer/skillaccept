@@ -1,10 +1,16 @@
 # Script for Data Cleaning
 
+#### packages ####
+
 library(renv)
 library(tidyverse)
 library(labelled)
 library(psych)
 library(GPArotation)
+#library(devtools)
+#install_github("cran/multicon") # not on CRAN atm
+library(multicon)
+library(correlation)
 
 ### Package / dependency version management with 'renv'
 # only ran this to initialize 'renv'
@@ -72,7 +78,22 @@ df_sbsa <- df_sbsa %>%
 
 df_sbsa %>% select(case, dm01_01, questnnr, time, rando) %>% print(n=50)
 
+#### checks for careless responding ####
+
+# longstring 
+
+# semantic differential 
+
+# mahalanobis distance
+
+# how many missings in BF
+
+# completion times
+
 #### inspect / recode variables ####
+
+# generate running ID
+df_sbsa <- df_sbsa %>% group_by(dm01_01) %>% mutate(pid = cur_group_id()) %>% ungroup()
 
 # 5 item Satisfaction with Life Scale (Diener et al. 1985) 
 df_sbsa %>% select(starts_with("sw06"))
@@ -89,12 +110,13 @@ df_sbsa$swls[is.nan(df_sbsa$swls)] <- NA
 # 10 item Meaning in Life Questionnaire (Steger et al., 2006)
 df_sbsa %>% select(starts_with("ml01"))
 df_sbsa %>% group_by(time, rando, ml01_01) %>% tally() %>% print(n=Inf)
+keys_meaning <- list(meaning = c("ml01_01", "-ml01_02", "-ml01_03", "ml01_04", "ml01_05", "ml01_06", "-ml01_07", "-ml01_08", "-ml01_09", "-ml01_10")) # does not work automatically, here
 alpha.meaning <- df_sbsa %>% 
   select(starts_with("ml01")) %>%
-  psych::alpha(check.keys = TRUE)
+  psych::alpha(keys = keys_meaning)
 df_sbsa$meaning <- df_sbsa %>%
   select(starts_with("ml01")) %>%
-  psych::reverse.code(keys=alpha.meaning$keys[[1]], items = .) %>%
+  psych::reverse.code(keys = keys_meaning[[1]], items = .) %>%
   rowMeans(na.rm=T)
 df_sbsa$meaning[is.nan(df_sbsa$meaning)] <- NA
 
@@ -113,12 +135,14 @@ df_sbsa$selfes[is.nan(df_sbsa$selfes)] <- NA
 # 12 item Self Concept Clarity Scale (Campbell et al., 1996)
 df_sbsa %>% select(starts_with("sc01"))
 df_sbsa %>% group_by(time, rando, sc01_01) %>% tally() %>% print(n=Inf)
+keys_concept <- list(concept = c("-sc01_01", "-sc01_02", "-sc01_03", "-sc01_04", "-sc01_05", "sc01_06", 
+                                 "-sc01_07", "-sc01_08", "-sc01_09", "-sc01_10", "sc01_11", "-sc01_12")) # does not work automatically, here
 alpha.concept <- df_sbsa %>% 
   select(starts_with("sc01")) %>%
-  psych::alpha(check.keys = TRUE)
+  psych::alpha(keys = keys_concept)
 df_sbsa$concept <- df_sbsa %>%
   select(starts_with("sc01")) %>%
-  psych::reverse.code(keys=alpha.concept$keys[[1]], items = .) %>%
+  psych::reverse.code(keys = keys_concept[[1]], items = .) %>%
   rowMeans(na.rm=T)
 df_sbsa$concept[is.nan(df_sbsa$concept)] <- NA
 
@@ -269,7 +293,57 @@ for (i in 1:length(b5_vars)) {
 for (i in 1:length(b5_vars)) {
   # loop across 5 traits AND 15 facets
   short_name = str_trunc(names(b5_vars)[i], 5, ellipsis = "")
+  current = df_sbsa[, paste0(short_name, "_comb_curr")]
+  ideal = df_sbsa[, paste0(short_name, "_comb_ideal")]
+  sqdiff = (ideal - current)^2
+  df_sbsa[, paste0(short_name, "_sqdiff")] <- sqdiff # add to df
 }  
+
+# variables to indicate missings in Big Five:
+df_sbsa <- df_sbsa %>% 
+  mutate(na_pre_curr = rowSums(is.na(dplyr::select(., starts_with("bf01")))),
+         na_pre_ideal = rowSums(is.na(dplyr::select(., starts_with("bf02")))),
+         na_post_curr = rowSums(is.na(dplyr::select(., starts_with("bf03")))),
+         na_post_ideal = rowSums(is.na(dplyr::select(., starts_with("bf04")))),
+         na_comb_curr = rowSums(is.na(dplyr::select(., starts_with("bf05")))),
+         na_comb_ideal = rowSums(is.na(dplyr::select(., starts_with("bf06"))))) %>% 
+  mutate(na_pre_curr = ifelse(time==2, 0, na_pre_curr),
+         na_pre_ideal = ifelse(time==2, 0, na_pre_ideal),
+         na_post_curr = ifelse(time==1, 0, na_post_curr),
+         na_post_ideal = ifelse(time==1, 0, na_post_ideal))
+  
+df_sbsa %>% filter(na_comb_curr > 15 | na_comb_ideal > 15) %>% select(pid, time, na_comb_curr, na_comb_ideal)
+
+# profile correlations Big Five - ideal self
+# item-level
+df_sbsa <- df_sbsa %>% 
+  mutate(profile_corr_item = multicon::Profile.r(df_sbsa %>% select(starts_with("bf05")), 
+                                                 df_sbsa %>% select(starts_with("bf06")), nomiss = .5))
+
+summary(df_sbsa$profile_corr_item)
+df_sbsa %>% filter(is.na(profile_corr_item)) %>% select(pid, time, na_comb_curr, na_comb_ideal)
+
+df_sbsa %>% filter(is.na(profile_corr_item) & na_comb_curr==0 & na_comb_ideal==0) %>% 
+  select(pid, time, starts_with("bf05"), starts_with("bf06")) %>% print(width=Inf) # no profile correlation possible -> only answered "3" for ideal (needs to be filtered out above)
+
+df_sbsa %>% filter(profile_corr_item==-1 | profile_corr_item==1) %>% # this person answered exactly the same for current and ideal at pre and post (not very likely...)
+  select(pid, time, starts_with("bf05"), starts_with("bf06")) %>% 
+  pivot_longer(cols = bf05_01:bf06_60, names_to = c("version", ".value"), names_pattern = "(.)_(.*)") %>% print(width=Inf)
+
+# facet-level
+df_sbsa <- df_sbsa %>% 
+  mutate(profile_corr_facet = 
+           multicon::Profile.r(df_sbsa %>% select(all_of(paste0(str_trunc(names(b5_vars)[6:20], 5, ellipsis = ""), "_comb_curr"))), 
+                               df_sbsa %>% select(all_of(paste0(str_trunc(names(b5_vars)[6:20], 5, ellipsis = ""), "_comb_ideal"))), nomiss = .5))
+summary(df_sbsa$profile_corr_facet)
+df_sbsa %>% filter(is.na(profile_corr_facet)) %>% select(pid, time, na_comb_curr, na_comb_ideal)
+
+# Fisher z transform profile correlations
+df_sbsa <- df_sbsa %>% 
+  mutate(profile_corr_item = ifelse(profile_corr_item==1, 0.99, profile_corr_item), # solution for now because 1 produces "Inf" error -> case will probably be filtered out, anyways
+         profile_corr_facet = ifelse(profile_corr_facet==1, 0.99, profile_corr_facet)) %>% 
+  mutate(profile_corr_item_z = correlation::z_fisher(profile_corr_item),
+         profile_corr_facet_z = correlation::z_fisher(profile_corr_facet))
 
 # 15 BFI facets - pre - skill building
 df_sbsa %>% group_by(time, rando, sb07_01) %>% tally() %>% print(n=Inf)
@@ -362,11 +436,4 @@ df_sbsa %>% filter(time==1 & rando=="Self-Acceptance") %>% select(starts_with("s
 str(df_sbsa$sa09_01) 
 df_sbsa %>% group_by(time, rando, sa09_01) %>% tally() %>% print(n=Inf) # 1 = too low / 2 = too high
 df_sbsa %>% filter(time==1 & rando=="Self-Acceptance") %>% select(starts_with("sa09"))
-
-
-# generate running ID
-df_sbsa <- df_sbsa %>% group_by(dm01_01) %>% mutate(pid = cur_group_id()) %>% ungroup()
-
-
-#### build models #### 
 
