@@ -32,6 +32,7 @@ You can find the preregistration [here](https://osf.io/4syhg).
 #| code-summary: "Show the code"
 library(renv)
 library(tidyverse)
+library(broom)
 library(labelled)
 library(psych)
 library(GPArotation)
@@ -41,6 +42,12 @@ library(multicon)
 library(correlation)
 library(corrplot)
 library(lavaan)
+library(semTools)
+library(semPlot)
+library(knitr)
+library(ggdist)
+library(ggforce)
+library(nortest)
 ```
 
 ## Data cleaning
@@ -51,12 +58,13 @@ library(lavaan)
 #| output: false
 #| code-fold: true
 #| code-summary: "Show the code"
+#| cache: true
 source("clean_data.R")
 ```
 
 ## Confirmatory results
 
-### Hypothesis 1: Well-Being - Similarity Correlations {#hyp1}
+### Hypothesis 1: Well-being - similarity correlations {#hyp1}
 
 *All four psychological well-being indicators will be positively correlated with a greater similarity between current- and ideal self-ratings of personality.* 
 
@@ -70,7 +78,6 @@ Computations:
 #| warning: false
 #| code-fold: true
 #| code-summary: "Show the code"
-#| cache: true
 
 cormat_profile <- cor(df_sbsa[, c("swls", "meaning", "selfes", "concept",
                                   "profile_corr_item_z", "profile_corr_facet_z")], use = "pairwise.complete.obs")
@@ -100,7 +107,6 @@ Computations:
 #| warning: false
 #| code-fold: true
 #| code-summary: "Show the code"
-#| cache: true
 
 cormat_sqtraits <- cor(df_sbsa[, c("swls", "meaning", "selfes", "concept",
                                    paste0(str_trunc(names(b5_vars)[1:5], 5, ellipsis = ""), "_sqdiff"))], 
@@ -143,25 +149,1827 @@ Here we see negative correlations of well-being indicators with squared trait- a
 
 ------------------------------------------------------------------------
 
-### Hypothesis 2: Well-Being - Similarity Correlations {#hyp1}
+### Measurement invariance: Well-being indicators {#hyp1}
 
-*Both groups will increase in all four psychological well-being indicators.* 
+Testing for measurement invariance of the latent traits across time.
 
-We will test the mean-level difference between baseline and follow up using a latent change model.
-
-#### Life Satisfaction
-
-Model:
+Reshape well-being data:
 ```{r}
 #| echo: true
 #| warning: false
 #| code-fold: true
 #| code-summary: "Show the code"
-#| cache: true
+#| output: false
 
-
+df_sbsa_wide_wb <- df_sbsa %>% 
+  arrange(pid, time) %>% 
+  select(pid, time, starts_with(c("sw06", "ml01", "rs01", "sc01"))) %>% 
+  pivot_wider(names_from = time,
+              names_sep = "_t",
+              values_from = starts_with(c("sw06", "ml01", "rs01", "sc01")))
+colnames(df_sbsa_wide_wb)
 ```
 
+#### Life satisfaction
+
+Fit model:
+```{r}
+#| echo: true
+#| warning: false
+#| code-fold: true
+#| code-summary: "Show the code"
+#| output: false
+#| cache: true
+
+# Code snippets adapted from https://quantdev.ssri.psu.edu/sites/qdev/files/LongitudinalMeasurementInvariance_2017_1108.html
+
+# Configural invariance model
+configural_swls <- '
+# Define the latent factors
+swls1 =~ NA*sw06_01_t1 + lambda1*sw06_01_t1 + sw06_02_t1 + sw06_03_t1 + sw06_04_t1 + sw06_05_t1 
+swls2 =~ NA*sw06_01_t2 + lambda1*sw06_01_t2 + sw06_02_t2 + sw06_03_t2 + sw06_04_t2 + sw06_05_t2
+
+# Intercepts
+sw06_01_t1 ~ i1*1
+sw06_02_t1 ~ 1
+sw06_03_t1 ~ 1
+sw06_04_t1 ~ 1
+sw06_05_t1 ~ 1
+
+sw06_01_t2 ~ i1*1
+sw06_02_t2 ~ 1
+sw06_03_t2 ~ 1
+sw06_04_t2 ~ 1
+sw06_05_t2 ~ 1
+
+# Unique Variances
+sw06_01_t1 ~~ sw06_01_t1
+sw06_02_t1 ~~ sw06_02_t1
+sw06_03_t1 ~~ sw06_03_t1
+sw06_04_t1 ~~ sw06_04_t1
+sw06_05_t1 ~~ sw06_05_t1
+
+sw06_01_t2 ~~ sw06_01_t2
+sw06_02_t2 ~~ sw06_02_t2
+sw06_03_t2 ~~ sw06_03_t2
+sw06_04_t2 ~~ sw06_04_t2
+sw06_05_t2 ~~ sw06_05_t2
+
+# Latent Variable Means
+swls1 ~ 0*1
+swls2 ~ 1
+
+# Latent Variable Variances and Covariance
+swls1 ~~ 1*swls1
+swls2 ~~ swls2
+swls1 ~~ swls2
+'
+fit_configural_swls <- cfa(configural_swls, data = df_sbsa_wide_wb, mimic = "mplus")
+summary(fit_configural_swls, fit.measures = TRUE)
+
+# Weak invariance model
+weak_swls <- '
+# Define the latent factors
+swls1 =~ NA*sw06_01_t1 + lambda1*sw06_01_t1 + lambda2*sw06_02_t1 + lambda3*sw06_03_t1 + lambda4*sw06_04_t1 + lambda5*sw06_05_t1 
+swls2 =~ NA*sw06_01_t2 + lambda1*sw06_01_t2 + lambda2*sw06_02_t2 + lambda3*sw06_03_t2 + lambda4*sw06_04_t2 + lambda5*sw06_05_t2
+
+# Intercepts
+sw06_01_t1 ~ i1*1
+sw06_02_t1 ~ 1
+sw06_03_t1 ~ 1
+sw06_04_t1 ~ 1
+sw06_05_t1 ~ 1
+
+sw06_01_t2 ~ i1*1
+sw06_02_t2 ~ 1
+sw06_03_t2 ~ 1
+sw06_04_t2 ~ 1
+sw06_05_t2 ~ 1
+
+# Unique Variances
+sw06_01_t1 ~~ sw06_01_t1
+sw06_02_t1 ~~ sw06_02_t1
+sw06_03_t1 ~~ sw06_03_t1
+sw06_04_t1 ~~ sw06_04_t1
+sw06_05_t1 ~~ sw06_05_t1
+
+sw06_01_t2 ~~ sw06_01_t2
+sw06_02_t2 ~~ sw06_02_t2
+sw06_03_t2 ~~ sw06_03_t2
+sw06_04_t2 ~~ sw06_04_t2
+sw06_05_t2 ~~ sw06_05_t2
+
+# Latent Variable Means
+swls1 ~ 0*1
+swls2 ~ 1
+
+# Latent Variable Variances and Covariance
+swls1 ~~ 1*swls1
+swls2 ~~ swls2
+swls1 ~~ swls2
+'
+fit_weak_swls <- cfa(weak_swls, data = df_sbsa_wide_wb, mimic = "mplus")
+summary(fit_weak_swls, fit.measures = TRUE)
+
+# Strong invariance model (additional constraints on manifest intercepts)
+strong_swls <- '
+# Define the latent factors
+swls1 =~ NA*sw06_01_t1 + lambda1*sw06_01_t1 + lambda2*sw06_02_t1 + lambda3*sw06_03_t1 + lambda4*sw06_04_t1 + lambda5*sw06_05_t1 
+swls2 =~ NA*sw06_01_t2 + lambda1*sw06_01_t2 + lambda2*sw06_02_t2 + lambda3*sw06_03_t2 + lambda4*sw06_04_t2 + lambda5*sw06_05_t2
+
+# Intercepts
+sw06_01_t1 ~ i1*1
+sw06_02_t1 ~ i2*1
+sw06_03_t1 ~ i3*1
+sw06_04_t1 ~ i4*1
+sw06_05_t1 ~ i5*1
+
+sw06_01_t2 ~ i1*1
+sw06_02_t2 ~ i2*1
+sw06_03_t2 ~ i3*1
+sw06_04_t2 ~ i4*1
+sw06_05_t2 ~ i5*1
+
+# Unique Variances
+sw06_01_t1 ~~ sw06_01_t1
+sw06_02_t1 ~~ sw06_02_t1
+sw06_03_t1 ~~ sw06_03_t1
+sw06_04_t1 ~~ sw06_04_t1
+sw06_05_t1 ~~ sw06_05_t1
+
+sw06_01_t2 ~~ sw06_01_t2
+sw06_02_t2 ~~ sw06_02_t2
+sw06_03_t2 ~~ sw06_03_t2
+sw06_04_t2 ~~ sw06_04_t2
+sw06_05_t2 ~~ sw06_05_t2
+
+# Latent Variable Means
+swls1 ~ 0*1
+swls2 ~ 1
+
+# Latent Variable Variances and Covariance
+swls1 ~~ 1*swls1
+swls2 ~~ swls2
+swls1 ~~ swls2
+'
+fit_strong_swls <- cfa(strong_swls, data = df_sbsa_wide_wb, mimic = "mplus")
+summary(fit_strong_swls, fit.measures = TRUE)
+
+# Strict invariance model (additional constraints on manifest variances)
+strict_swls <- '
+# Define the latent factors
+swls1 =~ NA*sw06_01_t1 + lambda1*sw06_01_t1 + lambda2*sw06_02_t1 + lambda3*sw06_03_t1 + lambda4*sw06_04_t1 + lambda5*sw06_05_t1 
+swls2 =~ NA*sw06_01_t2 + lambda1*sw06_01_t2 + lambda2*sw06_02_t2 + lambda3*sw06_03_t2 + lambda4*sw06_04_t2 + lambda5*sw06_05_t2
+
+# Intercepts
+sw06_01_t1 ~ i1*1
+sw06_02_t1 ~ i2*1
+sw06_03_t1 ~ i3*1
+sw06_04_t1 ~ i4*1
+sw06_05_t1 ~ i5*1
+
+sw06_01_t2 ~ i1*1
+sw06_02_t2 ~ i2*1
+sw06_03_t2 ~ i3*1
+sw06_04_t2 ~ i4*1
+sw06_05_t2 ~ i5*1
+
+# Unique Variances
+sw06_01_t1 ~~ u1*sw06_01_t1
+sw06_02_t1 ~~ u2*sw06_02_t1
+sw06_03_t1 ~~ u3*sw06_03_t1
+sw06_04_t1 ~~ u4*sw06_04_t1
+sw06_05_t1 ~~ u5*sw06_05_t1
+
+sw06_01_t2 ~~ u1*sw06_01_t2
+sw06_02_t2 ~~ u2*sw06_02_t2
+sw06_03_t2 ~~ u3*sw06_03_t2
+sw06_04_t2 ~~ u4*sw06_04_t2
+sw06_05_t2 ~~ u5*sw06_05_t2
+
+# Latent Variable Means
+swls1 ~ 0*1
+swls2 ~ 1
+
+# Latent Variable Variances and Covariance
+swls1 ~~ 1*swls1
+swls2 ~~ swls2
+swls1 ~~ swls2
+'
+fit_strict_swls <- cfa(strict_swls, data = df_sbsa_wide_wb, mimic = "mplus")
+summary(fit_strict_swls, fit.measures = TRUE)
+```
+
+Results summary:
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+
+# compare model fit
+bind_rows(broom::glance(fit_configural_swls) %>% 
+            select(nobs, npar, chisq, AIC, BIC, cfi, tli, rmsea, srmr),
+          broom::glance(fit_weak_swls) %>% 
+            select(nobs, npar, chisq, AIC, BIC, cfi, tli, rmsea, srmr),
+          broom::glance(fit_strong_swls) %>% 
+            select(nobs, npar, chisq, AIC, BIC, cfi, tli, rmsea, srmr),
+          broom::glance(fit_strict_swls) %>% 
+            select(nobs, npar, chisq, AIC, BIC, cfi, tli, rmsea, srmr)) %>% 
+  mutate(model = c("configural", "weak", "strong", "strict")) %>% 
+  select(model, everything())
+
+# chi-square difference test for nested models 
+anova(fit_configural_swls, fit_weak_swls)
+
+anova(fit_weak_swls, fit_strong_swls)
+
+anova(fit_strong_swls, fit_strict_swls)
+```
+
+::: {.callout-note appearance="minimal"}
+Model fit relatively similar across model specifications. Chi^2 tests indicate that strong measurement invariance is given.
+:::
+
+#### Meaning in life
+
+Fit model:
+```{r}
+#| echo: true
+#| warning: false
+#| code-fold: true
+#| code-summary: "Show the code"
+#| output: false
+#| cache: true
+
+# Code snippets adapted from https://quantdev.ssri.psu.edu/sites/qdev/files/LongitudinalMeasurementInvariance_2017_1108.html
+
+# Configural invariance model
+configural_meaning <- '
+# Define the latent factors
+meaning1 =~ NA*ml01_01_t1 + lambda1*ml01_01_t1 + ml01_02_t1 + ml01_03_t1 + ml01_04_t1 + ml01_05_t1 + ml01_06_t1 + ml01_07_t1 + ml01_08_t1 + ml01_09_t1 + ml01_10_t1
+meaning2 =~ NA*ml01_01_t2 + lambda1*ml01_01_t2 + ml01_02_t2 + ml01_03_t2 + ml01_04_t2 + ml01_05_t2 + ml01_06_t2 + ml01_07_t2 + ml01_08_t2 + ml01_09_t2 + ml01_10_t2
+
+# Intercepts
+ml01_01_t1 ~ i1*1
+ml01_02_t1 ~ 1
+ml01_03_t1 ~ 1
+ml01_04_t1 ~ 1
+ml01_05_t1 ~ 1
+ml01_06_t1 ~ 1
+ml01_07_t1 ~ 1
+ml01_08_t1 ~ 1
+ml01_09_t1 ~ 1
+ml01_10_t1 ~ 1
+
+ml01_01_t2 ~ i1*1
+ml01_02_t2 ~ 1
+ml01_03_t2 ~ 1
+ml01_04_t2 ~ 1
+ml01_05_t2 ~ 1
+ml01_06_t2 ~ 1
+ml01_07_t2 ~ 1
+ml01_08_t2 ~ 1
+ml01_09_t2 ~ 1
+ml01_10_t2 ~ 1
+
+# Unique Variances
+ml01_01_t1 ~~ ml01_01_t1
+ml01_02_t1 ~~ ml01_02_t1
+ml01_03_t1 ~~ ml01_03_t1
+ml01_04_t1 ~~ ml01_04_t1
+ml01_05_t1 ~~ ml01_05_t1
+ml01_06_t1 ~~ ml01_06_t1
+ml01_07_t1 ~~ ml01_07_t1
+ml01_08_t1 ~~ ml01_08_t1
+ml01_09_t1 ~~ ml01_09_t1
+ml01_10_t1 ~~ ml01_10_t1
+
+ml01_01_t2 ~~ ml01_01_t2
+ml01_02_t2 ~~ ml01_02_t2
+ml01_03_t2 ~~ ml01_03_t2
+ml01_04_t2 ~~ ml01_04_t2
+ml01_05_t2 ~~ ml01_05_t2
+ml01_06_t2 ~~ ml01_06_t2
+ml01_07_t2 ~~ ml01_07_t2
+ml01_08_t2 ~~ ml01_08_t2
+ml01_09_t2 ~~ ml01_09_t2
+ml01_10_t2 ~~ ml01_10_t2
+
+# Latent Variable Means
+meaning1 ~ 0*1
+meaning2 ~ 1
+
+# Latent Variable Variances and Covariance
+meaning1 ~~ 1*meaning1
+meaning2 ~~ meaning2
+meaning1 ~~ meaning2
+'
+fit_configural_meaning <- cfa(configural_meaning, data = df_sbsa_wide_wb, mimic = "mplus")
+summary(fit_configural_meaning, fit.measures = TRUE)
+
+# Weak invariance model
+weak_meaning <- '
+# Define the latent factors
+meaning1 =~ NA*ml01_01_t1 + lambda1*ml01_01_t1 + lambda2*ml01_02_t1 + lambda3*ml01_03_t1 + lambda4*ml01_04_t1 + lambda5*ml01_05_t1 + lambda6*ml01_06_t1 + lambda7*ml01_07_t1 + lambda8*ml01_08_t1 + lambda9*ml01_09_t1 + lambda10*ml01_10_t1 
+meaning2 =~ NA*ml01_01_t2 + lambda1*ml01_01_t2 + lambda2*ml01_02_t2 + lambda3*ml01_03_t2 + lambda4*ml01_04_t2 + lambda5*ml01_05_t2 + lambda6*ml01_06_t2 + lambda7*ml01_07_t2 + lambda8*ml01_08_t2 + lambda9*ml01_09_t2 + lambda10*ml01_10_t2
+
+# Intercepts
+ml01_01_t1 ~ i1*1
+ml01_02_t1 ~ 1
+ml01_03_t1 ~ 1
+ml01_04_t1 ~ 1
+ml01_05_t1 ~ 1
+ml01_06_t1 ~ 1
+ml01_07_t1 ~ 1
+ml01_08_t1 ~ 1
+ml01_09_t1 ~ 1
+ml01_10_t1 ~ 1
+
+ml01_01_t2 ~ i1*1
+ml01_02_t2 ~ 1
+ml01_03_t2 ~ 1
+ml01_04_t2 ~ 1
+ml01_05_t2 ~ 1
+ml01_06_t2 ~ 1
+ml01_07_t2 ~ 1
+ml01_08_t2 ~ 1
+ml01_09_t2 ~ 1
+ml01_10_t2 ~ 1
+
+# Unique Variances
+ml01_01_t1 ~~ ml01_01_t1
+ml01_02_t1 ~~ ml01_02_t1
+ml01_03_t1 ~~ ml01_03_t1
+ml01_04_t1 ~~ ml01_04_t1
+ml01_05_t1 ~~ ml01_05_t1
+ml01_06_t1 ~~ ml01_06_t1
+ml01_07_t1 ~~ ml01_07_t1
+ml01_08_t1 ~~ ml01_08_t1
+ml01_09_t1 ~~ ml01_09_t1
+ml01_10_t1 ~~ ml01_10_t1
+
+ml01_01_t2 ~~ ml01_01_t2
+ml01_02_t2 ~~ ml01_02_t2
+ml01_03_t2 ~~ ml01_03_t2
+ml01_04_t2 ~~ ml01_04_t2
+ml01_05_t2 ~~ ml01_05_t2
+ml01_06_t2 ~~ ml01_06_t2
+ml01_07_t2 ~~ ml01_07_t2
+ml01_08_t2 ~~ ml01_08_t2
+ml01_09_t2 ~~ ml01_09_t2
+ml01_10_t2 ~~ ml01_10_t2
+
+# Latent Variable Means
+meaning1 ~ 0*1
+meaning2 ~ 1
+
+# Latent Variable Variances and Covariance
+meaning1 ~~ 1*meaning1
+meaning2 ~~ meaning2
+meaning1 ~~ meaning2
+'
+fit_weak_meaning <- cfa(weak_meaning, data = df_sbsa_wide_wb, mimic = "mplus")
+summary(fit_weak_meaning, fit.measures = TRUE)
+
+# Strong invariance model (additional constraints on manifest intercepts)
+strong_meaning <- '
+# Define the latent factors
+meaning1 =~ NA*ml01_01_t1 + lambda1*ml01_01_t1 + lambda2*ml01_02_t1 + lambda3*ml01_03_t1 + lambda4*ml01_04_t1 + lambda5*ml01_05_t1 + lambda6*ml01_06_t1 + lambda7*ml01_07_t1 + lambda8*ml01_08_t1 + lambda9*ml01_09_t1 + lambda10*ml01_10_t1 
+meaning2 =~ NA*ml01_01_t2 + lambda1*ml01_01_t2 + lambda2*ml01_02_t2 + lambda3*ml01_03_t2 + lambda4*ml01_04_t2 + lambda5*ml01_05_t2 + lambda6*ml01_06_t2 + lambda7*ml01_07_t2 + lambda8*ml01_08_t2 + lambda9*ml01_09_t2 + lambda10*ml01_10_t2
+
+# Intercepts
+ml01_01_t1 ~ i1*1
+ml01_02_t1 ~ i2*1
+ml01_03_t1 ~ i3*1
+ml01_04_t1 ~ i4*1
+ml01_05_t1 ~ i5*1
+ml01_06_t1 ~ i6*1
+ml01_07_t1 ~ i7*1
+ml01_08_t1 ~ i8*1
+ml01_09_t1 ~ i9*1
+ml01_10_t1 ~ i10*1
+
+ml01_01_t2 ~ i1*1
+ml01_02_t2 ~ i2*1
+ml01_03_t2 ~ i3*1
+ml01_04_t2 ~ i4*1
+ml01_05_t2 ~ i5*1
+ml01_06_t2 ~ i6*1
+ml01_07_t2 ~ i7*1
+ml01_08_t2 ~ i8*1
+ml01_09_t2 ~ i9*1
+ml01_10_t2 ~ i10*1
+
+# Unique Variances
+ml01_01_t1 ~~ ml01_01_t1
+ml01_02_t1 ~~ ml01_02_t1
+ml01_03_t1 ~~ ml01_03_t1
+ml01_04_t1 ~~ ml01_04_t1
+ml01_05_t1 ~~ ml01_05_t1
+ml01_06_t1 ~~ ml01_06_t1
+ml01_07_t1 ~~ ml01_07_t1
+ml01_08_t1 ~~ ml01_08_t1
+ml01_09_t1 ~~ ml01_09_t1
+ml01_10_t1 ~~ ml01_10_t1
+
+ml01_01_t2 ~~ ml01_01_t2
+ml01_02_t2 ~~ ml01_02_t2
+ml01_03_t2 ~~ ml01_03_t2
+ml01_04_t2 ~~ ml01_04_t2
+ml01_05_t2 ~~ ml01_05_t2
+ml01_06_t2 ~~ ml01_06_t2
+ml01_07_t2 ~~ ml01_07_t2
+ml01_08_t2 ~~ ml01_08_t2
+ml01_09_t2 ~~ ml01_09_t2
+ml01_10_t2 ~~ ml01_10_t2
+
+# Latent Variable Means
+meaning1 ~ 0*1
+meaning2 ~ 1
+
+# Latent Variable Variances and Covariance
+meaning1 ~~ 1*meaning1
+meaning2 ~~ meaning2
+meaning1 ~~ meaning2
+'
+fit_strong_meaning <- cfa(strong_meaning, data = df_sbsa_wide_wb, mimic = "mplus")
+summary(fit_strong_meaning, fit.measures = TRUE)
+
+# Strict invariance model (additional constraints on manifest variances)
+strict_meaning <- '
+# Define the latent factors
+meaning1 =~ NA*ml01_01_t1 + lambda1*ml01_01_t1 + lambda2*ml01_02_t1 + lambda3*ml01_03_t1 + lambda4*ml01_04_t1 + lambda5*ml01_05_t1 + lambda6*ml01_06_t1 + lambda7*ml01_07_t1 + lambda8*ml01_08_t1 + lambda9*ml01_09_t1 + lambda10*ml01_10_t1 
+meaning2 =~ NA*ml01_01_t2 + lambda1*ml01_01_t2 + lambda2*ml01_02_t2 + lambda3*ml01_03_t2 + lambda4*ml01_04_t2 + lambda5*ml01_05_t2 + lambda6*ml01_06_t2 + lambda7*ml01_07_t2 + lambda8*ml01_08_t2 + lambda9*ml01_09_t2 + lambda10*ml01_10_t2
+
+# Intercepts
+ml01_01_t1 ~ i1*1
+ml01_02_t1 ~ i2*1
+ml01_03_t1 ~ i3*1
+ml01_04_t1 ~ i4*1
+ml01_05_t1 ~ i5*1
+ml01_06_t1 ~ i6*1
+ml01_07_t1 ~ i7*1
+ml01_08_t1 ~ i8*1
+ml01_09_t1 ~ i9*1
+ml01_10_t1 ~ i10*1
+
+ml01_01_t2 ~ i1*1
+ml01_02_t2 ~ i2*1
+ml01_03_t2 ~ i3*1
+ml01_04_t2 ~ i4*1
+ml01_05_t2 ~ i5*1
+ml01_06_t2 ~ i6*1
+ml01_07_t2 ~ i7*1
+ml01_08_t2 ~ i8*1
+ml01_09_t2 ~ i9*1
+ml01_10_t2 ~ i10*1
+
+# Unique Variances
+ml01_01_t1 ~~ u1*ml01_01_t1
+ml01_02_t1 ~~ u2*ml01_02_t1
+ml01_03_t1 ~~ u3*ml01_03_t1
+ml01_04_t1 ~~ u4*ml01_04_t1
+ml01_05_t1 ~~ u5*ml01_05_t1
+ml01_06_t1 ~~ u6*ml01_06_t1
+ml01_07_t1 ~~ u7*ml01_07_t1
+ml01_08_t1 ~~ u8*ml01_08_t1
+ml01_09_t1 ~~ u9*ml01_09_t1
+ml01_10_t1 ~~ u10*ml01_10_t1
+
+ml01_01_t2 ~~ u1*ml01_01_t2
+ml01_02_t2 ~~ u2*ml01_02_t2
+ml01_03_t2 ~~ u3*ml01_03_t2
+ml01_04_t2 ~~ u4*ml01_04_t2
+ml01_05_t2 ~~ u5*ml01_05_t2
+ml01_06_t2 ~~ u6*ml01_06_t2
+ml01_07_t2 ~~ u7*ml01_07_t2
+ml01_08_t2 ~~ u8*ml01_08_t2
+ml01_09_t2 ~~ u9*ml01_09_t2
+ml01_10_t2 ~~ u10*ml01_10_t2
+
+# Latent Variable Means
+meaning1 ~ 0*1
+meaning2 ~ 1
+
+# Latent Variable Variances and Covariance
+meaning1 ~~ 1*meaning1
+meaning2 ~~ meaning2
+meaning1 ~~ meaning2
+'
+fit_strict_meaning <- cfa(strict_meaning, data = df_sbsa_wide_wb, mimic = "mplus")
+summary(fit_strict_meaning, fit.measures = TRUE)
+```
+
+Results summary:
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+
+# compare model fit
+bind_rows(broom::glance(fit_configural_meaning) %>% 
+            select(nobs, npar, chisq, AIC, BIC, cfi, tli, rmsea, srmr),
+          broom::glance(fit_weak_meaning) %>% 
+            select(nobs, npar, chisq, AIC, BIC, cfi, tli, rmsea, srmr),
+          broom::glance(fit_strong_meaning) %>% 
+            select(nobs, npar, chisq, AIC, BIC, cfi, tli, rmsea, srmr),
+          broom::glance(fit_strict_meaning) %>% 
+            select(nobs, npar, chisq, AIC, BIC, cfi, tli, rmsea, srmr)) %>% 
+  mutate(model = c("configural", "weak", "strong", "strict")) %>% 
+  select(model, everything())
+
+# chi-square difference test for nested models 
+anova(fit_configural_meaning, fit_weak_meaning)
+
+anova(fit_weak_meaning, fit_strong_meaning)
+
+anova(fit_strong_meaning, fit_strict_meaning)
+```
+
+::: {.callout-note appearance="minimal"}
+Bad model fit across all model specifications. Chi^2 tests indicate that only weak measurement invariance is given.
+:::
+
+#### Self-esteem
+
+Fit model:
+```{r}
+#| echo: true
+#| warning: false
+#| code-fold: true
+#| code-summary: "Show the code"
+#| output: false
+#| cache: true
+
+# Code snippets adapted from https://quantdev.ssri.psu.edu/sites/qdev/files/LongitudinalMeasurementInvariance_2017_1108.html
+
+# Configural invariance model
+configural_selfes <- '
+# Define the latent factors
+selfes1 =~ NA*rs01_01_t1 + lambda1*rs01_01_t1 + rs01_02_t1 + rs01_03_t1 + rs01_04_t1 + rs01_05_t1 + rs01_06_t1 + rs01_07_t1 + rs01_08_t1 + rs01_09_t1 + rs01_10_t1
+selfes2 =~ NA*rs01_01_t2 + lambda1*rs01_01_t2 + rs01_02_t2 + rs01_03_t2 + rs01_04_t2 + rs01_05_t2 + rs01_06_t2 + rs01_07_t2 + rs01_08_t2 + rs01_09_t2 + rs01_10_t2
+
+# Intercepts
+rs01_01_t1 ~ i1*1
+rs01_02_t1 ~ 1
+rs01_03_t1 ~ 1
+rs01_04_t1 ~ 1
+rs01_05_t1 ~ 1
+rs01_06_t1 ~ 1
+rs01_07_t1 ~ 1
+rs01_08_t1 ~ 1
+rs01_09_t1 ~ 1
+rs01_10_t1 ~ 1
+
+rs01_01_t2 ~ i1*1
+rs01_02_t2 ~ 1
+rs01_03_t2 ~ 1
+rs01_04_t2 ~ 1
+rs01_05_t2 ~ 1
+rs01_06_t2 ~ 1
+rs01_07_t2 ~ 1
+rs01_08_t2 ~ 1
+rs01_09_t2 ~ 1
+rs01_10_t2 ~ 1
+
+# Unique Variances
+rs01_01_t1 ~~ rs01_01_t1
+rs01_02_t1 ~~ rs01_02_t1
+rs01_03_t1 ~~ rs01_03_t1
+rs01_04_t1 ~~ rs01_04_t1
+rs01_05_t1 ~~ rs01_05_t1
+rs01_06_t1 ~~ rs01_06_t1
+rs01_07_t1 ~~ rs01_07_t1
+rs01_08_t1 ~~ rs01_08_t1
+rs01_09_t1 ~~ rs01_09_t1
+rs01_10_t1 ~~ rs01_10_t1
+
+rs01_01_t2 ~~ rs01_01_t2
+rs01_02_t2 ~~ rs01_02_t2
+rs01_03_t2 ~~ rs01_03_t2
+rs01_04_t2 ~~ rs01_04_t2
+rs01_05_t2 ~~ rs01_05_t2
+rs01_06_t2 ~~ rs01_06_t2
+rs01_07_t2 ~~ rs01_07_t2
+rs01_08_t2 ~~ rs01_08_t2
+rs01_09_t2 ~~ rs01_09_t2
+rs01_10_t2 ~~ rs01_10_t2
+
+# Latent Variable Means
+selfes1 ~ 0*1
+selfes2 ~ 1
+
+# Latent Variable Variances and Covariance
+selfes1 ~~ 1*selfes1
+selfes2 ~~ selfes2
+selfes1 ~~ selfes2
+'
+fit_configural_selfes <- cfa(configural_selfes, data = df_sbsa_wide_wb, mimic = "mplus")
+summary(fit_configural_selfes, fit.measures = TRUE)
+
+# Weak invariance model
+weak_selfes <- '
+# Define the latent factors
+selfes1 =~ NA*rs01_01_t1 + lambda1*rs01_01_t1 + lambda2*rs01_02_t1 + lambda3*rs01_03_t1 + lambda4*rs01_04_t1 + lambda5*rs01_05_t1 + lambda6*rs01_06_t1 + lambda7*rs01_07_t1 + lambda8*rs01_08_t1 + lambda9*rs01_09_t1 + lambda10*rs01_10_t1 
+selfes2 =~ NA*rs01_01_t2 + lambda1*rs01_01_t2 + lambda2*rs01_02_t2 + lambda3*rs01_03_t2 + lambda4*rs01_04_t2 + lambda5*rs01_05_t2 + lambda6*rs01_06_t2 + lambda7*rs01_07_t2 + lambda8*rs01_08_t2 + lambda9*rs01_09_t2 + lambda10*rs01_10_t2
+
+# Intercepts
+rs01_01_t1 ~ i1*1
+rs01_02_t1 ~ 1
+rs01_03_t1 ~ 1
+rs01_04_t1 ~ 1
+rs01_05_t1 ~ 1
+rs01_06_t1 ~ 1
+rs01_07_t1 ~ 1
+rs01_08_t1 ~ 1
+rs01_09_t1 ~ 1
+rs01_10_t1 ~ 1
+
+rs01_01_t2 ~ i1*1
+rs01_02_t2 ~ 1
+rs01_03_t2 ~ 1
+rs01_04_t2 ~ 1
+rs01_05_t2 ~ 1
+rs01_06_t2 ~ 1
+rs01_07_t2 ~ 1
+rs01_08_t2 ~ 1
+rs01_09_t2 ~ 1
+rs01_10_t2 ~ 1
+
+# Unique Variances
+rs01_01_t1 ~~ rs01_01_t1
+rs01_02_t1 ~~ rs01_02_t1
+rs01_03_t1 ~~ rs01_03_t1
+rs01_04_t1 ~~ rs01_04_t1
+rs01_05_t1 ~~ rs01_05_t1
+rs01_06_t1 ~~ rs01_06_t1
+rs01_07_t1 ~~ rs01_07_t1
+rs01_08_t1 ~~ rs01_08_t1
+rs01_09_t1 ~~ rs01_09_t1
+rs01_10_t1 ~~ rs01_10_t1
+
+rs01_01_t2 ~~ rs01_01_t2
+rs01_02_t2 ~~ rs01_02_t2
+rs01_03_t2 ~~ rs01_03_t2
+rs01_04_t2 ~~ rs01_04_t2
+rs01_05_t2 ~~ rs01_05_t2
+rs01_06_t2 ~~ rs01_06_t2
+rs01_07_t2 ~~ rs01_07_t2
+rs01_08_t2 ~~ rs01_08_t2
+rs01_09_t2 ~~ rs01_09_t2
+rs01_10_t2 ~~ rs01_10_t2
+
+# Latent Variable Means
+selfes1 ~ 0*1
+selfes2 ~ 1
+
+# Latent Variable Variances and Covariance
+selfes1 ~~ 1*selfes1
+selfes2 ~~ selfes2
+selfes1 ~~ selfes2
+'
+fit_weak_selfes <- cfa(weak_selfes, data = df_sbsa_wide_wb, mimic = "mplus")
+summary(fit_weak_selfes, fit.measures = TRUE)
+
+# Strong invariance model (additional constraints on manifest intercepts)
+strong_selfes <- '
+# Define the latent factors
+selfes1 =~ NA*rs01_01_t1 + lambda1*rs01_01_t1 + lambda2*rs01_02_t1 + lambda3*rs01_03_t1 + lambda4*rs01_04_t1 + lambda5*rs01_05_t1 + lambda6*rs01_06_t1 + lambda7*rs01_07_t1 + lambda8*rs01_08_t1 + lambda9*rs01_09_t1 + lambda10*rs01_10_t1 
+selfes2 =~ NA*rs01_01_t2 + lambda1*rs01_01_t2 + lambda2*rs01_02_t2 + lambda3*rs01_03_t2 + lambda4*rs01_04_t2 + lambda5*rs01_05_t2 + lambda6*rs01_06_t2 + lambda7*rs01_07_t2 + lambda8*rs01_08_t2 + lambda9*rs01_09_t2 + lambda10*rs01_10_t2
+
+# Intercepts
+rs01_01_t1 ~ i1*1
+rs01_02_t1 ~ i2*1
+rs01_03_t1 ~ i3*1
+rs01_04_t1 ~ i4*1
+rs01_05_t1 ~ i5*1
+rs01_06_t1 ~ i6*1
+rs01_07_t1 ~ i7*1
+rs01_08_t1 ~ i8*1
+rs01_09_t1 ~ i9*1
+rs01_10_t1 ~ i10*1
+
+rs01_01_t2 ~ i1*1
+rs01_02_t2 ~ i2*1
+rs01_03_t2 ~ i3*1
+rs01_04_t2 ~ i4*1
+rs01_05_t2 ~ i5*1
+rs01_06_t2 ~ i6*1
+rs01_07_t2 ~ i7*1
+rs01_08_t2 ~ i8*1
+rs01_09_t2 ~ i9*1
+rs01_10_t2 ~ i10*1
+
+# Unique Variances
+rs01_01_t1 ~~ rs01_01_t1
+rs01_02_t1 ~~ rs01_02_t1
+rs01_03_t1 ~~ rs01_03_t1
+rs01_04_t1 ~~ rs01_04_t1
+rs01_05_t1 ~~ rs01_05_t1
+rs01_06_t1 ~~ rs01_06_t1
+rs01_07_t1 ~~ rs01_07_t1
+rs01_08_t1 ~~ rs01_08_t1
+rs01_09_t1 ~~ rs01_09_t1
+rs01_10_t1 ~~ rs01_10_t1
+
+rs01_01_t2 ~~ rs01_01_t2
+rs01_02_t2 ~~ rs01_02_t2
+rs01_03_t2 ~~ rs01_03_t2
+rs01_04_t2 ~~ rs01_04_t2
+rs01_05_t2 ~~ rs01_05_t2
+rs01_06_t2 ~~ rs01_06_t2
+rs01_07_t2 ~~ rs01_07_t2
+rs01_08_t2 ~~ rs01_08_t2
+rs01_09_t2 ~~ rs01_09_t2
+rs01_10_t2 ~~ rs01_10_t2
+
+# Latent Variable Means
+selfes1 ~ 0*1
+selfes2 ~ 1
+
+# Latent Variable Variances and Covariance
+selfes1 ~~ 1*selfes1
+selfes2 ~~ selfes2
+selfes1 ~~ selfes2
+'
+fit_strong_selfes <- cfa(strong_selfes, data = df_sbsa_wide_wb, mimic = "mplus")
+summary(fit_strong_selfes, fit.measures = TRUE)
+
+# Strict invariance model (additional constraints on manifest variances)
+strict_selfes <- '
+# Define the latent factors
+selfes1 =~ NA*rs01_01_t1 + lambda1*rs01_01_t1 + lambda2*rs01_02_t1 + lambda3*rs01_03_t1 + lambda4*rs01_04_t1 + lambda5*rs01_05_t1 + lambda6*rs01_06_t1 + lambda7*rs01_07_t1 + lambda8*rs01_08_t1 + lambda9*rs01_09_t1 + lambda10*rs01_10_t1 
+selfes2 =~ NA*rs01_01_t2 + lambda1*rs01_01_t2 + lambda2*rs01_02_t2 + lambda3*rs01_03_t2 + lambda4*rs01_04_t2 + lambda5*rs01_05_t2 + lambda6*rs01_06_t2 + lambda7*rs01_07_t2 + lambda8*rs01_08_t2 + lambda9*rs01_09_t2 + lambda10*rs01_10_t2
+
+# Intercepts
+rs01_01_t1 ~ i1*1
+rs01_02_t1 ~ i2*1
+rs01_03_t1 ~ i3*1
+rs01_04_t1 ~ i4*1
+rs01_05_t1 ~ i5*1
+rs01_06_t1 ~ i6*1
+rs01_07_t1 ~ i7*1
+rs01_08_t1 ~ i8*1
+rs01_09_t1 ~ i9*1
+rs01_10_t1 ~ i10*1
+
+rs01_01_t2 ~ i1*1
+rs01_02_t2 ~ i2*1
+rs01_03_t2 ~ i3*1
+rs01_04_t2 ~ i4*1
+rs01_05_t2 ~ i5*1
+rs01_06_t2 ~ i6*1
+rs01_07_t2 ~ i7*1
+rs01_08_t2 ~ i8*1
+rs01_09_t2 ~ i9*1
+rs01_10_t2 ~ i10*1
+
+# Unique Variances
+rs01_01_t1 ~~ u1*rs01_01_t1
+rs01_02_t1 ~~ u2*rs01_02_t1
+rs01_03_t1 ~~ u3*rs01_03_t1
+rs01_04_t1 ~~ u4*rs01_04_t1
+rs01_05_t1 ~~ u5*rs01_05_t1
+rs01_06_t1 ~~ u6*rs01_06_t1
+rs01_07_t1 ~~ u7*rs01_07_t1
+rs01_08_t1 ~~ u8*rs01_08_t1
+rs01_09_t1 ~~ u9*rs01_09_t1
+rs01_10_t1 ~~ u10*rs01_10_t1
+
+rs01_01_t2 ~~ u1*rs01_01_t2
+rs01_02_t2 ~~ u2*rs01_02_t2
+rs01_03_t2 ~~ u3*rs01_03_t2
+rs01_04_t2 ~~ u4*rs01_04_t2
+rs01_05_t2 ~~ u5*rs01_05_t2
+rs01_06_t2 ~~ u6*rs01_06_t2
+rs01_07_t2 ~~ u7*rs01_07_t2
+rs01_08_t2 ~~ u8*rs01_08_t2
+rs01_09_t2 ~~ u9*rs01_09_t2
+rs01_10_t2 ~~ u10*rs01_10_t2
+
+# Latent Variable Means
+selfes1 ~ 0*1
+selfes2 ~ 1
+
+# Latent Variable Variances and Covariance
+selfes1 ~~ 1*selfes1
+selfes2 ~~ selfes2
+selfes1 ~~ selfes2
+'
+fit_strict_selfes <- cfa(strict_selfes, data = df_sbsa_wide_wb, mimic = "mplus")
+summary(fit_strict_selfes, fit.measures = TRUE)
+```
+
+Results summary:
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+
+# compare model fit
+bind_rows(broom::glance(fit_configural_selfes) %>% 
+            select(nobs, npar, chisq, AIC, BIC, cfi, tli, rmsea, srmr),
+          broom::glance(fit_weak_selfes) %>% 
+            select(nobs, npar, chisq, AIC, BIC, cfi, tli, rmsea, srmr),
+          broom::glance(fit_strong_selfes) %>% 
+            select(nobs, npar, chisq, AIC, BIC, cfi, tli, rmsea, srmr),
+          broom::glance(fit_strict_selfes) %>% 
+            select(nobs, npar, chisq, AIC, BIC, cfi, tli, rmsea, srmr)) %>% 
+  mutate(model = c("configural", "weak", "strong", "strict")) %>% 
+  select(model, everything())
+
+# chi-square difference test for nested models 
+anova(fit_configural_selfes, fit_weak_selfes)
+
+anova(fit_weak_selfes, fit_strong_selfes)
+
+anova(fit_strong_selfes, fit_strict_selfes)
+```
+
+::: {.callout-note appearance="minimal"}
+Model fit relatively bad across all model specifications. Chi^2 tests indicate that strong measurement invariance is given.
+:::
+
+#### Self concept clarity
+
+Fit model:
+```{r}
+#| echo: true
+#| warning: false
+#| code-fold: true
+#| code-summary: "Show the code"
+#| output: false
+#| cache: true
+
+# Code snippets adapted from https://quantdev.ssri.psu.edu/sites/qdev/files/LongitudinalMeasurementInvariance_2017_1108.html
+
+# Configural invariance model
+configural_concept <- '
+# Define the latent factors
+concept1 =~ NA*sc01_01_t1 + lambda1*sc01_01_t1 + sc01_02_t1 + sc01_03_t1 + sc01_04_t1 + sc01_05_t1 + sc01_06_t1 + sc01_07_t1 + sc01_08_t1 + sc01_09_t1 + sc01_10_t1 + sc01_11_t1 + sc01_12_t1
+concept2 =~ NA*sc01_01_t2 + lambda1*sc01_01_t2 + sc01_02_t2 + sc01_03_t2 + sc01_04_t2 + sc01_05_t2 + sc01_06_t2 + sc01_07_t2 + sc01_08_t2 + sc01_09_t2 + sc01_10_t2 + sc01_11_t2 + sc01_12_t2
+
+# Intercepts
+sc01_01_t1 ~ i1*1
+sc01_02_t1 ~ 1
+sc01_03_t1 ~ 1
+sc01_04_t1 ~ 1
+sc01_05_t1 ~ 1
+sc01_06_t1 ~ 1
+sc01_07_t1 ~ 1
+sc01_08_t1 ~ 1
+sc01_09_t1 ~ 1
+sc01_10_t1 ~ 1
+sc01_11_t1 ~ 1
+sc01_12_t1 ~ 1
+
+sc01_01_t2 ~ i1*1
+sc01_02_t2 ~ 1
+sc01_03_t2 ~ 1
+sc01_04_t2 ~ 1
+sc01_05_t2 ~ 1
+sc01_06_t2 ~ 1
+sc01_07_t2 ~ 1
+sc01_08_t2 ~ 1
+sc01_09_t2 ~ 1
+sc01_10_t2 ~ 1
+sc01_11_t2 ~ 1
+sc01_12_t2 ~ 1
+
+# Unique Variances
+sc01_01_t1 ~~ sc01_01_t1
+sc01_02_t1 ~~ sc01_02_t1
+sc01_03_t1 ~~ sc01_03_t1
+sc01_04_t1 ~~ sc01_04_t1
+sc01_05_t1 ~~ sc01_05_t1
+sc01_06_t1 ~~ sc01_06_t1
+sc01_07_t1 ~~ sc01_07_t1
+sc01_08_t1 ~~ sc01_08_t1
+sc01_09_t1 ~~ sc01_09_t1
+sc01_10_t1 ~~ sc01_10_t1
+sc01_11_t1 ~~ sc01_11_t1
+sc01_12_t1 ~~ sc01_12_t1
+
+sc01_01_t2 ~~ sc01_01_t2
+sc01_02_t2 ~~ sc01_02_t2
+sc01_03_t2 ~~ sc01_03_t2
+sc01_04_t2 ~~ sc01_04_t2
+sc01_05_t2 ~~ sc01_05_t2
+sc01_06_t2 ~~ sc01_06_t2
+sc01_07_t2 ~~ sc01_07_t2
+sc01_08_t2 ~~ sc01_08_t2
+sc01_09_t2 ~~ sc01_09_t2
+sc01_10_t2 ~~ sc01_10_t2
+sc01_11_t2 ~~ sc01_11_t2
+sc01_12_t2 ~~ sc01_12_t2
+
+# Latent Variable Means
+concept1 ~ 0*1
+concept2 ~ 1
+
+# Latent Variable Variances and Covariance
+concept1 ~~ 1*concept1
+concept2 ~~ concept2
+concept1 ~~ concept2
+'
+fit_configural_concept <- cfa(configural_concept, data = df_sbsa_wide_wb, mimic = "mplus")
+summary(fit_configural_concept, fit.measures = TRUE)
+
+# Weak invariance model
+weak_concept <- '
+# Define the latent factors
+concept1 =~ NA*sc01_01_t1 + lambda1*sc01_01_t1 + lambda2*sc01_02_t1 + lambda3*sc01_03_t1 + lambda4*sc01_04_t1 + lambda5*sc01_05_t1 + lambda6*sc01_06_t1 + lambda7*sc01_07_t1 + lambda8*sc01_08_t1 + lambda9*sc01_09_t1 + lambda10*sc01_10_t1 + lambda11*sc01_11_t1 + lambda12*sc01_12_t1
+concept2 =~ NA*sc01_01_t2 + lambda1*sc01_01_t2 + lambda2*sc01_02_t2 + lambda3*sc01_03_t2 + lambda4*sc01_04_t2 + lambda5*sc01_05_t2 + lambda6*sc01_06_t2 + lambda7*sc01_07_t2 + lambda8*sc01_08_t2 + lambda9*sc01_09_t2 + lambda10*sc01_10_t2 + lambda11*sc01_11_t2 + lambda12*sc01_12_t2
+
+# Intercepts
+sc01_01_t1 ~ i1*1
+sc01_02_t1 ~ 1
+sc01_03_t1 ~ 1
+sc01_04_t1 ~ 1
+sc01_05_t1 ~ 1
+sc01_06_t1 ~ 1
+sc01_07_t1 ~ 1
+sc01_08_t1 ~ 1
+sc01_09_t1 ~ 1
+sc01_10_t1 ~ 1
+sc01_11_t1 ~ 1
+sc01_12_t1 ~ 1
+
+sc01_01_t2 ~ i1*1
+sc01_02_t2 ~ 1
+sc01_03_t2 ~ 1
+sc01_04_t2 ~ 1
+sc01_05_t2 ~ 1
+sc01_06_t2 ~ 1
+sc01_07_t2 ~ 1
+sc01_08_t2 ~ 1
+sc01_09_t2 ~ 1
+sc01_10_t2 ~ 1
+sc01_11_t2 ~ 1
+sc01_12_t2 ~ 1
+
+# Unique Variances
+sc01_01_t1 ~~ sc01_01_t1
+sc01_02_t1 ~~ sc01_02_t1
+sc01_03_t1 ~~ sc01_03_t1
+sc01_04_t1 ~~ sc01_04_t1
+sc01_05_t1 ~~ sc01_05_t1
+sc01_06_t1 ~~ sc01_06_t1
+sc01_07_t1 ~~ sc01_07_t1
+sc01_08_t1 ~~ sc01_08_t1
+sc01_09_t1 ~~ sc01_09_t1
+sc01_10_t1 ~~ sc01_10_t1
+sc01_11_t1 ~~ sc01_11_t1
+sc01_12_t1 ~~ sc01_12_t1
+
+sc01_01_t2 ~~ sc01_01_t2
+sc01_02_t2 ~~ sc01_02_t2
+sc01_03_t2 ~~ sc01_03_t2
+sc01_04_t2 ~~ sc01_04_t2
+sc01_05_t2 ~~ sc01_05_t2
+sc01_06_t2 ~~ sc01_06_t2
+sc01_07_t2 ~~ sc01_07_t2
+sc01_08_t2 ~~ sc01_08_t2
+sc01_09_t2 ~~ sc01_09_t2
+sc01_10_t2 ~~ sc01_10_t2
+sc01_11_t2 ~~ sc01_11_t2
+sc01_12_t2 ~~ sc01_12_t2
+
+# Latent Variable Means
+concept1 ~ 0*1
+concept2 ~ 1
+
+# Latent Variable Variances and Covariance
+concept1 ~~ 1*concept1
+concept2 ~~ concept2
+concept1 ~~ concept2
+'
+fit_weak_concept <- cfa(weak_concept, data = df_sbsa_wide_wb, mimic = "mplus")
+summary(fit_weak_concept, fit.measures = TRUE)
+
+# Strong invariance model (additional constraints on manifest intercepts)
+strong_concept <- '
+# Define the latent factors
+concept1 =~ NA*sc01_01_t1 + lambda1*sc01_01_t1 + lambda2*sc01_02_t1 + lambda3*sc01_03_t1 + lambda4*sc01_04_t1 + lambda5*sc01_05_t1 + lambda6*sc01_06_t1 + lambda7*sc01_07_t1 + lambda8*sc01_08_t1 + lambda9*sc01_09_t1 + lambda10*sc01_10_t1 + lambda11*sc01_11_t1 + lambda12*sc01_12_t1
+concept2 =~ NA*sc01_01_t2 + lambda1*sc01_01_t2 + lambda2*sc01_02_t2 + lambda3*sc01_03_t2 + lambda4*sc01_04_t2 + lambda5*sc01_05_t2 + lambda6*sc01_06_t2 + lambda7*sc01_07_t2 + lambda8*sc01_08_t2 + lambda9*sc01_09_t2 + lambda10*sc01_10_t2 + lambda11*sc01_11_t2 + lambda12*sc01_12_t2
+
+# Intercepts
+sc01_01_t1 ~ i1*1
+sc01_02_t1 ~ i2*1
+sc01_03_t1 ~ i3*1
+sc01_04_t1 ~ i4*1
+sc01_05_t1 ~ i5*1
+sc01_06_t1 ~ i6*1
+sc01_07_t1 ~ i7*1
+sc01_08_t1 ~ i8*1
+sc01_09_t1 ~ i9*1
+sc01_10_t1 ~ i10*1
+sc01_11_t1 ~ i11*1
+sc01_12_t1 ~ i12*1
+
+sc01_01_t2 ~ i1*1
+sc01_02_t2 ~ i2*1
+sc01_03_t2 ~ i3*1
+sc01_04_t2 ~ i4*1
+sc01_05_t2 ~ i5*1
+sc01_06_t2 ~ i6*1
+sc01_07_t2 ~ i7*1
+sc01_08_t2 ~ i8*1
+sc01_09_t2 ~ i9*1
+sc01_10_t2 ~ i10*1
+sc01_11_t2 ~ i11*1
+sc01_12_t2 ~ i12*1
+
+# Unique Variances
+sc01_01_t1 ~~ sc01_01_t1
+sc01_02_t1 ~~ sc01_02_t1
+sc01_03_t1 ~~ sc01_03_t1
+sc01_04_t1 ~~ sc01_04_t1
+sc01_05_t1 ~~ sc01_05_t1
+sc01_06_t1 ~~ sc01_06_t1
+sc01_07_t1 ~~ sc01_07_t1
+sc01_08_t1 ~~ sc01_08_t1
+sc01_09_t1 ~~ sc01_09_t1
+sc01_10_t1 ~~ sc01_10_t1
+sc01_11_t1 ~~ sc01_11_t1
+sc01_12_t1 ~~ sc01_12_t1
+
+sc01_01_t2 ~~ sc01_01_t2
+sc01_02_t2 ~~ sc01_02_t2
+sc01_03_t2 ~~ sc01_03_t2
+sc01_04_t2 ~~ sc01_04_t2
+sc01_05_t2 ~~ sc01_05_t2
+sc01_06_t2 ~~ sc01_06_t2
+sc01_07_t2 ~~ sc01_07_t2
+sc01_08_t2 ~~ sc01_08_t2
+sc01_09_t2 ~~ sc01_09_t2
+sc01_10_t2 ~~ sc01_10_t2
+sc01_11_t2 ~~ sc01_11_t2
+sc01_12_t2 ~~ sc01_12_t2
+
+# Latent Variable Means
+concept1 ~ 0*1
+concept2 ~ 1
+
+# Latent Variable Variances and Covariance
+concept1 ~~ 1*concept1
+concept2 ~~ concept2
+concept1 ~~ concept2
+'
+fit_strong_concept <- cfa(strong_concept, data = df_sbsa_wide_wb, mimic = "mplus")
+summary(fit_strong_concept, fit.measures = TRUE)
+
+# Strict invariance model (additional constraints on manifest variances)
+strict_concept <- '
+# Define the latent factors
+concept1 =~ NA*sc01_01_t1 + lambda1*sc01_01_t1 + lambda2*sc01_02_t1 + lambda3*sc01_03_t1 + lambda4*sc01_04_t1 + lambda5*sc01_05_t1 + lambda6*sc01_06_t1 + lambda7*sc01_07_t1 + lambda8*sc01_08_t1 + lambda9*sc01_09_t1 + lambda10*sc01_10_t1 + lambda11*sc01_11_t1 + lambda12*sc01_12_t1
+concept2 =~ NA*sc01_01_t2 + lambda1*sc01_01_t2 + lambda2*sc01_02_t2 + lambda3*sc01_03_t2 + lambda4*sc01_04_t2 + lambda5*sc01_05_t2 + lambda6*sc01_06_t2 + lambda7*sc01_07_t2 + lambda8*sc01_08_t2 + lambda9*sc01_09_t2 + lambda10*sc01_10_t2 + lambda11*sc01_11_t2 + lambda12*sc01_12_t2
+
+# Intercepts
+sc01_01_t1 ~ i1*1
+sc01_02_t1 ~ i2*1
+sc01_03_t1 ~ i3*1
+sc01_04_t1 ~ i4*1
+sc01_05_t1 ~ i5*1
+sc01_06_t1 ~ i6*1
+sc01_07_t1 ~ i7*1
+sc01_08_t1 ~ i8*1
+sc01_09_t1 ~ i9*1
+sc01_10_t1 ~ i10*1
+sc01_11_t1 ~ i11*1
+sc01_12_t1 ~ i12*1
+
+sc01_01_t2 ~ i1*1
+sc01_02_t2 ~ i2*1
+sc01_03_t2 ~ i3*1
+sc01_04_t2 ~ i4*1
+sc01_05_t2 ~ i5*1
+sc01_06_t2 ~ i6*1
+sc01_07_t2 ~ i7*1
+sc01_08_t2 ~ i8*1
+sc01_09_t2 ~ i9*1
+sc01_10_t2 ~ i10*1
+sc01_11_t2 ~ i11*1
+sc01_12_t2 ~ i12*1
+
+# Unique Variances
+sc01_01_t1 ~~ u1*sc01_01_t1
+sc01_02_t1 ~~ u2*sc01_02_t1
+sc01_03_t1 ~~ u3*sc01_03_t1
+sc01_04_t1 ~~ u4*sc01_04_t1
+sc01_05_t1 ~~ u5*sc01_05_t1
+sc01_06_t1 ~~ u6*sc01_06_t1
+sc01_07_t1 ~~ u7*sc01_07_t1
+sc01_08_t1 ~~ u8*sc01_08_t1
+sc01_09_t1 ~~ u9*sc01_09_t1
+sc01_10_t1 ~~ u10*sc01_10_t1
+sc01_11_t1 ~~ u11*sc01_11_t1
+sc01_12_t1 ~~ u12*sc01_12_t1
+
+sc01_01_t2 ~~ u1*sc01_01_t2
+sc01_02_t2 ~~ u2*sc01_02_t2
+sc01_03_t2 ~~ u3*sc01_03_t2
+sc01_04_t2 ~~ u4*sc01_04_t2
+sc01_05_t2 ~~ u5*sc01_05_t2
+sc01_06_t2 ~~ u6*sc01_06_t2
+sc01_07_t2 ~~ u7*sc01_07_t2
+sc01_08_t2 ~~ u8*sc01_08_t2
+sc01_09_t2 ~~ u9*sc01_09_t2
+sc01_10_t2 ~~ u10*sc01_10_t2
+sc01_11_t2 ~~ u11*sc01_11_t2
+sc01_12_t2 ~~ u12*sc01_12_t2
+
+# Latent Variable Means
+concept1 ~ 0*1
+concept2 ~ 1
+
+# Latent Variable Variances and Covariance
+concept1 ~~ 1*concept1
+concept2 ~~ concept2
+concept1 ~~ concept2
+'
+fit_strict_concept <- cfa(strict_concept, data = df_sbsa_wide_wb, mimic = "mplus")
+summary(fit_strict_concept, fit.measures = TRUE)
+```
+
+Results summary:
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+
+# compare model fit
+bind_rows(broom::glance(fit_configural_concept) %>% 
+            select(nobs, npar, chisq, AIC, BIC, cfi, tli, rmsea, srmr),
+          broom::glance(fit_weak_concept) %>% 
+            select(nobs, npar, chisq, AIC, BIC, cfi, tli, rmsea, srmr),
+          broom::glance(fit_strong_concept) %>% 
+            select(nobs, npar, chisq, AIC, BIC, cfi, tli, rmsea, srmr),
+          broom::glance(fit_strict_concept) %>% 
+            select(nobs, npar, chisq, AIC, BIC, cfi, tli, rmsea, srmr)) %>% 
+  mutate(model = c("configural", "weak", "strong", "strict")) %>% 
+  select(model, everything())
+
+# chi-square difference test for nested models 
+anova(fit_configural_concept, fit_weak_concept)
+
+anova(fit_weak_concept, fit_strong_concept)
+
+anova(fit_strong_concept, fit_strict_concept)
+```
+
+::: {.callout-note appearance="minimal"}
+Relatively bad model fit across all model specifications. Chi^2 tests indicate that only weak measurement invariance is given.
+:::
+
+------------------------------------------------------------------------
+
+### Hypothesis 2: Well-being - latent change {#hyp2}
+
+*Both groups will increase in all four psychological well-being indicators.* 
+
+We will test the mean-level difference between baseline and follow up using a latent change model.
+
+#### Life satisfaction
+
+Fit model:
+```{r}
+#| echo: true
+#| warning: false
+#| code-fold: true
+#| code-summary: "Show the code"
+#| output: false
+#| cache: true
+
+# Code snippets adapted from Kievit et al. (2018) -- CC-BY -- https://doi.org/10.1016/j.dcn.2017.11.007
+
+# Fit the multiple indicator Univariate Latent Change Score model
+mi_lcs_swls_hyp2 <- '
+swls_t1 =~ 1*sw06_01_t1 + lamb2*sw06_02_t1 + lamb3*sw06_03_t1 + lamb4*sw06_04_t1 + lamb5*sw06_05_t1 # This specifies the measurement model for swls_t1 
+swls_t2 =~ 1*sw06_01_t2 + lamb2*sw06_02_t2 + lamb3*sw06_03_t2 + lamb4*sw06_04_t2 + lamb5*sw06_05_t2 # This specifies the measurement model for swls_t2 with the equality constrained factor loadings
+
+swls_t2 ~ 1*swls_t1     # This parameter regresses swls_t2 perfectly on swls_t1
+d_swls_1 =~ 1*swls_t2   # This defines the latent change score factor as measured perfectly by scores on swls_t2
+swls_t2 ~ 0*1           # This line constrains the intercept of swls_t2 to 0
+swls_t2 ~~ 0*swls_t2    # This fixes the variance of swls_t2 to 0
+
+d_swls_1 ~ 1           # This estimates the intercept of the change score 
+swls_t1 ~ 1            # This estimates the intercept of swls_t1 
+d_swls_1 ~~ d_swls_1   # This estimates the variance of the change scores 
+swls_t1 ~~ swls_t1     # This estimates the variance of the swls_t1 
+d_swls_1 ~ swls_t1     # This estimates the self-feedback parameter
+
+sw06_01_t1 ~~ sw06_01_t2   # This allows residual covariance on indicator X1 across T1 and T2
+sw06_02_t1 ~~ sw06_02_t2   # This allows residual covariance on indicator X2 across T1 and T2
+sw06_03_t1 ~~ sw06_03_t2   # This allows residual covariance on indicator X3 across T1 and T2
+sw06_04_t1 ~~ sw06_04_t2   # This allows residual covariance on indicator X4 across T1 and T2
+sw06_05_t1 ~~ sw06_05_t2   # This allows residual covariance on indicator X5 across T1 and T2
+
+sw06_01_t1 ~~ res1*sw06_01_t1   # This allows residual variance on indicator X1 at T1 
+sw06_02_t1 ~~ res2*sw06_02_t1   # This allows residual variance on indicator X2 at T1
+sw06_03_t1 ~~ res3*sw06_03_t1   # This allows residual variance on indicator X3 at T1
+sw06_04_t1 ~~ res4*sw06_04_t1   # This allows residual variance on indicator X4 at T1
+sw06_05_t1 ~~ res5*sw06_05_t1   # This allows residual variance on indicator X5 at T1
+
+sw06_01_t2 ~~ res1*sw06_01_t2  # This allows residual variance on indicator X1 at T2 
+sw06_02_t2 ~~ res2*sw06_02_t2  # This allows residual variance on indicator X2 at T2 
+sw06_03_t2 ~~ res3*sw06_03_t2  # This allows residual variance on indicator X3 at T2
+sw06_04_t2 ~~ res4*sw06_04_t2  # This allows residual variance on indicator X4 at T2
+sw06_05_t2 ~~ res5*sw06_05_t2  # This allows residual variance on indicator X5 at T2
+
+sw06_01_t1 ~ 0*1      # This constrains the intercept of X1 to 0 at T1
+sw06_02_t1 ~ m2*1     # This estimates the intercept of X2 at T1
+sw06_03_t1 ~ m3*1     # This estimates the intercept of X3 at T1
+sw06_04_t1 ~ m4*1     # This estimates the intercept of X4 at T1
+sw06_05_t1 ~ m5*1     # This estimates the intercept of X5 at T1
+
+sw06_01_t2 ~ 0*1      # This constrains the intercept of X1 to 0 at T2
+sw06_02_t2 ~ m2*1     # This estimates the intercept of X2 at T2
+sw06_03_t2 ~ m3*1     # This estimates the intercept of X3 at T2
+sw06_04_t2 ~ m4*1     # This estimates the intercept of X4 at T2
+sw06_05_t2 ~ m5*1     # This estimates the intercept of X5 at T2
+'
+fit_mi_lcs_swls_hyp2 <- lavaan(mi_lcs_swls_hyp2, data=df_sbsa_wide_wb, estimator='mlr', fixed.x=FALSE, missing='fiml')
+summary(fit_mi_lcs_swls_hyp2, fit.measures=TRUE, standardized=TRUE, rsquare=F)
+```
+
+Results summary:
+```{r}
+#| echo: true
+
+# model fit
+kable(broom::glance(fit_mi_lcs_swls_hyp2) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+
+# parameters of interest
+kable(broom::tidy(fit_mi_lcs_swls_hyp2, conf.int = FALSE, conf.level = 0.95) %>% 
+        select(term, estimate, std.all, statistic, p.value) %>% 
+        filter(term %in% c("swls_t2 ~ swls_t1", "d_swls_1 =~ swls_t2", "d_swls_1 ~ swls_t1", # change parameters
+                           "d_swls_1 ~1 ", "swls_t1 ~1 ", "", # means
+                           "d_swls_1 ~~ d_swls_1")), digits = 3) # variances
+```
+
+Plot model:
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+
+semPaths(fit_mi_lcs_swls_hyp2, what="est", 
+         sizeLat = 7, sizeMan = 7, edge.label.cex = .75, intercepts = T, edge.color="black")
+```
+
+::: {.callout-note appearance="minimal"}
+Significantly higher life satisfaction at the post test. Those with initially higher levels of life satisfaction (at T1) change to a lesser degree.
+:::
+
+#### Meaning in life
+
+Fit model:
+```{r}
+#| echo: true
+#| warning: false
+#| code-fold: true
+#| code-summary: "Show the code"
+#| output: false
+#| cache: true
+
+# Code snippets adapted from Kievit et al. (2018) -- CC-BY -- https://doi.org/10.1016/j.dcn.2017.11.007
+
+# Fit the multiple indicator Univariate Latent Change Score model
+mi_lcs_meaning_hyp2 <- '
+meaning_t1 =~ 1*ml01_01_t1 + lamb2*ml01_02_t1 + lamb3*ml01_03_t1 + lamb4*ml01_04_t1 + lamb5*ml01_05_t1 + lamb6*ml01_06_t1 + lamb7*ml01_07_t1 + lamb8*ml01_08_t1 + lamb9*ml01_09_t1 + lamb10*ml01_10_t1 # This specifies the measurement model for meaning_t1 
+meaning_t2 =~ 1*ml01_01_t2 + lamb2*ml01_02_t2 + lamb3*ml01_03_t2 + lamb4*ml01_04_t2 + lamb5*ml01_05_t2 + lamb6*ml01_06_t2 + lamb7*ml01_07_t2 + lamb8*ml01_08_t2 + lamb9*ml01_09_t2 + lamb10*ml01_10_t2 # This specifies the measurement model for meaning_t2 with the equality constrained factor loadings
+
+meaning_t2 ~ 1*meaning_t1     # This parameter regresses meaning_t2 perfectly on meaning_t1
+d_meaning_1 =~ 1*meaning_t2   # This defines the latent change score factor as measured perfectly by scores on meaning_t2
+meaning_t2 ~ 0*1              # This line constrains the intercept of meaning_t2 to 0
+meaning_t2 ~~ 0*meaning_t2    # This fixes the variance of meaning_t2 to 0
+
+d_meaning_1 ~ 1              # This estimates the intercept of the change score 
+meaning_t1 ~ 1               # This estimates the intercept of meaning_t1 
+d_meaning_1 ~~ d_meaning_1   # This estimates the variance of the change scores 
+meaning_t1 ~~ meaning_t1     # This estimates the variance of the meaning_t1 
+d_meaning_1 ~ meaning_t1     # This estimates the self-feedback parameter
+
+ml01_01_t1 ~~ ml01_01_t2   # This allows residual covariance on indicator X1 across T1 and T2
+ml01_02_t1 ~~ ml01_02_t2   # This allows residual covariance on indicator X2 across T1 and T2
+ml01_03_t1 ~~ ml01_03_t2   # This allows residual covariance on indicator X3 across T1 and T2
+ml01_04_t1 ~~ ml01_04_t2   # This allows residual covariance on indicator X4 across T1 and T2
+ml01_05_t1 ~~ ml01_05_t2   # This allows residual covariance on indicator X5 across T1 and T2
+ml01_06_t1 ~~ ml01_06_t2   # This allows residual covariance on indicator X6 across T1 and T2
+ml01_07_t1 ~~ ml01_07_t2   # This allows residual covariance on indicator X7 across T1 and T2
+ml01_08_t1 ~~ ml01_08_t2   # This allows residual covariance on indicator X8 across T1 and T2
+ml01_09_t1 ~~ ml01_09_t2   # This allows residual covariance on indicator X9 across T1 and T2
+ml01_10_t1 ~~ ml01_10_t2   # This allows residual covariance on indicator X10 across T1 and T2
+
+ml01_01_t1 ~~ res1*ml01_01_t1   # This allows residual variance on indicator X1 at T1 
+ml01_02_t1 ~~ res2*ml01_02_t1   # This allows residual variance on indicator X2 at T1
+ml01_03_t1 ~~ res3*ml01_03_t1   # This allows residual variance on indicator X3 at T1
+ml01_04_t1 ~~ res4*ml01_04_t1   # This allows residual variance on indicator X4 at T1
+ml01_05_t1 ~~ res5*ml01_05_t1   # This allows residual variance on indicator X5 at T1
+ml01_06_t1 ~~ res6*ml01_06_t1   # This allows residual variance on indicator X6 at T1 
+ml01_07_t1 ~~ res7*ml01_07_t1   # This allows residual variance on indicator X7 at T1
+ml01_08_t1 ~~ res8*ml01_08_t1   # This allows residual variance on indicator X8 at T1
+ml01_09_t1 ~~ res9*ml01_09_t1   # This allows residual variance on indicator X9 at T1
+ml01_10_t1 ~~ res10*ml01_10_t1  # This allows residual variance on indicator X10 at T1
+
+ml01_01_t2 ~~ res1*ml01_01_t2  # This allows residual variance on indicator X1 at T2 
+ml01_02_t2 ~~ res2*ml01_02_t2  # This allows residual variance on indicator X2 at T2 
+ml01_03_t2 ~~ res3*ml01_03_t2  # This allows residual variance on indicator X3 at T2
+ml01_04_t2 ~~ res4*ml01_04_t2  # This allows residual variance on indicator X4 at T2
+ml01_05_t2 ~~ res5*ml01_05_t2  # This allows residual variance on indicator X5 at T2
+ml01_06_t2 ~~ res6*ml01_06_t2  # This allows residual variance on indicator X6 at T2 
+ml01_07_t2 ~~ res7*ml01_07_t2  # This allows residual variance on indicator X7 at T2 
+ml01_08_t2 ~~ res8*ml01_08_t2  # This allows residual variance on indicator X8 at T2
+ml01_09_t2 ~~ res9*ml01_09_t2  # This allows residual variance on indicator X9 at T2
+ml01_10_t2 ~~ res10*ml01_10_t2 # This allows residual variance on indicator X10 at T2
+
+ml01_01_t1 ~ 0*1      # This constrains the intercept of X1 to 0 at T1
+ml01_02_t1 ~ m2*1     # This estimates the intercept of X2 at T1
+ml01_03_t1 ~ m3*1     # This estimates the intercept of X3 at T1
+ml01_04_t1 ~ m4*1     # This estimates the intercept of X4 at T1
+ml01_05_t1 ~ m5*1     # This estimates the intercept of X5 at T1
+ml01_06_t1 ~ m6*1     # This estimates the intercept of X6 at T1
+ml01_07_t1 ~ m7*1     # This estimates the intercept of X7 at T1
+ml01_08_t1 ~ m8*1     # This estimates the intercept of X8 at T1
+ml01_09_t1 ~ m9*1     # This estimates the intercept of X9 at T1
+ml01_10_t1 ~ m10*1    # This estimates the intercept of X10 at T1
+
+ml01_01_t2 ~ 0*1      # This constrains the intercept of X1 to 0 at T2
+ml01_02_t2 ~ m2*1     # This estimates the intercept of X2 at T2
+ml01_03_t2 ~ m3*1     # This estimates the intercept of X3 at T2
+ml01_04_t2 ~ m4*1     # This estimates the intercept of X4 at T2
+ml01_05_t2 ~ m5*1     # This estimates the intercept of X5 at T2
+ml01_06_t2 ~ m6*1     # This estimates the intercept of X6 at T2
+ml01_07_t2 ~ m7*1     # This estimates the intercept of X7 at T2
+ml01_08_t2 ~ m8*1     # This estimates the intercept of X8 at T2
+ml01_09_t2 ~ m9*1     # This estimates the intercept of X9 at T2
+ml01_10_t2 ~ m10*1    # This estimates the intercept of X10 at T2
+'
+fit_mi_lcs_meaning_hyp2 <- lavaan(mi_lcs_meaning_hyp2, data=df_sbsa_wide_wb, estimator='mlr', fixed.x=FALSE, missing='fiml')
+summary(fit_mi_lcs_meaning_hyp2, fit.measures=TRUE, standardized=TRUE, rsquare=F)
+```
+
+Results summary:
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+
+# model fit
+kable(broom::glance(fit_mi_lcs_meaning_hyp2) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+
+# parameters of interest
+kable(broom::tidy(fit_mi_lcs_meaning_hyp2, conf.int = FALSE, conf.level = 0.95) %>% 
+        select(term, estimate, std.all, statistic, p.value) %>% 
+        filter(term %in% c("meaning_t2 ~ meaning_t1", "d_meaning_1 =~ meaning_t2", "d_meaning_1 ~ meaning_t1", # change parameters
+                           "d_meaning_1 ~1 ", "meaning_t1 ~1 ", "", # means
+                           "d_meaning_1 ~~ d_meaning_1")), digits = 3) # variances
+```
+
+::: {.callout-note appearance="minimal"}
+Very bad model fit... Participants improved significantly in meaning in life across time. 
+:::
+
+#### Self-esteem
+
+Fit model:
+```{r}
+#| echo: true
+#| warning: false
+#| code-fold: true
+#| code-summary: "Show the code"
+#| output: false
+#| cache: true
+
+# Code snippets adapted from Kievit et al. (2018) -- CC-BY -- https://doi.org/10.1016/j.dcn.2017.11.007
+
+# Fit the multiple indicator Univariate Latent Change Score model
+mi_lcs_selfes_hyp2 <- '
+selfes_t1 =~ 1*rs01_01_t1 + lamb2*rs01_02_t1 + lamb3*rs01_03_t1 + lamb4*rs01_04_t1 + lamb5*rs01_05_t1 + lamb6*rs01_06_t1 + lamb7*rs01_07_t1 + lamb8*rs01_08_t1 + lamb9*rs01_09_t1 + lamb10*rs01_10_t1 # This specifies the measurement model for selfes_t1 
+selfes_t2 =~ 1*rs01_01_t2 + lamb2*rs01_02_t2 + lamb3*rs01_03_t2 + lamb4*rs01_04_t2 + lamb5*rs01_05_t2 + lamb6*rs01_06_t2 + lamb7*rs01_07_t2 + lamb8*rs01_08_t2 + lamb9*rs01_09_t2 + lamb10*rs01_10_t2 # This specifies the measurement model for selfes_t2 with the equality constrained factor loadings
+
+selfes_t2 ~ 1*selfes_t1     # This parameter regresses selfes_t2 perfectly on selfes_t1
+d_selfes_1 =~ 1*selfes_t2   # This defines the latent change score factor as measured perfectly by scores on selfes_t2
+selfes_t2 ~ 0*1             # This line constrains the intercept of selfes_t2 to 0
+selfes_t2 ~~ 0*selfes_t2    # This fixes the variance of selfes_t2 to 0
+
+d_selfes_1 ~ 1             # This estimates the intercept of the change score 
+selfes_t1 ~ 1              # This estimates the intercept of selfes_t1 
+d_selfes_1 ~~ d_selfes_1   # This estimates the variance of the change scores 
+selfes_t1 ~~ selfes_t1     # This estimates the variance of the selfes_t1 
+d_selfes_1 ~ selfes_t1     # This estimates the self-feedback parameter
+
+rs01_01_t1 ~~ rs01_01_t2   # This allows residual covariance on indicator X1 across T1 and T2
+rs01_02_t1 ~~ rs01_02_t2   # This allows residual covariance on indicator X2 across T1 and T2
+rs01_03_t1 ~~ rs01_03_t2   # This allows residual covariance on indicator X3 across T1 and T2
+rs01_04_t1 ~~ rs01_04_t2   # This allows residual covariance on indicator X4 across T1 and T2
+rs01_05_t1 ~~ rs01_05_t2   # This allows residual covariance on indicator X5 across T1 and T2
+rs01_06_t1 ~~ rs01_06_t2   # This allows residual covariance on indicator X6 across T1 and T2
+rs01_07_t1 ~~ rs01_07_t2   # This allows residual covariance on indicator X7 across T1 and T2
+rs01_08_t1 ~~ rs01_08_t2   # This allows residual covariance on indicator X8 across T1 and T2
+rs01_09_t1 ~~ rs01_09_t2   # This allows residual covariance on indicator X9 across T1 and T2
+rs01_10_t1 ~~ rs01_10_t2   # This allows residual covariance on indicator X10 across T1 and T2
+
+rs01_01_t1 ~~ res1*rs01_01_t1   # This allows residual variance on indicator X1 at T1 
+rs01_02_t1 ~~ res2*rs01_02_t1   # This allows residual variance on indicator X2 at T1
+rs01_03_t1 ~~ res3*rs01_03_t1   # This allows residual variance on indicator X3 at T1
+rs01_04_t1 ~~ res4*rs01_04_t1   # This allows residual variance on indicator X4 at T1
+rs01_05_t1 ~~ res5*rs01_05_t1   # This allows residual variance on indicator X5 at T1
+rs01_06_t1 ~~ res6*rs01_06_t1   # This allows residual variance on indicator X6 at T1 
+rs01_07_t1 ~~ res7*rs01_07_t1   # This allows residual variance on indicator X7 at T1
+rs01_08_t1 ~~ res8*rs01_08_t1   # This allows residual variance on indicator X8 at T1
+rs01_09_t1 ~~ res9*rs01_09_t1   # This allows residual variance on indicator X9 at T1
+rs01_10_t1 ~~ res10*rs01_10_t1  # This allows residual variance on indicator X10 at T1
+
+rs01_01_t2 ~~ res1*rs01_01_t2  # This allows residual variance on indicator X1 at T2 
+rs01_02_t2 ~~ res2*rs01_02_t2  # This allows residual variance on indicator X2 at T2 
+rs01_03_t2 ~~ res3*rs01_03_t2  # This allows residual variance on indicator X3 at T2
+rs01_04_t2 ~~ res4*rs01_04_t2  # This allows residual variance on indicator X4 at T2
+rs01_05_t2 ~~ res5*rs01_05_t2  # This allows residual variance on indicator X5 at T2
+rs01_06_t2 ~~ res6*rs01_06_t2  # This allows residual variance on indicator X6 at T2 
+rs01_07_t2 ~~ res7*rs01_07_t2  # This allows residual variance on indicator X7 at T2 
+rs01_08_t2 ~~ res8*rs01_08_t2  # This allows residual variance on indicator X8 at T2
+rs01_09_t2 ~~ res9*rs01_09_t2  # This allows residual variance on indicator X9 at T2
+rs01_10_t2 ~~ res10*rs01_10_t2 # This allows residual variance on indicator X10 at T2
+
+rs01_01_t1 ~ 0*1      # This constrains the intercept of X1 to 0 at T1
+rs01_02_t1 ~ m2*1     # This estimates the intercept of X2 at T1
+rs01_03_t1 ~ m3*1     # This estimates the intercept of X3 at T1
+rs01_04_t1 ~ m4*1     # This estimates the intercept of X4 at T1
+rs01_05_t1 ~ m5*1     # This estimates the intercept of X5 at T1
+rs01_06_t1 ~ m6*1     # This estimates the intercept of X6 at T1
+rs01_07_t1 ~ m7*1     # This estimates the intercept of X7 at T1
+rs01_08_t1 ~ m8*1     # This estimates the intercept of X8 at T1
+rs01_09_t1 ~ m9*1     # This estimates the intercept of X9 at T1
+rs01_10_t1 ~ m10*1    # This estimates the intercept of X10 at T1
+
+rs01_01_t2 ~ 0*1      # This constrains the intercept of X1 to 0 at T2
+rs01_02_t2 ~ m2*1     # This estimates the intercept of X2 at T2
+rs01_03_t2 ~ m3*1     # This estimates the intercept of X3 at T2
+rs01_04_t2 ~ m4*1     # This estimates the intercept of X4 at T2
+rs01_05_t2 ~ m5*1     # This estimates the intercept of X5 at T2
+rs01_06_t2 ~ m6*1     # This estimates the intercept of X6 at T2
+rs01_07_t2 ~ m7*1     # This estimates the intercept of X7 at T2
+rs01_08_t2 ~ m8*1     # This estimates the intercept of X8 at T2
+rs01_09_t2 ~ m9*1     # This estimates the intercept of X9 at T2
+rs01_10_t2 ~ m10*1    # This estimates the intercept of X10 at T2
+'
+fit_mi_lcs_selfes_hyp2 <- lavaan(mi_lcs_selfes_hyp2, data=df_sbsa_wide_wb, estimator='mlr', fixed.x=FALSE, missing='fiml')
+summary(fit_mi_lcs_selfes_hyp2, fit.measures=TRUE, standardized=TRUE, rsquare=F)
+```
+
+Results summary:
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+
+# model fit
+kable(broom::glance(fit_mi_lcs_selfes_hyp2) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+
+# parameters of interest
+kable(broom::tidy(fit_mi_lcs_selfes_hyp2, conf.int = FALSE, conf.level = 0.95) %>% 
+        select(term, estimate, std.all, statistic, p.value) %>% 
+        filter(term %in% c("selfes_t2 ~ selfes_t1", "d_selfes_1 =~ selfes_t2", "d_selfes_1 ~ selfes_t1", # change parameters
+                           "d_selfes_1 ~1 ", "selfes_t1 ~1 ", "", # means
+                           "d_selfes_1 ~~ d_selfes_1")), digits = 3) # variances
+```
+
+::: {.callout-note appearance="minimal"}
+Participants increased significantly in self-esteem between the two assessments.
+:::
+
+#### Self concept clarity
+
+Fit model:
+```{r}
+#| echo: true
+#| warning: false
+#| code-fold: true
+#| code-summary: "Show the code"
+#| output: false
+#| cache: true
+
+# Code snippets adapted from Kievit et al. (2018) -- CC-BY -- https://doi.org/10.1016/j.dcn.2017.11.007
+
+# Fit the multiple indicator Univariate Latent Change Score model
+mi_lcs_concept_hyp2 <- '
+concept_t1 =~ 1*sc01_01_t1 + lamb2*sc01_02_t1 + lamb3*sc01_03_t1 + lamb4*sc01_04_t1 + lamb5*sc01_05_t1 + lamb6*sc01_06_t1 + lamb7*sc01_07_t1 + lamb8*sc01_08_t1 + lamb9*sc01_09_t1 + lamb10*sc01_10_t1 + lamb11*sc01_11_t1 + lamb12*sc01_12_t1 # This specifies the measurement model for concept_t1 
+concept_t2 =~ 1*sc01_01_t2 + lamb2*sc01_02_t2 + lamb3*sc01_03_t2 + lamb4*sc01_04_t2 + lamb5*sc01_05_t2 + lamb6*sc01_06_t2 + lamb7*sc01_07_t2 + lamb8*sc01_08_t2 + lamb9*sc01_09_t2 + lamb10*sc01_10_t2 + lamb11*sc01_11_t2 + lamb12*sc01_12_t2 # This specifies the measurement model for concept_t2 with the equality constrained factor loadings
+
+concept_t2 ~ 1*concept_t1     # This parameter regresses concept_t2 perfectly on concept_t1
+d_concept_1 =~ 1*concept_t2   # This defines the latent change score factor as measured perfectly by scores on concept_t2
+concept_t2 ~ 0*1              # This line constrains the intercept of concept_t2 to 0
+concept_t2 ~~ 0*concept_t2    # This fixes the variance of concept_t2 to 0
+
+d_concept_1 ~ 1              # This estimates the intercept of the change score 
+concept_t1 ~ 1               # This estimates the intercept of concept_t1 
+d_concept_1 ~~ d_concept_1   # This estimates the variance of the change scores 
+concept_t1 ~~ concept_t1     # This estimates the variance of the concept_t1 
+d_concept_1 ~ concept_t1     # This estimates the self-feedback parameter
+
+sc01_01_t1 ~~ sc01_01_t2   # This allows residual covariance on indicator X1 across T1 and T2
+sc01_02_t1 ~~ sc01_02_t2   # This allows residual covariance on indicator X2 across T1 and T2
+sc01_03_t1 ~~ sc01_03_t2   # This allows residual covariance on indicator X3 across T1 and T2
+sc01_04_t1 ~~ sc01_04_t2   # This allows residual covariance on indicator X4 across T1 and T2
+sc01_05_t1 ~~ sc01_05_t2   # This allows residual covariance on indicator X5 across T1 and T2
+sc01_06_t1 ~~ sc01_06_t2   # This allows residual covariance on indicator X6 across T1 and T2
+sc01_07_t1 ~~ sc01_07_t2   # This allows residual covariance on indicator X7 across T1 and T2
+sc01_08_t1 ~~ sc01_08_t2   # This allows residual covariance on indicator X8 across T1 and T2
+sc01_09_t1 ~~ sc01_09_t2   # This allows residual covariance on indicator X9 across T1 and T2
+sc01_10_t1 ~~ sc01_10_t2   # This allows residual covariance on indicator X10 across T1 and T2
+sc01_11_t1 ~~ sc01_11_t2   # This allows residual covariance on indicator X11 across T1 and T2
+sc01_12_t1 ~~ sc01_12_t2   # This allows residual covariance on indicator X12 across T1 and T2
+
+sc01_01_t1 ~~ res1*sc01_01_t1   # This allows residual variance on indicator X1 at T1 
+sc01_02_t1 ~~ res2*sc01_02_t1   # This allows residual variance on indicator X2 at T1
+sc01_03_t1 ~~ res3*sc01_03_t1   # This allows residual variance on indicator X3 at T1
+sc01_04_t1 ~~ res4*sc01_04_t1   # This allows residual variance on indicator X4 at T1
+sc01_05_t1 ~~ res5*sc01_05_t1   # This allows residual variance on indicator X5 at T1
+sc01_06_t1 ~~ res6*sc01_06_t1   # This allows residual variance on indicator X6 at T1 
+sc01_07_t1 ~~ res7*sc01_07_t1   # This allows residual variance on indicator X7 at T1
+sc01_08_t1 ~~ res8*sc01_08_t1   # This allows residual variance on indicator X8 at T1
+sc01_09_t1 ~~ res9*sc01_09_t1   # This allows residual variance on indicator X9 at T1
+sc01_10_t1 ~~ res10*sc01_10_t1  # This allows residual variance on indicator X10 at T1
+sc01_11_t1 ~~ res10*sc01_11_t1  # This allows residual variance on indicator X11 at T1
+sc01_12_t1 ~~ res10*sc01_12_t1  # This allows residual variance on indicator X12 at T1
+
+sc01_01_t2 ~~ res1*sc01_01_t2  # This allows residual variance on indicator X1 at T2 
+sc01_02_t2 ~~ res2*sc01_02_t2  # This allows residual variance on indicator X2 at T2 
+sc01_03_t2 ~~ res3*sc01_03_t2  # This allows residual variance on indicator X3 at T2
+sc01_04_t2 ~~ res4*sc01_04_t2  # This allows residual variance on indicator X4 at T2
+sc01_05_t2 ~~ res5*sc01_05_t2  # This allows residual variance on indicator X5 at T2
+sc01_06_t2 ~~ res6*sc01_06_t2  # This allows residual variance on indicator X6 at T2 
+sc01_07_t2 ~~ res7*sc01_07_t2  # This allows residual variance on indicator X7 at T2 
+sc01_08_t2 ~~ res8*sc01_08_t2  # This allows residual variance on indicator X8 at T2
+sc01_09_t2 ~~ res9*sc01_09_t2  # This allows residual variance on indicator X9 at T2
+sc01_10_t2 ~~ res10*sc01_10_t2 # This allows residual variance on indicator X10 at T2
+sc01_11_t2 ~~ res10*sc01_11_t2 # This allows residual variance on indicator X11 at T2
+sc01_12_t2 ~~ res10*sc01_12_t2 # This allows residual variance on indicator X12 at T2
+
+sc01_01_t1 ~ 0*1      # This constrains the intercept of X1 to 0 at T1
+sc01_02_t1 ~ m2*1     # This estimates the intercept of X2 at T1
+sc01_03_t1 ~ m3*1     # This estimates the intercept of X3 at T1
+sc01_04_t1 ~ m4*1     # This estimates the intercept of X4 at T1
+sc01_05_t1 ~ m5*1     # This estimates the intercept of X5 at T1
+sc01_06_t1 ~ m6*1     # This estimates the intercept of X6 at T1
+sc01_07_t1 ~ m7*1     # This estimates the intercept of X7 at T1
+sc01_08_t1 ~ m8*1     # This estimates the intercept of X8 at T1
+sc01_09_t1 ~ m9*1     # This estimates the intercept of X9 at T1
+sc01_10_t1 ~ m10*1    # This estimates the intercept of X10 at T1
+sc01_11_t1 ~ m11*1    # This estimates the intercept of X11 at T1
+sc01_12_t1 ~ m12*1    # This estimates the intercept of X12 at T1
+
+sc01_01_t2 ~ 0*1      # This constrains the intercept of X1 to 0 at T2
+sc01_02_t2 ~ m2*1     # This estimates the intercept of X2 at T2
+sc01_03_t2 ~ m3*1     # This estimates the intercept of X3 at T2
+sc01_04_t2 ~ m4*1     # This estimates the intercept of X4 at T2
+sc01_05_t2 ~ m5*1     # This estimates the intercept of X5 at T2
+sc01_06_t2 ~ m6*1     # This estimates the intercept of X6 at T2
+sc01_07_t2 ~ m7*1     # This estimates the intercept of X7 at T2
+sc01_08_t2 ~ m8*1     # This estimates the intercept of X8 at T2
+sc01_09_t2 ~ m9*1     # This estimates the intercept of X9 at T2
+sc01_10_t2 ~ m10*1    # This estimates the intercept of X10 at T2
+sc01_11_t2 ~ m11*1    # This estimates the intercept of X11 at T2
+sc01_12_t2 ~ m12*1    # This estimates the intercept of X12 at T2
+'
+fit_mi_lcs_concept_hyp2 <- lavaan(mi_lcs_concept_hyp2, data=df_sbsa_wide_wb, estimator='mlr', fixed.x=FALSE, missing='fiml')
+summary(fit_mi_lcs_concept_hyp2, fit.measures=TRUE, standardized=TRUE, rsquare=F)
+```
+
+Results summary:
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+
+# model fit
+kable(broom::glance(fit_mi_lcs_concept_hyp2) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+
+# parameters of interest
+kable(broom::tidy(fit_mi_lcs_concept_hyp2, conf.int = FALSE, conf.level = 0.95) %>% 
+        select(term, estimate, std.all, statistic, p.value) %>% 
+        filter(term %in% c("concept_t2 ~ concept_t1", "d_concept_1 =~ concept_t2", "d_concept_1 ~ concept_t1", # change parameters
+                           "d_concept_1 ~1 ", "concept_t1 ~1 ", "", # means
+                           "d_concept_1 ~~ d_concept_1")), digits = 3) # variances
+```
+
+::: {.callout-note appearance="minimal"}
+Self concept clarity improved significantly across time.
+:::
+
+### Hypothesis 3: Distance between ideal- and current-self over time {#hyp3}
+
+*The distance between ideal- and current-self will decrease in both groups.* 
+
+We will use two strategies to test this hypothesis. First, we will compute the Fisher z-transformed profile correlation between current- and ideal-self and test whether it increased across assessments. Second, we will test whether the squared difference between current- and ideal-self ratings for each Big Five trait decreased across assessments. We will test mean-level differences in profile correlations and squared differences between baseline and follow up using repeated-measures t-test.
+
+#### Profile similarity
+
+Reshape to wide:
+```{r}
+#| echo: true
+#| warning: false
+#| code-fold: true
+#| code-summary: "Show the code"
+
+# reshape to wide
+df_sbsa_wide_profdiff <- df_sbsa %>% 
+  arrange(pid, time) %>% 
+  select(pid, time, profile_corr_item_z, profile_corr_facet_z, ends_with("_sqdiff")) %>% 
+  pivot_wider(names_from = time,
+              names_sep = "_t",
+              values_from = -c(pid, time))
+```
+
+Checking assumptions
+```{r}
+#| echo: true
+# item-level profile correlation
+shapiro.test(df_sbsa_wide_profdiff$profile_corr_item_z_t2 - df_sbsa_wide_profdiff$profile_corr_item_z_t1) 
+lillie.test(df_sbsa_wide_profdiff$profile_corr_item_z_t2 - df_sbsa_wide_profdiff$profile_corr_item_z_t1)
+
+# descriptives
+psych::describe(df_sbsa_wide_profdiff$profile_corr_item_z_t1)
+psych::describe(df_sbsa_wide_profdiff$profile_corr_item_z_t2)
+
+# facet-level profile correlation
+shapiro.test(df_sbsa_wide_profdiff$profile_corr_facet_z_t2 - df_sbsa_wide_profdiff$profile_corr_facet_z_t1) 
+lillie.test(df_sbsa_wide_profdiff$profile_corr_facet_z_t2 - df_sbsa_wide_profdiff$profile_corr_facet_z_t1)
+
+# descriptives
+psych::describe(df_sbsa_wide_profdiff$profile_corr_facet_z_t1)
+psych::describe(df_sbsa_wide_profdiff$profile_corr_facet_z_t2)
+```
+
+Results summary:
+```{r}
+#| echo: true
+#| warning: false
+t_profile_corr_item <- t.test(df_sbsa_wide_profdiff$profile_corr_item_z_t2, df_sbsa_wide_profdiff$profile_corr_item_z_t1, paired = TRUE)
+t_profile_corr_facet <- t.test(df_sbsa_wide_profdiff$profile_corr_facet_z_t2, df_sbsa_wide_profdiff$profile_corr_facet_z_t1, paired = TRUE)
+
+kable(bind_rows(tidy(t_profile_corr_item), tidy(t_profile_corr_facet)) %>% mutate(outcome = c("Item-level profile corr.", "Facet-level profile corr.")) %>% select(outcome, everything()), digits = 3)
+
+# effect sizes
+d_profile_corr_item <- psych::cohen.d(profile_corr_item_z ~ time, data = df_sbsa)
+d_profile_corr_item$cohen.d
+d_profile_corr_facet <- psych::cohen.d(profile_corr_facet_z ~ time, data = df_sbsa)
+d_profile_corr_facet$cohen.d
+```
+
+Plot 
+```{r}
+#| echo: true
+#| warning: false
+#| fig-width: 9.5
+#| fig-height: 6.5
+profile_df_plot <- df_sbsa %>% select(pid, time, profile_corr_item_z, profile_corr_facet_z) %>% 
+  pivot_longer(-c(pid, time), names_to = "itemfacet", values_to = "corr") %>% 
+  mutate(itemfacet2 = fct_recode(itemfacet, "Item-level" = "profile_corr_item_z", "Facet-level" = "profile_corr_facet_z"),
+         itemfacet2 = fct_reorder(itemfacet2, corr, .desc = F))
+
+ggplot(profile_df_plot) + 
+  aes(x = as.factor(time), y = corr) + 
+  geom_boxplot() + 
+  geom_violin(fill = NA) +
+  facet_wrap(vars(itemfacet2)) +
+  labs(x = "Measurement Occasion", y = "Profile correlation", 
+       title = "Hypothesis 3: Distance between ideal- and current-self") + 
+  theme_bw()
+```
+
+::: {.callout-note appearance="minimal"}
+Significantly higher profile correlations at the second measurement occasion, both for the item-level profile correlation and the facet-level profile correlations.
+:::
+
+#### Individual traits: squared differences
+
+Checking assumptions
+```{r}
+#| echo: true
+
+# extra
+shapiro.test(df_sbsa_wide_profdiff$extra_sqdiff_t2 - df_sbsa_wide_profdiff$extra_sqdiff_t1) 
+lillie.test(df_sbsa_wide_profdiff$extra_sqdiff_t2 - df_sbsa_wide_profdiff$extra_sqdiff_t1)
+# descriptives
+psych::describe(df_sbsa_wide_profdiff$extra_sqdiff_t1)
+psych::describe(df_sbsa_wide_profdiff$extra_sqdiff_t2)
+
+# agree
+shapiro.test(df_sbsa_wide_profdiff$agree_sqdiff_t2 - df_sbsa_wide_profdiff$agree_sqdiff_t1) 
+lillie.test(df_sbsa_wide_profdiff$agree_sqdiff_t2 - df_sbsa_wide_profdiff$agree_sqdiff_t1)
+# descriptives
+psych::describe(df_sbsa_wide_profdiff$agree_sqdiff_t1)
+psych::describe(df_sbsa_wide_profdiff$agree_sqdiff_t2)
+
+# consc
+shapiro.test(df_sbsa_wide_profdiff$consc_sqdiff_t2 - df_sbsa_wide_profdiff$consc_sqdiff_t1) 
+lillie.test(df_sbsa_wide_profdiff$consc_sqdiff_t2 - df_sbsa_wide_profdiff$consc_sqdiff_t1)
+# descriptives
+psych::describe(df_sbsa_wide_profdiff$consc_sqdiff_t1)
+psych::describe(df_sbsa_wide_profdiff$consc_sqdiff_t2)
+
+# neuro
+shapiro.test(df_sbsa_wide_profdiff$neuro_sqdiff_t2 - df_sbsa_wide_profdiff$neuro_sqdiff_t1) 
+lillie.test(df_sbsa_wide_profdiff$neuro_sqdiff_t2 - df_sbsa_wide_profdiff$neuro_sqdiff_t1)
+# descriptives
+psych::describe(df_sbsa_wide_profdiff$neuro_sqdiff_t1)
+psych::describe(df_sbsa_wide_profdiff$neuro_sqdiff_t2)
+
+# openn
+shapiro.test(df_sbsa_wide_profdiff$openn_sqdiff_t2 - df_sbsa_wide_profdiff$openn_sqdiff_t1) 
+lillie.test(df_sbsa_wide_profdiff$openn_sqdiff_t2 - df_sbsa_wide_profdiff$openn_sqdiff_t1)
+# descriptives
+psych::describe(df_sbsa_wide_profdiff$openn_sqdiff_t1)
+psych::describe(df_sbsa_wide_profdiff$openn_sqdiff_t2)
+```
+
+Results summary:
+```{r}
+#| echo: true
+#| warning: false
+mod_traits_sqdiff <- df_sbsa_wide_profdiff %>% 
+  select(-starts_with("profile")) %>% 
+  pivot_longer(-c(pid), 
+               names_to = c("test", "time"), values_to = "score", 
+               names_pattern = "(.*)_(t1|t2)") %>% 
+  filter(!is.na(score)) %>% 
+  group_by(pid, test) %>% 
+  mutate(assessments = n()) %>% 
+  ungroup() %>% 
+  filter(assessments==2) %>% 
+  select(-assessments) %>% 
+  group_nest(test) %>% 
+  mutate(t_tests = map(data, ~t.test(score ~ time, data = .x, paired = TRUE))) %>% 
+  pull(t_tests) %>% 
+  purrr::set_names(names(b5_vars))
+
+mod_traits_unlist <- mod_traits_sqdiff[[1]] %>% tidy()
+for (i in 2:length(mod_traits_sqdiff)) {
+  mod_traits_unlist <- bind_rows(mod_traits_unlist, mod_traits_sqdiff[[i]] %>% tidy())
+}
+
+kable(mod_traits_unlist %>% mutate(outcome = names(b5_vars)) %>% select(outcome, everything()), digits = 3)
+
+# effect sizes
+cohend_cust = function(outcome, df) {
+  form = as.formula(paste0(outcome, " ~ time"))
+  psych::cohen.d(form, data = df)
+}
+
+d_trait <- cohend_cust(paste0(str_trunc(names(b5_vars)[1], 5, ellipsis = ""), "_sqdiff"), df_sbsa)
+d_traits_unlist <- as_tibble(d_trait$cohen.d)
+for (i in 2:length(names(b5_vars))) {
+  d_trait <- cohend_cust(paste0(str_trunc(names(b5_vars)[i], 5, ellipsis = ""), "_sqdiff"), df_sbsa)
+  d_traits_unlist <- bind_rows(d_traits_unlist, as_tibble(d_trait$cohen.d))
+}
+kable(d_traits_unlist %>% mutate(outcome = names(b5_vars)) %>% select(outcome, everything()), digits = 3)
+```
+
+::: {.callout-note appearance="minimal"}
+Significantly lower squared mean-level differences at the second measurement occasion, both for the Big Five traits and the 15 BFI-2 facets.
+:::
+
+Plot (traits/facets sorted by average size of squared differences)
+```{r}
+#| echo: true
+#| warning: false
+#| fig-width: 9.5
+#| fig-height: 4.5
+sqdiff_df_plot <- df_sbsa %>% 
+  select(pid, time, all_of(paste0(str_trunc(names(b5_vars), 5, ellipsis = ""), "_sqdiff"))) %>% 
+  pivot_longer(-c(pid, time), names_to = "trait", values_to = "sqdiff") %>% 
+  group_by(trait) %>% 
+  mutate(cur_group_id()) %>% 
+  ungroup() %>% 
+  mutate(trait2 = fct_recode(trait, !!! setNames(paste0(str_trunc(names(b5_vars), 5, ellipsis = ""), "_sqdiff"),
+                                                 str_to_title(names(b5_vars)))),
+         trait2 = fct_reorder(trait2, sqdiff, .desc = T))
+
+plot_sqdiff <- ggplot(sqdiff_df_plot) + 
+  aes(x = as.factor(time), y = sqdiff) + 
+  geom_boxplot() + 
+  geom_violin(fill = NA) +
+  ggforce::facet_wrap_paginate(~trait2, ncol=3, nrow=2) +
+  labs(x = "Measurement Occasion", y = "Squared difference") + 
+  theme_bw()
+
+plot_sqdiff + ggforce::facet_wrap_paginate(~trait2, ncol=4, nrow=1, page = 1)
+plot_sqdiff + ggforce::facet_wrap_paginate(~trait2, ncol=4, nrow=1, page = 2)
+plot_sqdiff + ggforce::facet_wrap_paginate(~trait2, ncol=4, nrow=1, page = 3)
+plot_sqdiff + ggforce::facet_wrap_paginate(~trait2, ncol=4, nrow=1, page = 4)
+plot_sqdiff + ggforce::facet_wrap_paginate(~trait2, ncol=4, nrow=1, page = 5)
+```
+
+::: {.callout-note appearance="minimal"}
+For some of the facets, the distribution look very similar and differences over time are perhaps driven by a few outliers.
+:::
 
 
 <!--
