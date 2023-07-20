@@ -245,7 +245,7 @@ bfi_versions <- list("bf01", "bf02", "bf03", "bf04",
 names(bfi_versions) <- c("pre_curr", "pre_ideal", "post_curr", "post_ideal",
                          "comb_curr", "comb_ideal") # last 2 are created below
 
-# create combined variables across the two assessments (but separate for current / ideal)
+# create combined variables across the two assessments (but separate for current "05" / ideal "06")
 all_bfi_items = paste0("_", str_pad(1:60, 2, pad = "0"))
 
 for (i in 1:length(all_bfi_items)) {
