@@ -853,3 +853,104 @@ kable(broom::tidy(fit_mi_lcs_openn_ideal_hyp4, conf.int = FALSE, conf.level = 0.
                            "d_openn_1 ~1 ", "openn_t1 ~1 ", "", # means
                            "d_openn_1 ~~ d_openn_1")), digits = 3)
 
+
+
+
+model <- '
+openn_t1 =~ 1*bf06_05_t1 + lamb2*bf06_10_t1 + lamb3*bf06_15_t1 + lamb4*bf06_20_t1 + lamb5*bf06_25_t1 + lamb6*bf06_30_t1 + lamb7*bf06_35_t1 + lamb8*bf06_40_t1 + lamb9*bf06_45_t1 + lamb10*bf06_50_t1 + lamb11*bf06_55_t1 + lamb12*bf06_60_t1 # This specifies the measurement model for extra_t1 
+openn_t2 =~ 1*bf06_05_t2 + lamb2*bf06_10_t2 + lamb3*bf06_15_t2 + lamb4*bf06_20_t2 + lamb5*bf06_25_t2 + lamb6*bf06_30_t2 + lamb7*bf06_35_t2 + lamb8*bf06_40_t2 + lamb9*bf06_45_t2 + lamb10*bf06_50_t2 + lamb11*bf06_55_t2 + lamb12*bf06_60_t2 # This specifies the measurement model for extra_t2 with the equality constrained factor loadings
+
+frequ =~ 1*sa04_01_t2 + sa04_02_t2 + sa04_03_t2 # latent variable for moderator
+
+openn_t2 ~ 1*openn_t1     # This parameter regresses openn_t2 perfectly on openn_t1
+d_openn_1 =~ 1*openn_t2   # This defines the latent change score factor as measured perfectly by scores on openn_t2
+openn_t2 ~ 0*1            # This line constrains the intercept of openn_t2 to 0
+openn_t2 ~~ 0*openn_t2    # This fixes the variance of openn_t2 to 0
+
+d_openn_1 ~ 1              # This estimates the intercept of the change score 
+openn_t1 ~ 1               # This estimates the intercept of openn_t1 
+d_openn_1 ~~ d_openn_1     # This estimates the variance of the change scores 
+openn_t1 ~~ openn_t1         # This estimates the variance of openn_t1 
+openn_t1 ~ frequ               # This estimates the moderation effect on personality at T1
+d_openn_1 ~ openn_t1 + frequ   # This estimates the self-feedback parameter and the moderation effect on the change score
+
+frequ ~ 0*1          # This fixes the intercept of the moderator to 0
+frequ ~~ frequ         # This estimates the variance of the moderator
+
+bf06_05_t1 ~~ bf06_05_t2   # This allows residual covariance on indicator X1 across T1 and T2
+bf06_10_t1 ~~ bf06_10_t2   # This allows residual covariance on indicator X2 across T1 and T2
+bf06_15_t1 ~~ bf06_15_t2   # This allows residual covariance on indicator X3 across T1 and T2
+bf06_20_t1 ~~ bf06_20_t2   # This allows residual covariance on indicator X4 across T1 and T2
+bf06_25_t1 ~~ bf06_25_t2   # This allows residual covariance on indicator X5 across T1 and T2
+bf06_30_t1 ~~ bf06_30_t2   # This allows residual covariance on indicator X6 across T1 and T2
+bf06_35_t1 ~~ bf06_35_t2   # This allows residual covariance on indicator X7 across T1 and T2
+bf06_40_t1 ~~ bf06_40_t2   # This allows residual covariance on indicator X8 across T1 and T2
+bf06_45_t1 ~~ bf06_45_t2   # This allows residual covariance on indicator X9 across T1 and T2
+bf06_50_t1 ~~ bf06_50_t2   # This allows residual covariance on indicator X10 across T1 and T2
+bf06_55_t1 ~~ bf06_55_t2   # This allows residual covariance on indicator X11 across T1 and T2
+bf06_60_t1 ~~ bf06_60_t2   # This allows residual covariance on indicator X12 across T1 and T2
+
+bf06_05_t1 ~~ res1*bf06_05_t1   # This allows residual variance on indicator X1 at T1 
+bf06_10_t1 ~~ res2*bf06_10_t1   # This allows residual variance on indicator X2 at T1
+bf06_15_t1 ~~ res3*bf06_15_t1   # This allows residual variance on indicator X3 at T1
+bf06_20_t1 ~~ res4*bf06_20_t1   # This allows residual variance on indicator X4 at T1
+bf06_25_t1 ~~ res5*bf06_25_t1   # This allows residual variance on indicator X5 at T1
+bf06_30_t1 ~~ res6*bf06_30_t1   # This allows residual variance on indicator X6 at T1 
+bf06_35_t1 ~~ res7*bf06_35_t1   # This allows residual variance on indicator X7 at T1
+bf06_40_t1 ~~ res8*bf06_40_t1   # This allows residual variance on indicator X8 at T1
+bf06_45_t1 ~~ res9*bf06_45_t1   # This allows residual variance on indicator X9 at T1
+bf06_50_t1 ~~ res10*bf06_50_t1  # This allows residual variance on indicator X10 at T1
+bf06_55_t1 ~~ res11*bf06_55_t1  # This allows residual variance on indicator X11 at T1
+bf06_60_t1 ~~ res12*bf06_60_t1  # This allows residual variance on indicator X12 at T1
+
+bf06_05_t2 ~~ res1*bf06_05_t2  # This allows residual variance on indicator X1 at T2 
+bf06_10_t2 ~~ res2*bf06_10_t2  # This allows residual variance on indicator X2 at T2 
+bf06_15_t2 ~~ res3*bf06_15_t2  # This allows residual variance on indicator X3 at T2
+bf06_20_t2 ~~ res4*bf06_20_t2  # This allows residual variance on indicator X4 at T2
+bf06_25_t2 ~~ res5*bf06_25_t2  # This allows residual variance on indicator X5 at T2
+bf06_30_t2 ~~ res6*bf06_30_t2  # This allows residual variance on indicator X6 at T2 
+bf06_35_t2 ~~ res7*bf06_35_t2  # This allows residual variance on indicator X7 at T2 
+bf06_40_t2 ~~ res8*bf06_40_t2  # This allows residual variance on indicator X8 at T2
+bf06_45_t2 ~~ res9*bf06_45_t2  # This allows residual variance on indicator X9 at T2
+bf06_50_t2 ~~ res10*bf06_50_t2 # This allows residual variance on indicator X10 at T2
+bf06_55_t2 ~~ res11*bf06_55_t2 # This allows residual variance on indicator X11 at T2
+bf06_60_t2 ~~ res12*bf06_60_t2 # This allows residual variance on indicator X12 at T2
+
+bf06_05_t1 ~ 0*1      # This constrains the intercept of X1 to 0 at T1
+bf06_10_t1 ~ m2*1     # This estimates the intercept of X2 at T1
+bf06_15_t1 ~ m3*1     # This estimates the intercept of X3 at T1
+bf06_20_t1 ~ m4*1     # This estimates the intercept of X4 at T1
+bf06_25_t1 ~ m5*1     # This estimates the intercept of X5 at T1
+bf06_30_t1 ~ m6*1     # This estimates the intercept of X6 at T1
+bf06_35_t1 ~ m7*1     # This estimates the intercept of X7 at T1
+bf06_40_t1 ~ m8*1     # This estimates the intercept of X8 at T1
+bf06_45_t1 ~ m9*1     # This estimates the intercept of X9 at T1
+bf06_50_t1 ~ m10*1    # This estimates the intercept of X10 at T1
+bf06_55_t1 ~ m11*1    # This estimates the intercept of X11 at T1
+bf06_60_t1 ~ m12*1    # This estimates the intercept of X12 at T1
+
+bf06_05_t2 ~ 0*1      # This constrains the intercept of X1 to 0 at T2
+bf06_10_t2 ~ m2*1     # This estimates the intercept of X2 at T2
+bf06_15_t2 ~ m3*1     # This estimates the intercept of X3 at T2
+bf06_20_t2 ~ m4*1     # This estimates the intercept of X4 at T2
+bf06_25_t2 ~ m5*1     # This estimates the intercept of X5 at T2
+bf06_30_t2 ~ m6*1     # This estimates the intercept of X6 at T2
+bf06_35_t2 ~ m7*1     # This estimates the intercept of X7 at T2
+bf06_40_t2 ~ m8*1     # This estimates the intercept of X8 at T2
+bf06_45_t2 ~ m9*1     # This estimates the intercept of X9 at T2
+bf06_50_t2 ~ m10*1    # This estimates the intercept of X10 at T2
+bf06_55_t2 ~ m11*1    # This estimates the intercept of X11 at T2
+bf06_60_t2 ~ m12*1    # This estimates the intercept of X12 at T2
+
+sa04_01_t2 ~~ sa04_01_t2
+sa04_02_t2 ~~ sa04_02_t2
+sa04_03_t2 ~~ sa04_03_t2
+
+sa04_01_t2 ~ 1
+sa04_02_t2 ~ 1
+sa04_03_t2 ~ 1
+'
+
+model_fit <- lavaan(model, data=df_sbsa_wide_pers_sa_mod, estimator='mlr', fixed.x=FALSE, missing='fiml')
+summary(model_fit, fit.measures=TRUE, standardized=TRUE, rsquare=F)
+
