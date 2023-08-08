@@ -11,6 +11,7 @@ library(GPArotation)
 #install_github("cran/multicon") # not on CRAN atm
 library(multicon)
 library(correlation)
+library(careless)
 
 ### Package / dependency version management with 'renv'
 # only ran this to initialize 'renv'
@@ -78,22 +79,219 @@ df_sbsa <- df_sbsa %>%
 
 df_sbsa %>% select(case, dm01_01, questnnr, time, rando) %>% print(n=50)
 
-#### checks for careless responding ####
-
-# longstring 
-
-# semantic differential 
-
-# mahalanobis distance
-
-# how many missings in BF
-
-# completion times
-
-#### inspect / recode variables ####
-
 # generate running ID
 df_sbsa <- df_sbsa %>% group_by(dm01_01) %>% mutate(pid = cur_group_id()) %>% ungroup()
+
+#### checks for careless responding ####
+
+##### longstring #####
+
+# 10 item Meaning in Life Questionnaire 
+longstr_meaning <- careless::longstring(df_sbsa %>% select(starts_with("ml01")))
+#boxplot(longstr_meaning, main = "Boxplot of Longstring index")
+table(longstr_meaning)
+longstr_meaning_score <- df_sbsa[which(longstr_meaning > 7), c("pid")]
+longstr_meaning_score$longstr_meaning_flag <- 1
+longstr_meaning_score <- longstr_meaning_score %>% group_by(pid) %>% summarise(longstr_meaning_flag = n())
+  
+# 10 item Rosenberg Self-Esteem Scale
+longstr_selfest <- careless::longstring(df_sbsa %>% select(starts_with("rs01")))
+#boxplot(longstr_selfest, main = "Boxplot of Longstring index")
+table(longstr_selfest)
+longstr_selfest_score <- df_sbsa[which(longstr_selfest > 7), c("pid")]
+longstr_selfest_score$longstr_selfest_flag <- 1
+longstr_selfest_score <- longstr_selfest_score %>% group_by(pid) %>% summarise(longstr_selfest_flag = n())
+
+# 12 item Self Concept Clarity Scale
+longstr_concept <- careless::longstring(df_sbsa %>% select(starts_with("sc01")))
+#boxplot(longstr_concept, main = "Boxplot of Longstring index")
+summary(longstr_concept)
+longstr_concept_score <- df_sbsa[which(longstr_concept > 8), c("pid")]
+longstr_concept_score$longstr_concept_flag <- 1
+longstr_concept_score <- longstr_concept_score %>% group_by(pid) %>% summarise(longstr_concept_flag = n())
+
+# 60 item BFI-2, but in different sections
+longstr_bficurrpre <- df_sbsa %>% filter(time==1) %>% select(pid, starts_with("bf01")) %>% 
+  mutate(longstr_bficurrpre = careless::longstring(.)) 
+summary(longstr_bficurrpre$longstr_bficurrpre)
+table(longstr_bficurrpre$longstr_bficurrpre)
+longstr_bficurrpre_score <- longstr_bficurrpre %>% 
+  filter(longstr_bficurrpre > 7) %>% mutate(longstr_bficurrpre_flag = 1) %>% select(pid, longstr_bficurrpre_flag)
+
+longstr_bfiidealpre <- df_sbsa %>% filter(time==1) %>% select(pid, starts_with("bf02")) %>% 
+  mutate(longstr_bfiidealpre = careless::longstring(.)) 
+summary(longstr_bfiidealpre$longstr_bfiidealpre)
+table(longstr_bfiidealpre$longstr_bfiidealpre)
+longstr_bfiidealpre_score <- longstr_bfiidealpre %>% 
+  filter(longstr_bfiidealpre > 7) %>% mutate(longstr_bfiidealpre_flag = 1) %>% select(pid, longstr_bfiidealpre_flag)
+
+longstr_bficurrpost <- df_sbsa %>% filter(time==2) %>% select(pid, starts_with("bf03")) %>% 
+  mutate(longstr_bficurrpost = careless::longstring(.)) 
+summary(longstr_bficurrpost$longstr_bficurrpost)
+table(longstr_bficurrpost$longstr_bficurrpost)
+longstr_bficurrpost_score <- longstr_bficurrpost %>% 
+  filter(longstr_bficurrpost > 7) %>% mutate(longstr_bficurrpost_flag = 1) %>% select(pid, longstr_bficurrpost_flag)
+
+longstr_bfiidealpost <- df_sbsa %>% filter(time==2) %>% select(pid, starts_with("bf04")) %>% 
+  mutate(longstr_bfiidealpost = careless::longstring(.)) 
+summary(longstr_bfiidealpost$longstr_bfiidealpost)
+table(longstr_bfiidealpost$longstr_bfiidealpost)
+longstr_bfiidealpost_score <- longstr_bfiidealpost %>% 
+  filter(longstr_bfiidealpost > 7) %>% mutate(longstr_bfiidealpost_flag = 1) %>% select(pid, longstr_bfiidealpost_flag)
+
+# 15 BFI facets - pre - skill building
+longstr_facetscurrpre <- df_sbsa %>% filter(time==1 & rando=="Skill-Building") %>% select(pid, starts_with("sb07")) %>% 
+  mutate(longstr_facetscurrpre = careless::longstring(.)) 
+summary(longstr_facetscurrpre$longstr_facetscurrpre)
+table(longstr_facetscurrpre$longstr_facetscurrpre)
+longstr_facetscurrpre_score <- longstr_facetscurrpre %>% 
+  filter(longstr_facetscurrpre > 7) %>% mutate(longstr_facetscurrpre_flag = 1) %>% select(pid, longstr_facetscurrpre_flag)
+
+longstr_facetsidealpre <- df_sbsa %>% filter(time==1 & rando=="Self-Acceptance") %>% select(pid, starts_with("sa07")) %>% 
+  mutate(longstr_facetsidealpre = careless::longstring(.)) 
+summary(longstr_facetsidealpre$longstr_facetsidealpre)
+table(longstr_facetsidealpre$longstr_facetsidealpre)
+longstr_facetsidealpre_score <- longstr_facetsidealpre %>% 
+  filter(longstr_facetsidealpre > 7) %>% mutate(longstr_facetsidealpre_flag = 1) %>% select(pid, longstr_facetsidealpre_flag)
+
+longstr_facetscurrpost <- df_sbsa %>% filter(time==2 & rando=="Skill-Building") %>% select(pid, starts_with("sb12")) %>% 
+  mutate(longstr_facetscurrpost = careless::longstring(.)) 
+summary(longstr_facetscurrpost$longstr_facetscurrpost)
+table(longstr_facetscurrpost$longstr_facetscurrpost)
+longstr_facetscurrpost_score <- longstr_facetscurrpost %>% 
+  filter(longstr_facetscurrpost > 9) %>% mutate(longstr_facetscurrpost_flag = 1) %>% select(pid, longstr_facetscurrpost_flag)
+
+longstr_facetsidealpost <- df_sbsa %>% filter(time==2 & rando=="Self-Acceptance") %>% select(pid, starts_with("sa14")) %>% 
+  mutate(longstr_facetsidealpost = careless::longstring(.)) 
+summary(longstr_facetsidealpost$longstr_facetsidealpost)
+table(longstr_facetsidealpost$longstr_facetsidealpost)
+longstr_facetsidealpost_score <- longstr_facetsidealpost %>% 
+  filter(longstr_facetsidealpost > 9) %>% mutate(longstr_facetsidealpost_flag = 1) %>% select(pid, longstr_facetsidealpost_flag)
+
+longstr_scores <- full_join(longstr_meaning_score, longstr_selfest_score) %>% 
+  full_join(longstr_concept_score) %>% 
+  full_join(longstr_bficurrpre_score) %>% full_join(longstr_bfiidealpre_score) %>% 
+  full_join(longstr_bficurrpost_score) %>% full_join(longstr_bfiidealpost_score) %>% 
+  full_join(longstr_facetscurrpre_score) %>% full_join(longstr_facetsidealpre_score) %>% 
+  full_join(longstr_facetscurrpost_score) %>% full_join(longstr_facetsidealpost_score) %>% 
+  mutate(longstr_flag_sum = rowSums(across(ends_with("_flag")), na.rm=T))
+
+##### mahalanobis distance ##### 
+
+# 10 item Meaning in Life Questionnaire 
+mahad_meaning <- careless::mahad(df_sbsa %>% select(starts_with("ml01")), plot = FALSE)
+summary(mahad_meaning)
+mahad_meaning_score <- df_sbsa[which(mahad_meaning > mean(mahad_meaning, na.rm=T)+3*sd(mahad_meaning, na.rm=T)), c("pid")]
+mahad_meaning_score$mahad_meaning_flag <- 1
+mahad_meaning_score <- mahad_meaning_score %>% group_by(pid) %>% summarise(mahad_meaning_flag = n())
+
+# 10 item Rosenberg Self-Esteem Scale
+mahad_selfest <- careless::mahad(df_sbsa %>% select(starts_with("rs01")), plot = FALSE)
+summary(mahad_selfest)
+mahad_selfest_score <- df_sbsa[which(mahad_selfest > mean(mahad_selfest, na.rm=T)+3*sd(mahad_selfest, na.rm=T)), c("pid")]
+mahad_selfest_score$mahad_selfest_flag <- 1
+mahad_selfest_score <- mahad_selfest_score %>% group_by(pid) %>% summarise(mahad_selfest_flag = n())
+
+# 12 item Self Concept Clarity Scale
+mahad_concept <- careless::mahad(df_sbsa %>% select(starts_with("sc01")), plot = FALSE)
+summary(mahad_concept)
+mahad_concept_score <- df_sbsa[which(mahad_concept > mean(mahad_concept, na.rm=T)+3*sd(mahad_concept, na.rm=T)), c("pid")]
+mahad_concept_score$mahad_concept_flag <- 1
+mahad_concept_score <- mahad_concept_score %>% group_by(pid) %>% summarise(mahad_concept_flag = n())
+
+# 60 item BFI-2, but in different sections
+mahad_bficurrpre <- df_sbsa %>% filter(time==1) %>% select(pid, starts_with("bf01")) %>% 
+  mutate(mahad_bficurrpre = careless::mahad(., plot = FALSE)) 
+summary(mahad_bficurrpre$mahad_bficurrpre)
+mahad_bficurrpre_score <- mahad_bficurrpre %>% 
+  filter(mahad_bficurrpre > mean(mahad_bficurrpre, na.rm=T)+3*sd(mahad_bficurrpre, na.rm=T)) %>% 
+  mutate(mahad_bficurrpre_flag = 1) %>% select(pid, mahad_bficurrpre_flag)
+
+mahad_bfiidealpre <- df_sbsa %>% filter(time==1) %>% select(pid, starts_with("bf02")) %>% 
+  mutate(mahad_bfiidealpre = careless::mahad(., plot = FALSE)) 
+summary(mahad_bfiidealpre$mahad_bfiidealpre)
+mahad_bfiidealpre_score <- mahad_bfiidealpre %>% 
+  filter(mahad_bfiidealpre > mean(mahad_bfiidealpre, na.rm=T)+3*sd(mahad_bfiidealpre, na.rm=T)) %>% 
+  mutate(mahad_bfiidealpre_flag = 1) %>% select(pid, mahad_bfiidealpre_flag)
+
+mahad_bficurrpost <- df_sbsa %>% filter(time==2) %>% select(pid, starts_with("bf03")) %>% 
+  mutate(mahad_bficurrpost = careless::mahad(., plot = FALSE)) 
+summary(mahad_bficurrpost$mahad_bficurrpost)
+mahad_bficurrpost_score <- mahad_bficurrpost %>% 
+  filter(mahad_bficurrpost > mean(mahad_bficurrpost, na.rm=T)+3*sd(mahad_bficurrpost, na.rm=T)) %>% 
+  mutate(mahad_bficurrpost_flag = 1) %>% select(pid, mahad_bficurrpost_flag)
+
+mahad_bfiidealpost <- df_sbsa %>% filter(time==2) %>% select(pid, starts_with("bf04")) %>% 
+  mutate(mahad_bfiidealpost = careless::mahad(., plot = FALSE)) 
+summary(mahad_bfiidealpost$mahad_bfiidealpost)
+mahad_bfiidealpost_score <- mahad_bfiidealpost %>% 
+  filter(mahad_bfiidealpost > mean(mahad_bfiidealpost, na.rm=T)+3*sd(mahad_bfiidealpost, na.rm=T)) %>% 
+  mutate(mahad_bfiidealpost_flag = 1) %>% select(pid, mahad_bfiidealpost_flag)
+
+# 15 BFI facets - pre - skill building
+mahad_facetscurrpre <- df_sbsa %>% filter(time==1 & rando=="Skill-Building") %>% select(pid, starts_with("sb07")) %>% 
+  mutate(mahad_facetscurrpre = careless::mahad(., plot = FALSE)) 
+summary(mahad_facetscurrpre$mahad_facetscurrpre)
+mahad_facetscurrpre_score <- mahad_facetscurrpre %>% 
+  filter(mahad_facetscurrpre > mean(mahad_facetscurrpre, na.rm=T)+3*sd(mahad_facetscurrpre, na.rm=T)) %>% 
+  mutate(mahad_facetscurrpre_flag = 1) %>% select(pid, mahad_facetscurrpre_flag)
+
+mahad_facetsidealpre <- df_sbsa %>% filter(time==1 & rando=="Self-Acceptance") %>% select(pid, starts_with("sa07")) %>% 
+  mutate(mahad_facetsidealpre = careless::mahad(., plot = FALSE)) 
+summary(mahad_facetsidealpre$mahad_facetsidealpre)
+mahad_facetsidealpre_score <- mahad_facetsidealpre %>% 
+  filter(mahad_facetsidealpre > mean(mahad_facetsidealpre, na.rm=T)+3*sd(mahad_facetsidealpre, na.rm=T)) %>% 
+  mutate(mahad_facetsidealpre_flag = 1) %>% select(pid, mahad_facetsidealpre_flag)
+
+mahad_facetscurrpost <- df_sbsa %>% filter(time==2 & rando=="Skill-Building") %>% select(pid, starts_with("sb12")) %>% 
+  mutate(mahad_facetscurrpost = careless::mahad(., plot = FALSE)) 
+summary(mahad_facetscurrpost$mahad_facetscurrpost)
+mahad_facetscurrpost_score <- mahad_facetscurrpost %>% 
+  filter(mahad_facetscurrpost > mean(mahad_facetscurrpost, na.rm=T)+3*sd(mahad_facetscurrpost, na.rm=T)) %>% 
+  mutate(mahad_facetscurrpost_flag = 1) %>% select(pid, mahad_facetscurrpost_flag)
+
+mahad_facetsidealpost <- df_sbsa %>% filter(time==2 & rando=="Self-Acceptance") %>% select(pid, starts_with("sa14")) %>% 
+  mutate(mahad_facetsidealpost = careless::mahad(., plot = FALSE)) 
+summary(mahad_facetsidealpost$mahad_facetsidealpost)
+mahad_facetsidealpost_score <- mahad_facetsidealpost %>% 
+  filter(mahad_facetsidealpost > mean(mahad_facetsidealpost, na.rm=T)+3*sd(mahad_facetsidealpost, na.rm=T)) %>% 
+  mutate(mahad_facetsidealpost_flag = 1) %>% select(pid, mahad_facetsidealpost_flag)
+
+mahad_scores <- full_join(mahad_meaning_score, mahad_selfest_score) %>% 
+  full_join(mahad_concept_score) %>% 
+  full_join(mahad_bficurrpre_score) %>% full_join(mahad_bfiidealpre_score) %>% 
+  full_join(mahad_bficurrpost_score) %>% full_join(mahad_bfiidealpost_score) %>% 
+  full_join(mahad_facetscurrpre_score) %>% full_join(mahad_facetsidealpre_score) %>% 
+  full_join(mahad_facetscurrpost_score) %>% full_join(mahad_facetsidealpost_score) %>% 
+  mutate(mahad_flag_sum = rowSums(across(ends_with("_flag")), na.rm=T))
+
+##### completion times ##### 
+summary(df_sbsa$time_sum)
+hist(df_sbsa$time_sum)
+
+summary(df_sbsa$missing)
+hist(df_sbsa$missing)
+
+##### exclude based on these criteria ##### 
+
+longstr_scores %>% filter(longstr_flag_sum>3) %>% arrange(pid) %>% pull(pid) # with >2 it would be too many cases...
+
+df_sbsa <- df_sbsa %>% # 5 excluded
+  filter(!pid %in% (longstr_scores %>% filter(longstr_flag_sum>3) %>% pull(pid)))
+  
+mahad_scores %>% filter(mahad_flag_sum>2) %>% arrange(pid) %>% pull(pid) # I don't think these are necessarily suspicious
+
+df_sbsa %>% filter(time_sum < 300) %>% arrange(pid) %>% pull(pid)
+
+df_sbsa <- df_sbsa %>% # 11 excluded
+  filter(time_sum > 301)
+
+df_sbsa %>% filter(missing > 10) %>% arrange(pid) %>% pull(pid) # too many missings -> can be dropped
+
+df_sbsa <- df_sbsa %>% # 1 excluded
+  filter(missing < 10)
+
+#### inspect / recode variables ####
 
 # 5 item Satisfaction with Life Scale (Diener et al. 1985) 
 df_sbsa %>% select(starts_with("sw06"))

@@ -953,4 +953,228 @@ sa04_03_t2 ~ 1
 
 model_fit <- lavaan(model, data=df_sbsa_wide_pers_sa_mod, estimator='mlr', fixed.x=FALSE, missing='fiml')
 summary(model_fit, fit.measures=TRUE, standardized=TRUE, rsquare=F)
+# does not converge...
+
+mod_traits_sqdiff_groups <- df_sbsa %>% 
+  select(pid, time, rando, ends_with("_sqdiff")) %>% 
+  pivot_longer(ends_with("_sqdiff"), 
+               names_to = "test", names_prefix = "facet", values_to = "score", values_drop_na = TRUE) %>% 
+  group_by(pid, test) %>% 
+  mutate(assessments = n()) %>% 
+  ungroup() %>% 
+  filter(assessments==2) %>% 
+  select(-assessments) %>% 
+  group_nest(test) %>% 
+  mutate(lmer_mods = map(data, ~lmerTest::lmer(score ~ time * rando + (1 | pid), data = .x))) %>% 
+  pull(lmer_mods) %>% 
+  purrr::set_names(names(b5_vars))
+
+mod_traits_sqdiff_groups_unlist <- as.data.frame(summary(mod_traits_sqdiff_groups[[1]])$coefficients) %>% as_tibble()
+for (i in 2:length(mod_traits_sqdiff_groups)) {
+  mod_traits_sqdiff_groups_unlist <- bind_rows(mod_traits_sqdiff_groups_unlist, 
+                                               as.data.frame(summary(mod_traits_sqdiff_groups[[i]])$coefficients) %>% as_tibble())
+}
+
+kable(mod_traits_sqdiff_groups_unlist %>% 
+        mutate(outcome = rep(names(b5_vars), each=4), 
+               term = c(rep(c("Intercept", "time", "group", "time*group"), 20))) %>% 
+        select(outcome, term, everything()) %>% rename(p = `Pr(>|t|)`), 
+      digits = 3)
+
+
+# item parcels -> meaning in life scale
+
+configural_meaning <- '
+# Define the latent factors
+meaning1 =~ NA*ml01_01_t1 + lambda1*ml01_01_t1 + lambda2*ml01_02_t1 + lambda3*ml01_03_t1 + lambda4*ml01_04_t1 + lambda5*ml01_05_t1 + lambda6*ml01_06_t1 + lambda7*ml01_07_t1 + lambda8*ml01_08_t1 + lambda9*ml01_09_t1 + lambda10*ml01_10_t1
+
+# Intercepts
+ml01_01_t1 ~ i1*1
+ml01_02_t1 ~ 1
+ml01_03_t1 ~ 1
+ml01_04_t1 ~ 1
+ml01_05_t1 ~ 1
+ml01_06_t1 ~ 1
+ml01_07_t1 ~ 1
+ml01_08_t1 ~ 1
+ml01_09_t1 ~ 1
+ml01_10_t1 ~ 1
+
+# Unique Variances
+ml01_01_t1 ~~ ml01_01_t1
+ml01_02_t1 ~~ ml01_02_t1
+ml01_03_t1 ~~ ml01_03_t1
+ml01_04_t1 ~~ ml01_04_t1
+ml01_05_t1 ~~ ml01_05_t1
+ml01_06_t1 ~~ ml01_06_t1
+ml01_07_t1 ~~ ml01_07_t1
+ml01_08_t1 ~~ ml01_08_t1
+ml01_09_t1 ~~ ml01_09_t1
+ml01_10_t1 ~~ ml01_10_t1
+
+# Latent Variable Means
+meaning1 ~ 0*1
+
+# Latent Variable Variances and Covariance
+meaning1 ~~ 1*meaning1
+'
+fit_configural_meaning <- cfa(configural_meaning, data = df_sbsa_wide_wb, mimic = "mplus")
+summary(fit_configural_meaning, fit.measures = TRUE)
+tidy(fit_configural_meaning) %>% filter(str_detect(label, "lambda")) %>% mutate(abs_loading = abs(estimate)) %>% arrange(desc(abs_loading))
+
+df_sbsa_wide_wb <- df_sbsa_wide_wb %>% 
+  mutate(ml01_09_t1_r = ml01_09_t1,
+         ml01_10_t1_r = ml01_10_t1,
+         ml01_02_t1_r = ml01_02_t1,
+         ml01_08_t1_r = ml01_08_t1,
+         ml01_07_t1_r = ml01_07_t1,
+         ml01_03_t1_r = ml01_03_t1,
+         ml01_09_t2_r = ml01_09_t2,
+         ml01_10_t2_r = ml01_10_t2,
+         ml01_02_t2_r = ml01_02_t2,
+         ml01_08_t2_r = ml01_08_t2,
+         ml01_07_t2_r = ml01_07_t2,
+         ml01_03_t2_r = ml01_03_t2) %>% 
+  mutate(across(ends_with("_r"), ~ recode(.x, `1` = 7L, `2` = 6L, `3` = 5L, `4` = 4L, `5` = 3L, `6` = 2L, `7` = 1L, .default = NA_integer_))) %>% 
+  mutate(meaning_par1_t1 = rowMeans(across(c(ml01_04_t1, ml01_10_t1_r, ml01_07_t1_r, ml01_03_t1_r)), na.rm=T),
+         meaning_par2_t1 = rowMeans(across(c(ml01_06_t1, ml01_01_t1, ml01_08_t1_r)), na.rm=T),
+         meaning_par3_t1 = rowMeans(across(c(ml01_09_t1_r, ml01_05_t1, ml01_02_t1_r)), na.rm=T),
+         meaning_par1_t2 = rowMeans(across(c(ml01_04_t2, ml01_10_t2_r, ml01_07_t2_r, ml01_03_t2_r)), na.rm=T),
+         meaning_par2_t2 = rowMeans(across(c(ml01_06_t2, ml01_01_t2, ml01_08_t2_r)), na.rm=T),
+         meaning_par3_t2 = rowMeans(across(c(ml01_09_t2_r, ml01_05_t2, ml01_02_t2_r)), na.rm=T))
+
+configural_meaning_par <- '
+meaning1 =~ meaning_par1_t1 + meaning_par2_t1 + meaning_par3_t1
+'
+fit_configural_meaning_par <- cfa(configural_meaning_par, data = df_sbsa_wide_wb, mimic = "mplus")
+summary(fit_configural_meaning_par, fit.measures = TRUE)
+
+
+# Configural invariance model
+configural_meaning <- '
+# Define the latent factors
+meaning1 =~ NA*meaning_par1_t1 + lambda1*meaning_par1_t1 + meaning_par2_t1 + meaning_par3_t1
+meaning2 =~ NA*meaning_par1_t2 + lambda1*meaning_par1_t2 + meaning_par2_t2 + meaning_par3_t2
+
+# Intercepts
+meaning_par1_t1 ~ i1*1
+meaning_par2_t1 ~ 1
+meaning_par3_t1 ~ 1
+
+meaning_par1_t2 ~ i1*1
+meaning_par2_t2 ~ 1
+meaning_par3_t2 ~ 1
+
+# Unique Variances
+meaning_par1_t1 ~~ meaning_par1_t1
+meaning_par2_t1 ~~ meaning_par2_t1
+meaning_par3_t1 ~~ meaning_par3_t1
+
+meaning_par1_t2 ~~ meaning_par1_t2
+meaning_par2_t2 ~~ meaning_par2_t2
+meaning_par3_t2 ~~ meaning_par3_t2
+
+# Latent Variable Means
+meaning1 ~ 0*1
+meaning2 ~ 1
+
+# Latent Variable Variances and Covariance
+meaning1 ~~ 1*meaning1
+meaning2 ~~ meaning2
+meaning1 ~~ meaning2
+'
+fit_configural_meaning <- cfa(configural_meaning, data = df_sbsa_wide_wb, mimic = "mplus")
+summary(fit_configural_meaning, fit.measures = TRUE)
+
+
+# SWLS without item 5
+mod_swls <- '
+swls1 =~ sw06_01_t1 + sw06_02_t1 + sw06_03_t1 + sw06_04_t1 + sw06_05_t1
+'
+fit_swls <- cfa(mod_swls, data = df_sbsa_wide_wb, mimic = "mplus")
+summary(fit_swls, fit.measures = TRUE)
+
+
+
+# Configural invariance model
+configural_openn_ideal <- '
+# Define the latent factors
+openn_ideal1 =~ NA*openn_ideal_par1_t1 + lambda1*openn_ideal_par1_t1 + openn_ideal_par2_t1 + openn_ideal_par3_t1
+openn_ideal2 =~ NA*openn_ideal_par1_t2 + lambda1*openn_ideal_par1_t2 + openn_ideal_par2_t2 + openn_ideal_par3_t2
+
+# Intercepts
+openn_ideal_par1_t1 ~ i1*1
+openn_ideal_par2_t1 ~ 1
+openn_ideal_par3_t1 ~ 1
+
+openn_ideal_par1_t2 ~ i1*1
+openn_ideal_par2_t2 ~ 1
+openn_ideal_par3_t2 ~ 1
+
+# Unique Variances
+openn_ideal_par1_t1 ~~ openn_ideal_par1_t1
+openn_ideal_par2_t1 ~~ openn_ideal_par2_t1
+openn_ideal_par3_t1 ~~ openn_ideal_par3_t1
+
+openn_ideal_par1_t2 ~~ openn_ideal_par1_t2
+openn_ideal_par2_t2 ~~ openn_ideal_par2_t2
+openn_ideal_par3_t2 ~~ openn_ideal_par3_t2
+
+# Latent Variable Means
+openn_ideal1 ~ 0*1
+openn_ideal2 ~ 1
+
+# Latent Variable Variances and Covariance
+openn_ideal1 ~~ 1*openn_ideal1
+openn_ideal2 ~~ openn_ideal2
+openn_ideal1 ~~ openn_ideal2
+'
+fit_configural_openn_ideal <- cfa(configural_openn_ideal, data = df_sbsa_wide_pers, mimic = "mplus")
+summary(fit_configural_openn_ideal, fit.measures = TRUE)
+
+
+### personal project dimensions:
+
+trait_template_ppd_goal <- '
+agree_curr_t1 =~ 1*agree_curr_par1_t1 + lamb2*agree_curr_par2_t1 + lamb3*agree_curr_par3_t1 # This specifies the measurement model for agree_curr_t1 
+agree_curr_t2 =~ 1*agree_curr_par1_t2 + lamb2*agree_curr_par2_t2 + lamb3*agree_curr_par3_t2 # This specifies the measurement model for agree_curr_t2 with the equality constrained factor loadings
+
+agree_curr_t2 ~ 1*agree_curr_t1     # This parameter regresses agree_curr_t2 perfectly on agree_curr_t1
+d_agree_curr_1 =~ 1*agree_curr_t2   # This defines the latent change score factor as measured perfectly by scores on agree_curr_t2
+agree_curr_t2 ~ 0*1            # This line constrains the intercept of agree_curr_t2 to 0
+agree_curr_t2 ~~ 0*agree_curr_t2    # This fixes the variance of agree_curr_t2 to 0
+
+d_agree_curr_1 ~ 1              # This estimates the intercept of the change score 
+agree_curr_t1 ~ 1               # This estimates the intercept of agree_curr_t1 
+d_agree_curr_1 ~~ d_agree_curr_1     # This estimates the variance of the change scores 
+agree_curr_t1 ~~ agree_curr_t1         # This estimates the variance of agree_curr_t1 
+agree_curr_t1 ~ ppd               # This estimates the moderation effect on personality at T1
+d_agree_curr_1 ~ agree_curr_t1 + ppd   # This estimates the self-feedback parameter and the moderation effect on the change score
+
+agree_curr_par1_t1 ~~ agree_curr_par1_t2   # This allows residual covariance on indicator X1 across T1 and T2
+agree_curr_par2_t1 ~~ agree_curr_par2_t2   # This allows residual covariance on indicator X2 across T1 and T2
+agree_curr_par3_t1 ~~ agree_curr_par3_t2   # This allows residual covariance on indicator X3 across T1 and T2
+
+agree_curr_par1_t1 ~~ res1*agree_curr_par1_t1   # This allows residual variance on indicator X1 at T1 
+agree_curr_par2_t1 ~~ res2*agree_curr_par2_t1   # This allows residual variance on indicator X2 at T1
+agree_curr_par3_t1 ~~ res3*agree_curr_par3_t1   # This allows residual variance on indicator X3 at T1
+
+agree_curr_par1_t2 ~~ res1*agree_curr_par1_t2  # This allows residual variance on indicator X1 at T2 
+agree_curr_par2_t2 ~~ res2*agree_curr_par2_t2  # This allows residual variance on indicator X2 at T2 
+agree_curr_par3_t2 ~~ res3*agree_curr_par3_t2  # This allows residual variance on indicator X3 at T2
+
+agree_curr_par1_t1 ~ 0*1      # This constrains the intercept of X1 to 0 at T1
+agree_curr_par2_t1 ~ m2*1     # This estimates the intercept of X2 at T1
+agree_curr_par3_t1 ~ m3*1     # This estimates the intercept of X3 at T1
+
+agree_curr_par1_t2 ~ 0*1      # This constrains the intercept of X1 to 0 at T2
+agree_curr_par2_t2 ~ m2*1     # This estimates the intercept of X2 at T2
+agree_curr_par3_t2 ~ m3*1     # This estimates the intercept of X3 at T2
+
+ppd ~~ ppd
+
+ppd ~ 1
+'
+fit_trait_template_ppd_goal <- lavaan(trait_template_ppd_goal, data=df_sbsa_wide_pers_sb_ppd, estimator='mlr', fixed.x=FALSE, missing='fiml')
+summary(fit_trait_template_ppd_goal, fit.measures=TRUE, standardized=TRUE, rsquare=F)
 
