@@ -1178,3 +1178,118 @@ ppd ~ 1
 fit_trait_template_ppd_goal <- lavaan(trait_template_ppd_goal, data=df_sbsa_wide_pers_sb_ppd, estimator='mlr', fixed.x=FALSE, missing='fiml')
 summary(fit_trait_template_ppd_goal, fit.measures=TRUE, standardized=TRUE, rsquare=F)
 
+
+### plotting 
+
+df_table_hyp4_plot <- bind_rows(
+  #traits
+  params_lcs_extra_curr_hyp4 %>% filter(term=="d_extra_1 ~~ sb06_01_t1"),
+  params_lcs_extra_ideal_hyp4 %>% filter(term=="d_extra_1 ~~ sb06_01_t1"),
+  params_lcs_extra_curr_specif_hyp4 %>% filter(term=="goals ~~ d_extra_1"),
+  params_lcs_extra_ideal_specif_hyp4 %>% filter(term=="goals ~~ d_extra_1"),
+  params_lcs_agree_curr_hyp4 %>% filter(term=="d_agree_1 ~~ sb06_01_t1"),
+  params_lcs_agree_ideal_hyp4 %>% filter(term=="d_agree_1 ~~ sb06_01_t1"),
+  params_lcs_agree_curr_specif_hyp4 %>% filter(term=="goals ~~ d_agree_1"),
+  params_lcs_agree_ideal_specif_hyp4 %>% filter(term=="goals ~~ d_agree_1"),
+  params_lcs_consc_curr_hyp4 %>% filter(term=="d_consc_1 ~~ sb06_01_t1"),
+  params_lcs_consc_ideal_hyp4 %>% filter(term=="d_consc_1 ~~ sb06_01_t1"),
+  params_lcs_consc_curr_specif_hyp4 %>% filter(term=="goals ~~ d_consc_1"),
+  params_lcs_consc_ideal_specif_hyp4 %>% filter(term=="goals ~~ d_consc_1"),
+  params_lcs_neuro_curr_hyp4 %>% filter(term=="d_neuro_1 ~~ sb06_01_t1"),
+  params_lcs_neuro_ideal_hyp4 %>% filter(term=="d_neuro_1 ~~ sb06_01_t1"),
+  params_lcs_neuro_curr_specif_hyp4 %>% filter(term=="goals ~~ d_neuro_1"),
+  params_lcs_neuro_ideal_specif_hyp4 %>% filter(term=="goals ~~ d_neuro_1"),
+  params_lcs_openn_curr_hyp4 %>% filter(term=="d_openn_1 ~~ sb06_01_t1"),
+  params_lcs_openn_ideal_hyp4 %>% filter(term=="d_openn_1 ~~ sb06_01_t1"),
+  params_lcs_openn_curr_specif_hyp4 %>% filter(term=="goals ~~ d_openn_1"),
+  params_lcs_openn_ideal_specif_hyp4 %>% filter(term=="goals ~~ d_openn_1"),
+  #facets
+  params_lcs_socia_curr_hyp4 %>% filter(term=="d_socia_1 ~~ sb06_01_t1"),
+  params_lcs_socia_ideal_hyp4 %>% filter(term=="d_socia_1 ~~ sb06_01_t1"),
+  params_lcs_socia_curr_specif_hyp4 %>% filter(term=="d_socia_1 ~~ sb07_01_t1"),
+  params_lcs_socia_ideal_specif_hyp4 %>% filter(term=="d_socia_1 ~~ sb07_01_t1"),
+  params_lcs_asser_curr_hyp4 %>% filter(term=="d_asser_1 ~~ sb06_01_t1"),
+  params_lcs_asser_ideal_hyp4 %>% filter(term=="d_asser_1 ~~ sb06_01_t1"),
+  params_lcs_asser_curr_specif_hyp4 %>% filter(term=="d_asser_1 ~~ sb07_02_t1"),
+  params_lcs_asser_ideal_specif_hyp4 %>% filter(term=="d_asser_1 ~~ sb07_02_t1"),
+  params_lcs_energ_curr_hyp4 %>% filter(term=="d_energ_1 ~~ sb06_01_t1"),
+  params_lcs_energ_ideal_hyp4 %>% filter(term=="d_energ_1 ~~ sb06_01_t1"),
+  params_lcs_energ_curr_specif_hyp4 %>% filter(term=="d_energ_1 ~~ sb07_03_t1"),
+  params_lcs_energ_ideal_specif_hyp4 %>% filter(term=="d_energ_1 ~~ sb07_03_t1"),
+  params_lcs_compa_curr_hyp4 %>% filter(term=="d_compa_1 ~~ sb06_01_t1"),
+  params_lcs_compa_ideal_hyp4 %>% filter(term=="d_compa_1 ~~ sb06_01_t1"),
+  params_lcs_compa_curr_specif_hyp4 %>% filter(term=="d_compa_1 ~~ sb07_04_t1"),
+  params_lcs_compa_ideal_specif_hyp4 %>% filter(term=="d_compa_1 ~~ sb07_04_t1"),
+  params_lcs_respe_curr_hyp4 %>% filter(term=="d_respe_1 ~~ sb06_01_t1"),
+  params_lcs_respe_ideal_hyp4 %>% filter(term=="d_respe_1 ~~ sb06_01_t1"),
+  params_lcs_respe_curr_specif_hyp4 %>% filter(term=="d_respe_1 ~~ sb07_05_t1"),
+  params_lcs_respe_ideal_specif_hyp4 %>% filter(term=="d_respe_1 ~~ sb07_05_t1"),
+  params_lcs_trust_curr_hyp4 %>% filter(term=="d_trust_1 ~~ sb06_01_t1"),
+  params_lcs_trust_ideal_hyp4 %>% filter(term=="d_trust_1 ~~ sb06_01_t1"),
+  params_lcs_trust_curr_specif_hyp4 %>% filter(term=="d_trust_1 ~~ sb07_06_t1"),
+  params_lcs_trust_ideal_specif_hyp4 %>% filter(term=="d_trust_1 ~~ sb07_06_t1"),
+  params_lcs_organ_curr_hyp4 %>% filter(term=="d_organ_1 ~~ sb06_01_t1"),
+  params_lcs_organ_ideal_hyp4 %>% filter(term=="d_organ_1 ~~ sb06_01_t1"),
+  params_lcs_organ_curr_specif_hyp4 %>% filter(term=="d_organ_1 ~~ sb07_07_t1"),
+  params_lcs_organ_ideal_specif_hyp4 %>% filter(term=="d_organ_1 ~~ sb07_07_t1"),
+  params_lcs_produ_curr_hyp4 %>% filter(term=="d_produ_1 ~~ sb06_01_t1"),
+  params_lcs_produ_ideal_hyp4 %>% filter(term=="d_produ_1 ~~ sb06_01_t1"),
+  params_lcs_produ_curr_specif_hyp4 %>% filter(term=="d_produ_1 ~~ sb07_08_t1"),
+  params_lcs_produ_ideal_specif_hyp4 %>% filter(term=="d_produ_1 ~~ sb07_08_t1"),
+  params_lcs_respo_curr_hyp4 %>% filter(term=="d_respo_1 ~~ sb06_01_t1"),
+  params_lcs_respo_ideal_hyp4 %>% filter(term=="d_respo_1 ~~ sb06_01_t1"),
+  params_lcs_respo_curr_specif_hyp4 %>% filter(term=="d_respo_1 ~~ sb07_09_t1"),
+  params_lcs_respo_ideal_specif_hyp4 %>% filter(term=="d_respo_1 ~~ sb07_09_t1"),
+  params_lcs_anxie_curr_hyp4 %>% filter(term=="d_anxie_1 ~~ sb06_01_t1"),
+  params_lcs_anxie_ideal_hyp4 %>% filter(term=="d_anxie_1 ~~ sb06_01_t1"),
+  params_lcs_anxie_curr_specif_hyp4 %>% filter(term=="d_anxie_1 ~~ sb07_10_t1"),
+  params_lcs_anxie_ideal_specif_hyp4 %>% filter(term=="d_anxie_1 ~~ sb07_10_t1"),
+  params_lcs_depre_curr_hyp4 %>% filter(term=="d_depre_1 ~~ sb06_01_t1"),
+  params_lcs_depre_ideal_hyp4 %>% filter(term=="d_depre_1 ~~ sb06_01_t1"),
+  params_lcs_depre_curr_specif_hyp4 %>% filter(term=="d_depre_1 ~~ sb07_11_t1"),
+  params_lcs_depre_ideal_specif_hyp4 %>% filter(term=="d_depre_1 ~~ sb07_11_t1"),
+  params_lcs_volat_curr_hyp4 %>% filter(term=="d_volat_1 ~~ sb06_01_t1"),
+  params_lcs_volat_ideal_hyp4 %>% filter(term=="d_volat_1 ~~ sb06_01_t1"),
+  params_lcs_volat_curr_specif_hyp4 %>% filter(term=="d_volat_1 ~~ sb07_12_t1"),
+  params_lcs_volat_ideal_specif_hyp4 %>% filter(term=="d_volat_1 ~~ sb07_12_t1"),
+  params_lcs_curio_curr_hyp4 %>% filter(term=="d_curio_1 ~~ sb06_01_t1"),
+  params_lcs_curio_ideal_hyp4 %>% filter(term=="d_curio_1 ~~ sb06_01_t1"),
+  params_lcs_curio_curr_specif_hyp4 %>% filter(term=="d_curio_1 ~~ sb07_13_t1"),
+  params_lcs_curio_ideal_specif_hyp4 %>% filter(term=="d_curio_1 ~~ sb07_13_t1"),
+  params_lcs_aesth_curr_hyp4 %>% filter(term=="d_aesth_1 ~~ sb06_01_t1"),
+  params_lcs_aesth_ideal_hyp4 %>% filter(term=="d_aesth_1 ~~ sb06_01_t1"),
+  params_lcs_aesth_curr_specif_hyp4 %>% filter(term=="d_aesth_1 ~~ sb07_14_t1"),
+  params_lcs_aesth_ideal_specif_hyp4 %>% filter(term=="d_aesth_1 ~~ sb07_14_t1"),
+  params_lcs_imagi_curr_hyp4 %>% filter(term=="d_imagi_1 ~~ sb06_01_t1"),
+  params_lcs_imagi_ideal_hyp4 %>% filter(term=="d_imagi_1 ~~ sb06_01_t1"),
+  params_lcs_imagi_curr_specif_hyp4 %>% filter(term=="d_imagi_1 ~~ sb07_15_t1"),
+  params_lcs_imagi_ideal_specif_hyp4 %>% filter(term=="d_imagi_1 ~~ sb07_15_t1"),
+) %>% 
+  mutate(trait = rep(names(b5_vars), each=4),
+         ref = rep(rep(c("current", "ideal"), 2), 20),
+         goal = rep(c(rep("general", 2), rep("specific", 2)), 20)) %>% 
+  select(trait, ref, goal, estimate, conf.low, conf.high, std.all, statistic, p.value)
+
+df_table_hyp4_plot <- df_table_hyp4_plot %>% 
+  mutate(include_0 = ifelse(conf.low < 0 & conf.high > 0, "n.s.", "*")) %>% 
+  mutate(ref = factor(ref, levels = c("current", "ideal"), labels = c("current", "ideal"))) %>% 
+  mutate(goal = factor(goal, levels = c("general", "specific"), labels = c("general", "specific"))) %>% 
+  mutate(trait = factor(trait, levels = names(b5_vars), labels = names(b5_vars)))
+
+# plot:
+ggplot(df_table_hyp4_plot, aes(x = fct_rev(trait), y = estimate, color = include_0)) +
+  geom_hline(yintercept=0, linetype = 3) +
+  geom_point(size=3, position=position_dodge(0.4)) + 
+  geom_errorbar(aes(ymin = conf.low, ymax = conf.high, color = include_0), width=.2, position=position_dodge(0.4)) +
+  scale_color_manual(values = c("#000000","#A9A9A9")) +   
+  facet_wrap( ~ ref + goal, ncol = 2) +
+  theme_bw() +
+  scale_shape_manual(values=c(18)) + 
+  ylab("Effect Estimates (95% CI)") +
+  xlab("") +
+  theme(legend.title=element_blank()) +
+  theme(legend.text=element_text(size=12)) +
+  coord_flip() +
+  theme(strip.text.x = element_text(size = 12)) +
+  theme(axis.text.x=element_text(size=10, angle = 45, hjust = 1), axis.text.y=element_text(size=12)) + 
+  guides(color=FALSE)
