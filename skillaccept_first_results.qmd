@@ -52,6 +52,7 @@ library(semPlot)
 library(knitr)
 library(ggdist)
 library(ggforce)
+library(cowplot)
 library(nortest)
 library(lmerTest)
 ```
@@ -3767,6 +3768,292 @@ Good model fit across all stages of measurement invariance (except for RMSEA). C
 
 ------------------------------------------------------------------------
 
+## Descriptives
+
+### General change/acceptance goals
+
+Summary stats:
+```{r}
+#| echo: true
+table(df_sbsa$sb06_01) # How much do you want to change your personality in general?
+summary(df_sbsa$sb06_01)
+
+table(df_sbsa$sa06_01) # How much do you want to be better at accepting yourself for who you are?
+summary(df_sbsa$sa06_01)
+```
+
+Plot:
+
+```{r}
+#| echo: true
+
+cowplot::plot_grid(
+  ggplot(df_sbsa %>% filter(!is.na(sb06_01)), aes(x=sb06_01)) + geom_histogram(bins=5) + 
+  labs(x="General change goal", y="Frequency") + theme_bw(),
+  ggplot(df_sbsa %>% filter(!is.na(sa06_01)), aes(x=sa06_01)) + geom_histogram(bins=5) + 
+  labs(x="General acceptance goal", y="Frequency") + theme_bw(), 
+  ncol = 2
+)
+```
+
+### Facet-specific change/acceptance goals
+
+*Skill Building*  
+
+Pre:  
+Here is a list of 15 personality traits. You might be high or low on any of these traits. Regardless of how high or low you are on these traits, we want to know how much you [want to] change. Please rate how much you would like to change your level of each of these traits, where 1 = I do not want to change and 5 = I want to change a lot.  
+
+Post:  
+Here is a list of 15 personality traits. During the study, you may have tried to change in some of these traits. We want to know how you think you changed in each trait. Please rate how much you changed your level of each of these traits during this study, where 1 = I am completely the same and 5 = I have changed a lot.  
+
+*Self Acceptance*  
+
+Pre:  
+Here is a list of 15 personality traits. You might be high or low on any of these traits. Regardless of how high or low you are on these traits, we want to know how much you accept yourself. Please rate how much you accept your level of each of these traits, where 1 = I completely accept myself and 5 = I want to accept myself more.  
+
+Post:  
+Here is a list of 15 personality traits. During the study, you may have tried to accept your level on some of these traits more. We want to know how much you think you accept yourself more because of this study. Please rate how much you accept your level of each of these traits more during this study, where 1 = I accept myself the same and 5 = I accept this about myself much more.  
+
+
+Plot distributions
+
+```{r}
+#| echo: true
+#| warning: false
+#| code-fold: true
+#| code-summary: "Show the code"
+#| fig-width: 9.5
+#| fig-height: 9.5
+
+cowplot::plot_grid(
+  ggdraw() + draw_label(names(b5_vars)[5 + 01], fontface = 'plain', x = 0, hjust = 0) + theme(plot.margin = margin(0, 0, 0, 7)),
+  cowplot::plot_grid(
+    ggplot(df_sbsa %>% filter(!is.na(sb07_01)), aes(x=sb07_01)) + geom_histogram(bins=5) + 
+    labs(x="Change goal: Pre", y="Frequency") + theme_bw() + scale_y_continuous(breaks = c(25, 50, 75, 100, 125, 150), limits = c(0,170)),
+    ggplot(df_sbsa %>% filter(!is.na(sb12_01)), aes(x=sb12_01)) + geom_histogram(bins=5) + 
+    labs(x="Change goal: Post", y="") + theme_bw() + scale_y_continuous(breaks = c(25, 50, 75, 100, 125, 150), limits = c(0,170)), 
+    ggplot(df_sbsa %>% filter(!is.na(sa07_01)), aes(x=sa07_01)) + geom_histogram(bins=5) + 
+    labs(x="Acceptance goal: Pre", y="") + theme_bw() + scale_y_continuous(breaks = c(25, 50, 75, 100, 125, 150), limits = c(0,170)),
+    ggplot(df_sbsa %>% filter(!is.na(sa14_01)), aes(x=sa14_01)) + geom_histogram(bins=5) + 
+    labs(x="Acceptance goal: Post", y="") + theme_bw() + scale_y_continuous(breaks = c(25, 50, 75, 100, 125, 150), limits = c(0,170)), 
+  ncol = 4), 
+  ggdraw() + draw_label(names(b5_vars)[5 + 02], fontface = 'plain', x = 0, hjust = 0) + theme(plot.margin = margin(0, 0, 0, 7)),
+  cowplot::plot_grid(
+    ggplot(df_sbsa %>% filter(!is.na(sb07_02)), aes(x=sb07_02)) + geom_histogram(bins=5) + 
+    labs(x="Change goal: Pre", y="Frequency") + theme_bw() + scale_y_continuous(breaks = c(25, 50, 75, 100, 125, 150), limits = c(0,170)),
+    ggplot(df_sbsa %>% filter(!is.na(sb12_02)), aes(x=sb12_02)) + geom_histogram(bins=5) + 
+    labs(x="Change goal: Post", y="") + theme_bw() + scale_y_continuous(breaks = c(25, 50, 75, 100, 125, 150), limits = c(0,170)), 
+    ggplot(df_sbsa %>% filter(!is.na(sa07_02)), aes(x=sa07_02)) + geom_histogram(bins=5) + 
+    labs(x="Acceptance goal: Pre", y="") + theme_bw() + scale_y_continuous(breaks = c(25, 50, 75, 100, 125, 150), limits = c(0,170)),
+    ggplot(df_sbsa %>% filter(!is.na(sa14_02)), aes(x=sa14_02)) + geom_histogram(bins=5) + 
+    labs(x="Acceptance goal: Post", y="") + theme_bw() + scale_y_continuous(breaks = c(25, 50, 75, 100, 125, 150), limits = c(0,170)),
+  ncol = 4), 
+  ggdraw() + draw_label(names(b5_vars)[5 + 03], fontface = 'plain', x = 0, hjust = 0) + theme(plot.margin = margin(0, 0, 0, 7)),
+  cowplot::plot_grid(
+    ggplot(df_sbsa %>% filter(!is.na(sb07_03)), aes(x=sb07_03)) + geom_histogram(bins=5) + 
+    labs(x="Change goal: Pre", y="Frequency") + theme_bw() + scale_y_continuous(breaks = c(25, 50, 75, 100, 125, 150), limits = c(0,170)),
+    ggplot(df_sbsa %>% filter(!is.na(sb12_03)), aes(x=sb12_03)) + geom_histogram(bins=5) + 
+    labs(x="Change goal: Post", y="") + theme_bw() + scale_y_continuous(breaks = c(25, 50, 75, 100, 125, 150), limits = c(0,170)), 
+    ggplot(df_sbsa %>% filter(!is.na(sa07_03)), aes(x=sa07_03)) + geom_histogram(bins=5) + 
+    labs(x="Acceptance goal: Pre", y="") + theme_bw() + scale_y_continuous(breaks = c(25, 50, 75, 100, 125, 150), limits = c(0,170)),
+    ggplot(df_sbsa %>% filter(!is.na(sa14_03)), aes(x=sa14_03)) + geom_histogram(bins=5) + 
+    labs(x="Acceptance goal: Post", y="") + theme_bw() + scale_y_continuous(breaks = c(25, 50, 75, 100, 125, 150), limits = c(0,170)),
+  ncol = 4), 
+  ncol = 1,
+  rel_heights = c(0.1, 1, 0.1, 1, 0.1, 1)
+)
+```
+
+```{r}
+#| echo: true
+#| warning: false
+#| code-fold: true
+#| code-summary: "Show the code"
+#| fig-width: 9.5
+#| fig-height: 9.5
+
+cowplot::plot_grid(
+  ggdraw() + draw_label(names(b5_vars)[5 + 04], fontface = 'plain', x = 0, hjust = 0) + theme(plot.margin = margin(0, 0, 0, 7)),
+  cowplot::plot_grid(
+    ggplot(df_sbsa %>% filter(!is.na(sb07_04)), aes(x=sb07_04)) + geom_histogram(bins=5) + 
+    labs(x="Change goal: Pre", y="Frequency") + theme_bw() + scale_y_continuous(breaks = c(25, 50, 75, 100, 125, 150), limits = c(0,170)),
+    ggplot(df_sbsa %>% filter(!is.na(sb12_04)), aes(x=sb12_04)) + geom_histogram(bins=5) + 
+    labs(x="Change goal: Post", y="") + theme_bw() + scale_y_continuous(breaks = c(25, 50, 75, 100, 125, 150), limits = c(0,170)), 
+    ggplot(df_sbsa %>% filter(!is.na(sa07_04)), aes(x=sa07_04)) + geom_histogram(bins=5) + 
+    labs(x="Acceptance goal: Pre", y="") + theme_bw() + scale_y_continuous(breaks = c(25, 50, 75, 100, 125, 150), limits = c(0,170)),
+    ggplot(df_sbsa %>% filter(!is.na(sa14_04)), aes(x=sa14_04)) + geom_histogram(bins=5) + 
+    labs(x="Acceptance goal: Post", y="") + theme_bw() + scale_y_continuous(breaks = c(25, 50, 75, 100, 125, 150), limits = c(0,170)), 
+  ncol = 4), 
+  ggdraw() + draw_label(names(b5_vars)[5 + 05], fontface = 'plain', x = 0, hjust = 0) + theme(plot.margin = margin(0, 0, 0, 7)),
+  cowplot::plot_grid(
+    ggplot(df_sbsa %>% filter(!is.na(sb07_05)), aes(x=sb07_05)) + geom_histogram(bins=5) + 
+    labs(x="Change goal: Pre", y="Frequency") + theme_bw() + scale_y_continuous(breaks = c(25, 50, 75, 100, 125, 150), limits = c(0,170)),
+    ggplot(df_sbsa %>% filter(!is.na(sb12_05)), aes(x=sb12_05)) + geom_histogram(bins=5) + 
+    labs(x="Change goal: Post", y="") + theme_bw() + scale_y_continuous(breaks = c(25, 50, 75, 100, 125, 150), limits = c(0,170)), 
+    ggplot(df_sbsa %>% filter(!is.na(sa07_05)), aes(x=sa07_05)) + geom_histogram(bins=5) + 
+    labs(x="Acceptance goal: Pre", y="") + theme_bw() + scale_y_continuous(breaks = c(25, 50, 75, 100, 125, 150), limits = c(0,170)),
+    ggplot(df_sbsa %>% filter(!is.na(sa14_05)), aes(x=sa14_05)) + geom_histogram(bins=5) + 
+    labs(x="Acceptance goal: Post", y="") + theme_bw() + scale_y_continuous(breaks = c(25, 50, 75, 100, 125, 150), limits = c(0,170)),
+  ncol = 4), 
+  ggdraw() + draw_label(names(b5_vars)[5 + 06], fontface = 'plain', x = 0, hjust = 0) + theme(plot.margin = margin(0, 0, 0, 7)),
+  cowplot::plot_grid(
+    ggplot(df_sbsa %>% filter(!is.na(sb07_06)), aes(x=sb07_06)) + geom_histogram(bins=5) + 
+    labs(x="Change goal: Pre", y="Frequency") + theme_bw() + scale_y_continuous(breaks = c(25, 50, 75, 100, 125, 150), limits = c(0,170)),
+    ggplot(df_sbsa %>% filter(!is.na(sb12_06)), aes(x=sb12_06)) + geom_histogram(bins=5) + 
+    labs(x="Change goal: Post", y="") + theme_bw() + scale_y_continuous(breaks = c(25, 50, 75, 100, 125, 150), limits = c(0,170)), 
+    ggplot(df_sbsa %>% filter(!is.na(sa07_06)), aes(x=sa07_06)) + geom_histogram(bins=5) + 
+    labs(x="Acceptance goal: Pre", y="") + theme_bw() + scale_y_continuous(breaks = c(25, 50, 75, 100, 125, 150), limits = c(0,170)),
+    ggplot(df_sbsa %>% filter(!is.na(sa14_06)), aes(x=sa14_06)) + geom_histogram(bins=5) + 
+    labs(x="Acceptance goal: Post", y="") + theme_bw() + scale_y_continuous(breaks = c(25, 50, 75, 100, 125, 150), limits = c(0,170)),
+  ncol = 4), 
+  ncol = 1,
+  rel_heights = c(0.1, 1, 0.1, 1, 0.1, 1)
+)
+```
+
+```{r}
+#| echo: true
+#| warning: false
+#| code-fold: true
+#| code-summary: "Show the code"
+#| fig-width: 9.5
+#| fig-height: 9.5
+
+cowplot::plot_grid(
+  ggdraw() + draw_label(names(b5_vars)[5 + 07], fontface = 'plain', x = 0, hjust = 0) + theme(plot.margin = margin(0, 0, 0, 7)),
+  cowplot::plot_grid(
+    ggplot(df_sbsa %>% filter(!is.na(sb07_07)), aes(x=sb07_07)) + geom_histogram(bins=5) + 
+    labs(x="Change goal: Pre", y="Frequency") + theme_bw() + scale_y_continuous(breaks = c(25, 50, 75, 100, 125, 150), limits = c(0,170)),
+    ggplot(df_sbsa %>% filter(!is.na(sb12_07)), aes(x=sb12_07)) + geom_histogram(bins=5) + 
+    labs(x="Change goal: Post", y="") + theme_bw() + scale_y_continuous(breaks = c(25, 50, 75, 100, 125, 150), limits = c(0,170)), 
+    ggplot(df_sbsa %>% filter(!is.na(sa07_07)), aes(x=sa07_07)) + geom_histogram(bins=5) + 
+    labs(x="Acceptance goal: Pre", y="") + theme_bw() + scale_y_continuous(breaks = c(25, 50, 75, 100, 125, 150), limits = c(0,170)),
+    ggplot(df_sbsa %>% filter(!is.na(sa14_07)), aes(x=sa14_07)) + geom_histogram(bins=5) + 
+    labs(x="Acceptance goal: Post", y="") + theme_bw() + scale_y_continuous(breaks = c(25, 50, 75, 100, 125, 150), limits = c(0,170)), 
+  ncol = 4), 
+  ggdraw() + draw_label(names(b5_vars)[5 + 08], fontface = 'plain', x = 0, hjust = 0) + theme(plot.margin = margin(0, 0, 0, 7)),
+  cowplot::plot_grid(
+    ggplot(df_sbsa %>% filter(!is.na(sb07_08)), aes(x=sb07_08)) + geom_histogram(bins=5) + 
+    labs(x="Change goal: Pre", y="Frequency") + theme_bw() + scale_y_continuous(breaks = c(25, 50, 75, 100, 125, 150), limits = c(0,170)),
+    ggplot(df_sbsa %>% filter(!is.na(sb12_08)), aes(x=sb12_08)) + geom_histogram(bins=5) + 
+    labs(x="Change goal: Post", y="") + theme_bw() + scale_y_continuous(breaks = c(25, 50, 75, 100, 125, 150), limits = c(0,170)), 
+    ggplot(df_sbsa %>% filter(!is.na(sa07_08)), aes(x=sa07_08)) + geom_histogram(bins=5) + 
+    labs(x="Acceptance goal: Pre", y="") + theme_bw() + scale_y_continuous(breaks = c(25, 50, 75, 100, 125, 150), limits = c(0,170)),
+    ggplot(df_sbsa %>% filter(!is.na(sa14_08)), aes(x=sa14_08)) + geom_histogram(bins=5) + 
+    labs(x="Acceptance goal: Post", y="") + theme_bw() + scale_y_continuous(breaks = c(25, 50, 75, 100, 125, 150), limits = c(0,170)),
+  ncol = 4), 
+  ggdraw() + draw_label(names(b5_vars)[5 + 09], fontface = 'plain', x = 0, hjust = 0) + theme(plot.margin = margin(0, 0, 0, 7)),
+  cowplot::plot_grid(
+    ggplot(df_sbsa %>% filter(!is.na(sb07_09)), aes(x=sb07_09)) + geom_histogram(bins=5) + 
+    labs(x="Change goal: Pre", y="Frequency") + theme_bw() + scale_y_continuous(breaks = c(25, 50, 75, 100, 125, 150), limits = c(0,170)),
+    ggplot(df_sbsa %>% filter(!is.na(sb12_09)), aes(x=sb12_09)) + geom_histogram(bins=5) + 
+    labs(x="Change goal: Post", y="") + theme_bw() + scale_y_continuous(breaks = c(25, 50, 75, 100, 125, 150), limits = c(0,170)), 
+    ggplot(df_sbsa %>% filter(!is.na(sa07_09)), aes(x=sa07_09)) + geom_histogram(bins=5) + 
+    labs(x="Acceptance goal: Pre", y="") + theme_bw() + scale_y_continuous(breaks = c(25, 50, 75, 100, 125, 150), limits = c(0,170)),
+    ggplot(df_sbsa %>% filter(!is.na(sa14_09)), aes(x=sa14_09)) + geom_histogram(bins=5) + 
+    labs(x="Acceptance goal: Post", y="") + theme_bw() + scale_y_continuous(breaks = c(25, 50, 75, 100, 125, 150), limits = c(0,170)),
+  ncol = 4), 
+  ncol = 1,
+  rel_heights = c(0.1, 1, 0.1, 1, 0.1, 1)
+)
+```
+
+```{r}
+#| echo: true
+#| warning: false
+#| code-fold: true
+#| code-summary: "Show the code"
+#| fig-width: 9.5
+#| fig-height: 9.5
+
+cowplot::plot_grid(
+  ggdraw() + draw_label(names(b5_vars)[5 + 10], fontface = 'plain', x = 0, hjust = 0) + theme(plot.margin = margin(0, 0, 0, 7)),
+  cowplot::plot_grid(
+    ggplot(df_sbsa %>% filter(!is.na(sb07_10)), aes(x=sb07_10)) + geom_histogram(bins=5) + 
+    labs(x="Change goal: Pre", y="Frequency") + theme_bw() + scale_y_continuous(breaks = c(25, 50, 75, 100, 125, 150), limits = c(0,170)),
+    ggplot(df_sbsa %>% filter(!is.na(sb12_10)), aes(x=sb12_10)) + geom_histogram(bins=5) + 
+    labs(x="Change goal: Post", y="") + theme_bw() + scale_y_continuous(breaks = c(25, 50, 75, 100, 125, 150), limits = c(0,170)), 
+    ggplot(df_sbsa %>% filter(!is.na(sa07_10)), aes(x=sa07_10)) + geom_histogram(bins=5) + 
+    labs(x="Acceptance goal: Pre", y="") + theme_bw() + scale_y_continuous(breaks = c(25, 50, 75, 100, 125, 150), limits = c(0,170)),
+    ggplot(df_sbsa %>% filter(!is.na(sa14_10)), aes(x=sa14_10)) + geom_histogram(bins=5) + 
+    labs(x="Acceptance goal: Post", y="") + theme_bw() + scale_y_continuous(breaks = c(25, 50, 75, 100, 125, 150), limits = c(0,170)), 
+  ncol = 4), 
+  ggdraw() + draw_label(names(b5_vars)[5 + 11], fontface = 'plain', x = 0, hjust = 0) + theme(plot.margin = margin(0, 0, 0, 7)),
+  cowplot::plot_grid(
+    ggplot(df_sbsa %>% filter(!is.na(sb07_11)), aes(x=sb07_11)) + geom_histogram(bins=5) + 
+    labs(x="Change goal: Pre", y="Frequency") + theme_bw() + scale_y_continuous(breaks = c(25, 50, 75, 100, 125, 150), limits = c(0,170)),
+    ggplot(df_sbsa %>% filter(!is.na(sb12_11)), aes(x=sb12_11)) + geom_histogram(bins=5) + 
+    labs(x="Change goal: Post", y="") + theme_bw() + scale_y_continuous(breaks = c(25, 50, 75, 100, 125, 150), limits = c(0,170)), 
+    ggplot(df_sbsa %>% filter(!is.na(sa07_11)), aes(x=sa07_11)) + geom_histogram(bins=5) + 
+    labs(x="Acceptance goal: Pre", y="") + theme_bw() + scale_y_continuous(breaks = c(25, 50, 75, 100, 125, 150), limits = c(0,170)),
+    ggplot(df_sbsa %>% filter(!is.na(sa14_11)), aes(x=sa14_11)) + geom_histogram(bins=5) + 
+    labs(x="Acceptance goal: Post", y="") + theme_bw() + scale_y_continuous(breaks = c(25, 50, 75, 100, 125, 150), limits = c(0,170)),
+  ncol = 4), 
+  ggdraw() + draw_label(names(b5_vars)[5 + 12], fontface = 'plain', x = 0, hjust = 0) + theme(plot.margin = margin(0, 0, 0, 7)),
+  cowplot::plot_grid(
+    ggplot(df_sbsa %>% filter(!is.na(sb07_12)), aes(x=sb07_12)) + geom_histogram(bins=5) + 
+    labs(x="Change goal: Pre", y="Frequency") + theme_bw() + scale_y_continuous(breaks = c(25, 50, 75, 100, 125, 150), limits = c(0,170)),
+    ggplot(df_sbsa %>% filter(!is.na(sb12_12)), aes(x=sb12_12)) + geom_histogram(bins=5) + 
+    labs(x="Change goal: Post", y="") + theme_bw() + scale_y_continuous(breaks = c(25, 50, 75, 100, 125, 150), limits = c(0,170)), 
+    ggplot(df_sbsa %>% filter(!is.na(sa07_12)), aes(x=sa07_12)) + geom_histogram(bins=5) + 
+    labs(x="Acceptance goal: Pre", y="") + theme_bw() + scale_y_continuous(breaks = c(25, 50, 75, 100, 125, 150), limits = c(0,170)),
+    ggplot(df_sbsa %>% filter(!is.na(sa14_12)), aes(x=sa14_12)) + geom_histogram(bins=5) + 
+    labs(x="Acceptance goal: Post", y="") + theme_bw() + scale_y_continuous(breaks = c(25, 50, 75, 100, 125, 150), limits = c(0,170)),
+  ncol = 4), 
+  ncol = 1,
+  rel_heights = c(0.1, 1, 0.1, 1, 0.1, 1)
+)
+```
+
+```{r}
+#| echo: true
+#| warning: false
+#| code-fold: true
+#| code-summary: "Show the code"
+#| fig-width: 9.5
+#| fig-height: 9.5
+
+cowplot::plot_grid(
+  ggdraw() + draw_label(names(b5_vars)[5 + 13], fontface = 'plain', x = 0, hjust = 0) + theme(plot.margin = margin(0, 0, 0, 7)),
+  cowplot::plot_grid(
+    ggplot(df_sbsa %>% filter(!is.na(sb07_13)), aes(x=sb07_13)) + geom_histogram(bins=5) + 
+    labs(x="Change goal: Pre", y="Frequency") + theme_bw() + scale_y_continuous(breaks = c(25, 50, 75, 100, 125, 150), limits = c(0,170)),
+    ggplot(df_sbsa %>% filter(!is.na(sb12_13)), aes(x=sb12_13)) + geom_histogram(bins=5) + 
+    labs(x="Change goal: Post", y="") + theme_bw() + scale_y_continuous(breaks = c(25, 50, 75, 100, 125, 150), limits = c(0,170)), 
+    ggplot(df_sbsa %>% filter(!is.na(sa07_13)), aes(x=sa07_13)) + geom_histogram(bins=5) + 
+    labs(x="Acceptance goal: Pre", y="") + theme_bw() + scale_y_continuous(breaks = c(25, 50, 75, 100, 125, 150), limits = c(0,170)),
+    ggplot(df_sbsa %>% filter(!is.na(sa14_13)), aes(x=sa14_13)) + geom_histogram(bins=5) + 
+    labs(x="Acceptance goal: Post", y="") + theme_bw() + scale_y_continuous(breaks = c(25, 50, 75, 100, 125, 150), limits = c(0,170)), 
+  ncol = 4), 
+  ggdraw() + draw_label(names(b5_vars)[5 + 14], fontface = 'plain', x = 0, hjust = 0) + theme(plot.margin = margin(0, 0, 0, 7)),
+  cowplot::plot_grid(
+    ggplot(df_sbsa %>% filter(!is.na(sb07_14)), aes(x=sb07_14)) + geom_histogram(bins=5) + 
+    labs(x="Change goal: Pre", y="Frequency") + theme_bw() + scale_y_continuous(breaks = c(25, 50, 75, 100, 125, 150), limits = c(0,170)),
+    ggplot(df_sbsa %>% filter(!is.na(sb12_14)), aes(x=sb12_14)) + geom_histogram(bins=5) + 
+    labs(x="Change goal: Post", y="") + theme_bw() + scale_y_continuous(breaks = c(25, 50, 75, 100, 125, 150), limits = c(0,170)), 
+    ggplot(df_sbsa %>% filter(!is.na(sa07_14)), aes(x=sa07_14)) + geom_histogram(bins=5) + 
+    labs(x="Acceptance goal: Pre", y="") + theme_bw() + scale_y_continuous(breaks = c(25, 50, 75, 100, 125, 150), limits = c(0,170)),
+    ggplot(df_sbsa %>% filter(!is.na(sa14_14)), aes(x=sa14_14)) + geom_histogram(bins=5) + 
+    labs(x="Acceptance goal: Post", y="") + theme_bw() + scale_y_continuous(breaks = c(25, 50, 75, 100, 125, 150), limits = c(0,170)),
+  ncol = 4), 
+  ggdraw() + draw_label(names(b5_vars)[5 + 15], fontface = 'plain', x = 0, hjust = 0) + theme(plot.margin = margin(0, 0, 0, 7)),
+  cowplot::plot_grid(
+    ggplot(df_sbsa %>% filter(!is.na(sb07_15)), aes(x=sb07_15)) + geom_histogram(bins=5) + 
+    labs(x="Change goal: Pre", y="Frequency") + theme_bw() + scale_y_continuous(breaks = c(25, 50, 75, 100, 125, 150), limits = c(0,170)),
+    ggplot(df_sbsa %>% filter(!is.na(sb12_15)), aes(x=sb12_15)) + geom_histogram(bins=5) + 
+    labs(x="Change goal: Post", y="") + theme_bw() + scale_y_continuous(breaks = c(25, 50, 75, 100, 125, 150), limits = c(0,170)), 
+    ggplot(df_sbsa %>% filter(!is.na(sa07_15)), aes(x=sa07_15)) + geom_histogram(bins=5) + 
+    labs(x="Acceptance goal: Pre", y="") + theme_bw() + scale_y_continuous(breaks = c(25, 50, 75, 100, 125, 150), limits = c(0,170)),
+    ggplot(df_sbsa %>% filter(!is.na(sa14_15)), aes(x=sa14_15)) + geom_histogram(bins=5) + 
+    labs(x="Acceptance goal: Post", y="") + theme_bw() + scale_y_continuous(breaks = c(25, 50, 75, 100, 125, 150), limits = c(0,170)),
+  ncol = 4), 
+  ncol = 1,
+  rel_heights = c(0.1, 1, 0.1, 1, 0.1, 1)
+)
+```
+
+------------------------------------------------------------------------
+
 ## Confirmatory results
 
 ### H1: Well-being - similarity correlations {#hyp1}
@@ -3945,7 +4232,7 @@ semPaths(fit_mi_lcs_swls_hyp2, what="est",
 ```
 
 ::: {.callout-note appearance="minimal"}
-Significantly higher life satisfaction at the post test, *b* = `r round(params_lcs_swls_hyp2 %>% filter(term=="d_swls_1 ~1") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_swls_hyp2 %>% filter(term=="d_swls_1 ~1") %>% pull(p.value), 3)`. Those with initially higher levels of life satisfaction (at T1) change to a lesser degree.
+Significantly higher life satisfaction at the post test, *b* = `r round(params_lcs_swls_hyp2 %>% filter(term=="d_swls_1 ~1 ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_swls_hyp2 %>% filter(term=="d_swls_1 ~1 ") %>% pull(p.value), 3)`. Those with initially higher levels of life satisfaction (at T1) change to a lesser degree.
 :::
 
 #### Meaning in life
@@ -4022,7 +4309,7 @@ kable(params_lcs_meaning_hyp2, digits = 3)
 ```
 
 ::: {.callout-note appearance="minimal"}
-Participants improved significantly in meaning in life across time, *b* = `r round(params_lcs_meaning_hyp2 %>% filter(term=="d_meaning_1 ~1") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_meaning_hyp2 %>% filter(term=="d_meaning_1 ~1") %>% pull(p.value), 3)`. 
+Participants improved significantly in meaning in life across time, *b* = `r round(params_lcs_meaning_hyp2 %>% filter(term=="d_meaning_1 ~1 ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_meaning_hyp2 %>% filter(term=="d_meaning_1 ~1 ") %>% pull(p.value), 3)`. 
 :::
 
 #### Self-esteem
@@ -4099,7 +4386,7 @@ kable(params_lcs_selfes_hyp2, digits = 3)
 ```
 
 ::: {.callout-note appearance="minimal"}
-Participants increased significantly in self-esteem between the two assessments, *b* = `r round(params_lcs_selfes_hyp2 %>% filter(term=="d_selfes_1 ~1") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_selfes_hyp2 %>% filter(term=="d_selfes_1 ~1") %>% pull(p.value), 3)`.
+Participants increased significantly in self-esteem between the two assessments, *b* = `r round(params_lcs_selfes_hyp2 %>% filter(term=="d_selfes_1 ~1 ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_selfes_hyp2 %>% filter(term=="d_selfes_1 ~1 ") %>% pull(p.value), 3)`.
 :::
 
 #### Self concept clarity
@@ -4176,7 +4463,7 @@ kable(params_lcs_concept_hyp2, digits = 3)
 ```
 
 ::: {.callout-note appearance="minimal"}
-Self concept clarity improved significantly across time, *b* = `r round(params_lcs_concept_hyp2 %>% filter(term=="d_concept_1 ~1") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_concept_hyp2 %>% filter(term=="d_concept_1 ~1") %>% pull(p.value), 3)`.
+Self concept clarity improved significantly across time, *b* = `r round(params_lcs_concept_hyp2 %>% filter(term=="d_concept_1 ~1 ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_concept_hyp2 %>% filter(term=="d_concept_1 ~1 ") %>% pull(p.value), 3)`.
 :::
 
 ------------------------------------------------------------------------

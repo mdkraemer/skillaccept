@@ -614,8 +614,8 @@ df_sbsa %>% group_by(time, rando, sa04_01) %>% tally() %>% print(n=Inf)
 df_sbsa %>% filter(time==2 & rando=="Self-Acceptance") %>% select(starts_with("sa04"))
 
 # adjectives - skill building
-# Please list five adjectives that describe you and that you would like to accept 
-# more than you currently do. Indicate whether you think you are too high or too low in those traits.
+# Please list five adjectives you would like to change and indicate 
+# whether you would like to become more or less like those traits. 
 str(df_sbsa$sb08_01) 
 df_sbsa %>% filter(!is.na(sb08_01)) %>% group_by(time, rando) %>% tally()
 df_sbsa %>% filter(time==1 & rando=="Skill-Building") %>% select(starts_with("sb08"))
@@ -635,3 +635,5 @@ str(df_sbsa$sa09_01)
 df_sbsa %>% group_by(time, rando, sa09_01) %>% tally() %>% print(n=Inf) # 1 = too low / 2 = too high
 df_sbsa %>% filter(time==1 & rando=="Self-Acceptance") %>% select(starts_with("sa09"))
 
+# save cleaned data set:
+base::save(df_sbsa, file = "data/df_sbsa.rda")

@@ -1293,3 +1293,15 @@ ggplot(df_table_hyp4_plot, aes(x = fct_rev(trait), y = estimate, color = include
   theme(strip.text.x = element_text(size = 12)) +
   theme(axis.text.x=element_text(size=10, angle = 45, hjust = 1), axis.text.y=element_text(size=12)) + 
   guides(color=FALSE)
+
+
+# plot goals distribution
+
+table(df_sbsa$sb06_01) # How much do you want to change your personality in general?
+summary(df_sbsa$sb06_01)
+
+table(df_sbsa$sa06_01) # How much do you want to be better at accepting yourself for who you are?
+summary(df_sbsa$sa06_01)
+
+ggplot(df_sbsa %>% filter(!is.na(sb06_01)), aes(x=sb06_01)) + geom_histogram(bins=5) + 
+  labs(x="General change goal", y="Frequency") + theme_bw()
