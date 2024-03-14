@@ -1,15 +1,7 @@
 # Study 2: check data quality - who gets compensated?
 
-library(renv)
 library(tidyverse)
 library(labelled)
-library(psych)
-library(GPArotation)
-#library(devtools)
-#install_github("cran/multicon") # not on CRAN atm
-library(multicon)
-library(correlation)
-library(careless)
 
 # load data
 demog_st2 <- readr::read_csv("data/St2_prolific_export_demog_080923.csv") # prolific
@@ -427,6 +419,86 @@ sosci_st2_new %>% filter(dm01_01=="6136460eb5fcd7529008ebb8") %>% select(dm01_01
 # yes, looks good now!
 
 
+#### final check based on N=868 APPROVED in Prolific ####
 
+library(tidyverse)
+library(labelled)
+
+# load data
+demog_st2_final <- readr::read_csv("data/St2_prolific_export_demog_140923.csv") # prolific
+sosci_st2_final <- readxl::read_excel("data/St2_data_PersonalityChange_140923.xlsx", col_names = F, skip = 2, guess_max = 10000) # sosci
+var_names <- readxl::read_excel("data/St2_data_PersonalityChange_140923.xlsx", col_names = F)[c(1,2), ]
+var_names <- data.frame(t(var_names))
+colnames(sosci_st2_final) <- stringr::str_to_lower(var_names$X1) # only lower case pls
+# label data 
+sosci_st2_final <- labelled::set_variable_labels(sosci_st2_final, .labels = var_names$X2)
+
+# filter irrelevant cases in SoSci:
+sosci_st2_final %>% 
+  filter(str_length(dm01_01)>24 | str_length(dm01_01)<24) %>% select(case, dm01_01)
+sosci_st2_final <- sosci_st2_final %>% filter(str_length(dm01_01)==24)
+
+# check prolific groups
+demog_st2_final %>% group_by(Status) %>% tally() 
+demog_st2_final %>% group_by(`Completion code`) %>% tally()
+# check for duplicate IDs
+demog_st2_final %>% group_by(`Participant id`) %>% mutate(id_row = n()) %>% ungroup() %>% group_by(id_row) %>% tally()
+demog_st2_final %>% pull(`Participant id`) %>% unique() %>% length()
+# no duplicates
+
+# create string with all approved IDs
+ids_approv <- demog_st2_final %>% filter(Status=="APPROVED") %>% pull(`Participant id`)
+# remove one ID where we only have incomplete data for T1 (does not want to retake the survey):
+ids_approv <- ids_approv[ids_approv!="5ef7a1c5939d494c57e89117"]
+ids_approv <- ids_approv[ids_approv!="616dc333dc51cae13e5c21fc"] # no data at all (not sure why - perhaps wrong entered wrong ID)
+
+# filter SoSci data
+sosci_st2_final_approv <- sosci_st2_final %>% filter(dm01_01 %in% ids_approv)
+sosci_st2_final_approv %>% group_by(dm01_01) %>% mutate(id_row = n()) %>% ungroup() %>% group_by(id_row) %>% tally()
+# quite a few people participated multiple times (due to refreshing the link...)
+# n=93 rows that can be dropped (incomplete ones that were repeated!)
+sosci_st2_final_approv %>% group_by(finished, lastpage) %>% tally() 
+# 'finished' is a bit misleading because we have some more cases with valid data who did not reach the last page
+
+# detailed look at these duplicate cases
+sosci_st2_final_approv %>% group_by(dm01_01) %>% mutate(id_row = n()) %>% ungroup() %>% filter(id_row>=2) %>% 
+  arrange(id_row, dm01_01, finished) %>% 
+  select(dm01_01, time_sum, finished, lastpage, missing, zf02, rs01_10, sb02_01, sa02_01) %>% print(n=Inf)
+# looks like we always have a finished row with complete data -> yay
+
+# remove duplicates
+sosci_st2_final_approv_unique <- sosci_st2_final_approv %>% 
+  group_by(dm01_01) %>% mutate(id_row = n()) %>% ungroup() %>% 
+  filter(id_row==1 | (id_row>=2 & finished==1)) %>% # either or condition -> there are a few valid non-duplicate cases with finished==0
+  select(-id_row)
+
+# distribution across random groups
+sosci_st2_final_approv %>% group_by(zf02) %>% tally() # with duplicates
+sosci_st2_final_approv_unique %>% group_by(zf02) %>% tally() # without duplicates -> nice!
+171+174
+171+172
+178
+
+# one person missing to N=866 -> used this code to figure out who was missing from SoSci
+# missing <- base::setdiff(ids_approv, sosci_st2_final_approv_unique %>% pull(dm01_01))
+# sosci_st2_final %>% filter(dm01_01==missing) %>% 
+#   select(dm01_01, time_sum, finished, lastpage, missing, zf02, starts_with(c("bf", "sb"))) %>% print(width = Inf)
+  
+# sb group
+sosci_st2_final_approv_sb <- sosci_st2_final_approv_unique %>% filter(zf02==1 | zf02==4)
+sosci_st2_final_approv_sb %>% select(starts_with("bf0")) %>% print(n=Inf)
+sosci_st2_final_approv_sb %>% select(starts_with("sb")) %>% print(n=Inf)
+
+# sa group
+sosci_st2_final_approv_sa <- sosci_st2_final_approv_unique %>% filter(zf02==2 | zf02==5)
+sosci_st2_final_approv_sa %>% select(starts_with("bf0")) %>% print(n=Inf)
+sosci_st2_final_approv_sa %>% select(starts_with("sa")) %>% print(n=Inf)
+
+# control group
+sosci_st2_final_approv_cg <- sosci_st2_final_approv_unique %>% filter(zf02==3)
+sosci_st2_final_approv_cg %>% select(starts_with("bf0")) %>% print(n=Inf)
+sosci_st2_final_approv_cg %>% select(starts_with("rs")) %>% print(n=Inf)
+
+# looks good at first glance
 
 

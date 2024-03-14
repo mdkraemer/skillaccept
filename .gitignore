@@ -7,5 +7,7 @@
 # folders
 /data
 /renv
-/skillaccept_first_results_cache/
-/skillaccept_first_results_files/
+/improveaccept_results_st1_cache/
+/improveaccept_results_st1_files/
+/improveaccept_results_st2_cache/
+/improveaccept_results_st2_files/
