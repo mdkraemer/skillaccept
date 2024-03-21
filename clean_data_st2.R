@@ -369,12 +369,13 @@ df_sbsa2$meaning[is.nan(df_sbsa2$meaning)] <- NA
 # 10 item Rosenberg Self-Esteem Scale (Rosenberg et al., 1965) 
 df_sbsa2 %>% select(starts_with("rs01"))
 df_sbsa2 %>% group_by(time, rando, rs01_01) %>% tally() %>% print(n=Inf)
+keys_selfes <- list(meaning = c("rs01_01", "-rs01_02", "rs01_03", "rs01_04", "-rs01_05", "-rs01_06", "rs01_07", "-rs01_08", "-rs01_09", "rs01_10")) # does not work automatically, here
 alpha.selfes <- df_sbsa2 %>% 
   select(starts_with("rs01")) %>%
-  psych::alpha(check.keys = TRUE)
+  psych::alpha(keys = keys_selfes)
 df_sbsa2$selfes <- df_sbsa2 %>%
   select(starts_with("rs01")) %>%
-  psych::reverse.code(keys=alpha.selfes$keys[[1]], items = .) %>%
+  psych::reverse.code(keys = keys_selfes[[1]], items = .) %>%
   rowMeans(na.rm=T)
 df_sbsa2$selfes[is.nan(df_sbsa2$selfes)] <- NA
 
@@ -513,7 +514,8 @@ for (i in 1:length(b5_vars)) {
   # loop across 6 BFI versions
   for (j in 1:length(bfi_versions)) {
     items = paste0(bfi_versions[[j]], item_nrs)
-    items_keyed = str_replace(paste0(b5_vars[[i]][[2]], items), "\\+", "")
+    items_keyed = paste0(b5_vars[[i]][[2]], items)
+    items_keyed = ifelse(str_detect(items_keyed, "-"), -1, 1) # apparently, the function now require the 1/-1 coding
     # reliability objects
     alpha <- df_sbsa2 %>% 
       select(all_of(items)) %>%

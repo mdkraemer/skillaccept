@@ -1305,3 +1305,7 @@ summary(df_sbsa$sa06_01)
 
 ggplot(df_sbsa %>% filter(!is.na(sb06_01)), aes(x=sb06_01)) + geom_histogram(bins=5) + 
   labs(x="General change goal", y="Frequency") + theme_bw()
+
+
+
+

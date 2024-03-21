@@ -74,34 +74,6 @@ source("clean_data_st1.R")
 
 ------------------------------------------------------------------------
 
-## Descriptives
-
-### Sample size
-
-How many participants at each time point and in each condition?
-```{r}
-#| echo: true
-#| warning: false
-
-df_sbsa %>% group_by(time, rando) %>% tally()
-```
-
-### Demographics
-
-Gender and age distribution
-```{r}
-#| echo: true
-#| warning: false
-
-df_sbsa %>% group_by(time, rando) %>% 
-  summarise(n = n(), m_age = mean(age, na.rm=T), sd_age = sd(age, na.rm=T), min_age = min(age, na.rm=T), max_age = max(age, na.rm=T))
-
-df_sbsa %>% group_by(time, rando, gender) %>% 
-  summarise(n = n(), m_age = mean(age, na.rm=T), sd_age = sd(age, na.rm=T), min_age = min(age, na.rm=T), max_age = max(age, na.rm=T))
-```
-
-------------------------------------------------------------------------
-
 ## Create item parcels
 
 ### Well-being measures
@@ -3799,6 +3771,30 @@ Good model fit across all stages of measurement invariance (except for RMSEA). C
 
 ## Descriptives
 
+### Sample size
+
+How many participants at each time point and in each condition?
+```{r}
+#| echo: true
+#| warning: false
+
+df_sbsa %>% group_by(time, rando) %>% tally()
+```
+
+### Demographics
+
+Gender and age distribution
+```{r}
+#| echo: true
+#| warning: false
+
+df_sbsa %>% group_by(time, rando) %>% 
+  summarise(n = n(), m_age = mean(age, na.rm=T), sd_age = sd(age, na.rm=T), min_age = min(age, na.rm=T), max_age = max(age, na.rm=T))
+
+df_sbsa %>% group_by(time, rando, gender) %>% 
+  summarise(n = n(), m_age = mean(age, na.rm=T), sd_age = sd(age, na.rm=T), min_age = min(age, na.rm=T), max_age = max(age, na.rm=T))
+```
+
 ### General change/acceptance goals
 
 Summary stats:
@@ -4085,7 +4081,7 @@ cowplot::plot_grid(
 
 ## Confirmatory results
 
-### H1: Well-being - similarity correlations {#hyp1}
+### H1: Well-being - similarity correlations (H4 in paper) {#hyp1}
 
 *All four psychological well-being indicators will be positively correlated with a greater similarity between current- and ideal self-ratings of personality.* 
 
@@ -4169,7 +4165,7 @@ Here we see negative correlations of well-being indicators with squared trait- a
 
 ------------------------------------------------------------------------
 
-### H2: Well-being - latent change {#hyp2}
+### H2: Well-being - latent change (H5 in paper) {#hyp2}
 
 *Both groups will increase in all four psychological well-being indicators.* 
 
@@ -4497,7 +4493,7 @@ Self concept clarity improved significantly across time, *b* = `r round(params_l
 
 ------------------------------------------------------------------------
 
-### H3: Distance between ideal- and current-self over time {#hyp3}
+### H3: Distance between ideal- and current-self over time (H1 in paper) {#hyp3}
 
 *The distance between ideal- and current-self will decrease in both groups.* 
 
@@ -4640,16 +4636,18 @@ mod_traits_sqdiff <- df_sbsa_wide_profdiff %>%
   filter(assessments==2) %>% 
   select(-assessments) %>% 
   group_nest(test) %>% 
-  mutate(t_tests = map(data, ~t.test(score ~ time, data = .x, paired = TRUE))) %>% 
+  mutate(t_tests = map(data, ~t.test(score ~ relevel(as.factor(time), "t2"), # need to relevel this to get T2-T1 diff (not sure why)
+                                     data = .x, paired = TRUE))) %>% 
   pull(t_tests) %>% 
-  purrr::set_names(names(b5_vars))
+  purrr::set_names(sort(names(b5_vars))) # ordered alphabetically
 
 mod_traits_unlist <- mod_traits_sqdiff[[1]] %>% tidy()
 for (i in 2:length(mod_traits_sqdiff)) {
   mod_traits_unlist <- bind_rows(mod_traits_unlist, mod_traits_sqdiff[[i]] %>% tidy())
 }
 
-kable(mod_traits_unlist %>% mutate(outcome = names(b5_vars)) %>% select(outcome, everything()), digits = 3)
+kable(mod_traits_unlist %>% mutate(outcome = sort(names(b5_vars))) %>% 
+        select(outcome, everything()) %>% arrange(factor(outcome, levels = (names(b5_vars)))), digits = 3) # order by BFI traits
 
 # effect sizes
 cohend_cust = function(outcome, df) {
@@ -12126,7 +12124,7 @@ ggplot(df_table_hyp5_plot, aes(x = fct_rev(trait), y = estimate, color = include
   guides(color="none")
 ```
 
-### H6: Desire to change and frequency of self-improvement behaviors as moderators of change in personality in self-improvement group {#hyp6}
+### H6: Desire to change and frequency of self-improvement behaviors as moderators of change in personality in self-improvement group (H2 in paper) {#hyp6}
 
 *Desire to change and frequency of self-improvement behaviors measured at the follow-up assessment will be positively related to change in current-self ratings in the self-improvement group.* 
 
@@ -13629,7 +13627,7 @@ The moderation effect of the frequency of self-improvement behaviors with the im
 
 #### Hyp 6: Effects summary
 
-Run models for all facets with a template & loop:
+Gather all relevant effects:
 ```{r}
 #| echo: true
 #| warning: false
@@ -13640,7 +13638,57 @@ Run models for all facets with a template & loop:
 
 # create df for table:
 
-df_table_hyp6 <- bind_rows(
+# main effects (change score)
+df_table_hyp6_main <- bind_rows(
+  #traits
+  params_lcs_extra_curr_specif_hyp6 %>% filter(term=="d_extra_1 ~1 "),
+  params_lcs_extra_curr_frequ_hyp6 %>% filter(term=="d_extra_1 ~1 "),
+  params_lcs_agree_curr_specif_hyp6 %>% filter(term=="d_agree_1 ~1 "),
+  params_lcs_agree_curr_frequ_hyp6 %>% filter(term=="d_agree_1 ~1 "),
+  params_lcs_consc_curr_specif_hyp6 %>% filter(term=="d_consc_1 ~1 "),
+  params_lcs_consc_curr_frequ_hyp6 %>% filter(term=="d_consc_1 ~1 "),
+  params_lcs_neuro_curr_specif_hyp6 %>% filter(term=="d_neuro_1 ~1 "),
+  params_lcs_neuro_curr_frequ_hyp6 %>% filter(term=="d_neuro_1 ~1 "),
+  params_lcs_openn_curr_specif_hyp6 %>% filter(term=="d_openn_1 ~1 "),
+  params_lcs_openn_curr_frequ_hyp6 %>% filter(term=="d_openn_1 ~1 "),
+  #facets
+  params_lcs_socia_curr_specif_hyp6 %>% filter(term=="d_socia_1 ~1 "),
+  params_lcs_socia_curr_frequ_hyp6 %>% filter(term=="d_socia_1 ~1 "),
+  params_lcs_asser_curr_specif_hyp6 %>% filter(term=="d_asser_1 ~1 "),
+  params_lcs_asser_curr_frequ_hyp6 %>% filter(term=="d_asser_1 ~1 "),
+  params_lcs_energ_curr_specif_hyp6 %>% filter(term=="d_energ_1 ~1 "),
+  params_lcs_energ_curr_frequ_hyp6 %>% filter(term=="d_energ_1 ~1 "),
+  params_lcs_compa_curr_specif_hyp6 %>% filter(term=="d_compa_1 ~1 "),
+  params_lcs_compa_curr_frequ_hyp6 %>% filter(term=="d_compa_1 ~1 "),
+  params_lcs_respe_curr_specif_hyp6 %>% filter(term=="d_respe_1 ~1 "),
+  params_lcs_respe_curr_frequ_hyp6 %>% filter(term=="d_respe_1 ~1 "),
+  params_lcs_trust_curr_specif_hyp6 %>% filter(term=="d_trust_1 ~1 "),
+  params_lcs_trust_curr_frequ_hyp6 %>% filter(term=="d_trust_1 ~1 "),
+  params_lcs_organ_curr_specif_hyp6 %>% filter(term=="d_organ_1 ~1 "),
+  params_lcs_organ_curr_frequ_hyp6 %>% filter(term=="d_organ_1 ~1 "),
+  params_lcs_produ_curr_specif_hyp6 %>% filter(term=="d_produ_1 ~1 "),
+  params_lcs_produ_curr_frequ_hyp6 %>% filter(term=="d_produ_1 ~1 "),
+  params_lcs_respo_curr_specif_hyp6 %>% filter(term=="d_respo_1 ~1 "),
+  params_lcs_respo_curr_frequ_hyp6 %>% filter(term=="d_respo_1 ~1 "),
+  params_lcs_anxie_curr_specif_hyp6 %>% filter(term=="d_anxie_1 ~1 "),
+  params_lcs_anxie_curr_frequ_hyp6 %>% filter(term=="d_anxie_1 ~1 "),
+  params_lcs_depre_curr_specif_hyp6 %>% filter(term=="d_depre_1 ~1 "),
+  params_lcs_depre_curr_frequ_hyp6 %>% filter(term=="d_depre_1 ~1 "),
+  params_lcs_volat_curr_specif_hyp6 %>% filter(term=="d_volat_1 ~1 "),
+  params_lcs_volat_curr_frequ_hyp6 %>% filter(term=="d_volat_1 ~1 "),
+  params_lcs_curio_curr_specif_hyp6 %>% filter(term=="d_curio_1 ~1 "),
+  params_lcs_curio_curr_frequ_hyp6 %>% filter(term=="d_curio_1 ~1 "),
+  params_lcs_aesth_curr_specif_hyp6 %>% filter(term=="d_aesth_1 ~1 "),
+  params_lcs_aesth_curr_frequ_hyp6 %>% filter(term=="d_aesth_1 ~1 "),
+  params_lcs_imagi_curr_specif_hyp6 %>% filter(term=="d_imagi_1 ~1 "),
+  params_lcs_imagi_curr_frequ_hyp6 %>% filter(term=="d_imagi_1 ~1 ")
+  ) %>% 
+  mutate(trait = rep(names(b5_vars), each=2),
+         moderator = rep(c("goals", "frequency"), 20)) %>% 
+  select(trait, moderator, est_main = estimate, std_main = std.all, p_main = p.value)
+
+# moderation effects
+df_table_hyp6_mod <- bind_rows(
   #traits
   params_lcs_extra_curr_specif_hyp6 %>% filter(term=="d_extra_1 ~ goals"),
   params_lcs_extra_curr_frequ_hyp6 %>% filter(term=="d_extra_1 ~ frequ"),
@@ -13686,11 +13734,13 @@ df_table_hyp6 <- bind_rows(
   ) %>% 
   mutate(trait = rep(names(b5_vars), each=2),
          moderator = rep(c("goals", "frequency"), 20)) %>% 
-  select(trait, moderator, estimate, std.all, statistic, p.value)
+  select(trait, moderator, est_mod = estimate, std_mod = std.all, p_mod = p.value)
 
+# combine
+df_table_hyp6 <- df_table_hyp6_main %>% left_join(df_table_hyp6_mod)
 ```
 
-Results summary across the Big Five traits: trait-specific change goals (*goals*) and frequency of self-improvement behaviors (*frequency*) as moderators on the latent change score
+Results summary across the Big Five traits: trait-specific change goals (*goals*) and frequency of self-improvement behaviors (*frequency*) as moderators on the latent change score. *_main* refers to the main effects (change scores) and *_mod* to the moderation effects.  
 ```{r}
 #| echo: true
 #| fig-width: 9.5
@@ -13708,7 +13758,7 @@ Four moderator effects significantly differ from zero:
 - changes in current-level openness are moderated by the frequency of self-improvement behaviors    
 :::
 
-Results summary across the Big Five facets: trait-specific change goals (*goals*) and frequency of self-improvement behaviors (*frequency*) as moderators on the latent change score
+Results summary across the Big Five facets: trait-specific change goals (*goals*) and frequency of self-improvement behaviors (*frequency*) as moderators on the latent change score. *_main* refers to the main effects (change scores) and *_mod* to the moderation effects.  
 ```{r}
 #| echo: true
 #| fig-width: 9.5
@@ -13818,7 +13868,7 @@ ggplot(df_table_hyp6_plot, aes(x = fct_rev(trait), y = estimate, color = include
   guides(color="none")
 ```
 
-### H7: Desire to change and frequency of self-acceptance behaviors as moderators of change in personality in self-acceptance group {#hyp7}
+### H7: Desire to change and frequency of self-acceptance behaviors as moderators of change in personality in self-acceptance group (H3 in paper) {#hyp7}
 
 *Desire to change and frequency of self-acceptance behaviors measured at the follow-up assessment will be positively related to change in ideal-self ratings in the self-acceptance group.* 
 
@@ -15216,7 +15266,57 @@ Run models for all facets with a template & loop:
 
 # create df for table:
 
-df_table_hyp7 <- bind_rows(
+# main effects (change score)
+df_table_hyp7_main <- bind_rows(
+  #traits
+  params_lcs_extra_ideal_specif_hyp7 %>% filter(term=="d_extra_1 ~1 "),
+  params_lcs_extra_ideal_frequ_hyp7 %>% filter(term=="d_extra_1 ~1 "),
+  params_lcs_agree_ideal_specif_hyp7 %>% filter(term=="d_agree_1 ~1 "),
+  params_lcs_agree_ideal_frequ_hyp7 %>% filter(term=="d_agree_1 ~1 "),
+  params_lcs_consc_ideal_specif_hyp7 %>% filter(term=="d_consc_1 ~1 "),
+  params_lcs_consc_ideal_frequ_hyp7 %>% filter(term=="d_consc_1 ~1 "),
+  params_lcs_neuro_ideal_specif_hyp7 %>% filter(term=="d_neuro_1 ~1 "),
+  params_lcs_neuro_ideal_frequ_hyp7 %>% filter(term=="d_neuro_1 ~1 "),
+  params_lcs_openn_ideal_specif_hyp7 %>% filter(term=="d_openn_1 ~1 "),
+  params_lcs_openn_ideal_frequ_hyp7 %>% filter(term=="d_openn_1 ~1 "),
+  #facets
+  params_lcs_socia_ideal_specif_hyp7 %>% filter(term=="d_socia_1 ~1 "),
+  params_lcs_socia_ideal_frequ_hyp7 %>% filter(term=="d_socia_1 ~1 "),
+  params_lcs_asser_ideal_specif_hyp7 %>% filter(term=="d_asser_1 ~1 "),
+  params_lcs_asser_ideal_frequ_hyp7 %>% filter(term=="d_asser_1 ~1 "),
+  params_lcs_energ_ideal_specif_hyp7 %>% filter(term=="d_energ_1 ~1 "),
+  params_lcs_energ_ideal_frequ_hyp7 %>% filter(term=="d_energ_1 ~1 "),
+  params_lcs_compa_ideal_specif_hyp7 %>% filter(term=="d_compa_1 ~1 "),
+  params_lcs_compa_ideal_frequ_hyp7 %>% filter(term=="d_compa_1 ~1 "),
+  params_lcs_respe_ideal_specif_hyp7 %>% filter(term=="d_respe_1 ~1 "),
+  params_lcs_respe_ideal_frequ_hyp7 %>% filter(term=="d_respe_1 ~1 "),
+  params_lcs_trust_ideal_specif_hyp7 %>% filter(term=="d_trust_1 ~1 "),
+  params_lcs_trust_ideal_frequ_hyp7 %>% filter(term=="d_trust_1 ~1 "),
+  params_lcs_organ_ideal_specif_hyp7 %>% filter(term=="d_organ_1 ~1 "),
+  params_lcs_organ_ideal_frequ_hyp7 %>% filter(term=="d_organ_1 ~1 "),
+  params_lcs_produ_ideal_specif_hyp7 %>% filter(term=="d_produ_1 ~1 "),
+  params_lcs_produ_ideal_frequ_hyp7 %>% filter(term=="d_produ_1 ~1 "),
+  params_lcs_respo_ideal_specif_hyp7 %>% filter(term=="d_respo_1 ~1 "),
+  params_lcs_respo_ideal_frequ_hyp7 %>% filter(term=="d_respo_1 ~1 "),
+  params_lcs_anxie_ideal_specif_hyp7 %>% filter(term=="d_anxie_1 ~1 "),
+  params_lcs_anxie_ideal_frequ_hyp7 %>% filter(term=="d_anxie_1 ~1 "),
+  params_lcs_depre_ideal_specif_hyp7 %>% filter(term=="d_depre_1 ~1 "),
+  params_lcs_depre_ideal_frequ_hyp7 %>% filter(term=="d_depre_1 ~1 "),
+  params_lcs_volat_ideal_specif_hyp7 %>% filter(term=="d_volat_1 ~1 "),
+  params_lcs_volat_ideal_frequ_hyp7 %>% filter(term=="d_volat_1 ~1 "),
+  params_lcs_curio_ideal_specif_hyp7 %>% filter(term=="d_curio_1 ~1 "),
+  params_lcs_curio_ideal_frequ_hyp7 %>% filter(term=="d_curio_1 ~1 "),
+  params_lcs_aesth_ideal_specif_hyp7 %>% filter(term=="d_aesth_1 ~1 "),
+  params_lcs_aesth_ideal_frequ_hyp7 %>% filter(term=="d_aesth_1 ~1 "),
+  params_lcs_imagi_ideal_specif_hyp7 %>% filter(term=="d_imagi_1 ~1 "),
+  params_lcs_imagi_ideal_frequ_hyp7 %>% filter(term=="d_imagi_1 ~1 ")
+  ) %>% 
+  mutate(trait = rep(names(b5_vars), each=2),
+         moderator = rep(c("goals", "frequency"), 20)) %>% 
+  select(trait, moderator, est_main = estimate, std_main = std.all, p_main = p.value)
+
+# moderation effects
+df_table_hyp7_mod <- bind_rows(
   #traits
   params_lcs_extra_ideal_specif_hyp7 %>% filter(term=="d_extra_1 ~ goals"),
   params_lcs_extra_ideal_frequ_hyp7 %>% filter(term=="d_extra_1 ~ frequ"),
@@ -15262,11 +15362,13 @@ df_table_hyp7 <- bind_rows(
   ) %>% 
   mutate(trait = rep(names(b5_vars), each=2),
          moderator = rep(c("goals", "frequency"), 20)) %>% 
-  select(trait, moderator, estimate, std.all, statistic, p.value)
+  select(trait, moderator, est_mod = estimate, std_mod = std.all, p_mod = p.value)
 
+# combine
+df_table_hyp7 <- df_table_hyp7_main %>% left_join(df_table_hyp7_mod)
 ```
 
-Results summary across the Big Five traits: trait-specific acceptance goals (*goals*) and frequency of self-acceptance behaviors (*frequency*) as moderators on the latent change score
+Results summary across the Big Five traits: trait-specific acceptance goals (*goals*) and frequency of self-acceptance behaviors (*frequency*) as moderators on the latent change score. *_main* refers to the main effects (change scores) and *_mod* to the moderation effects.  
 ```{r}
 #| echo: true
 #| fig-width: 9.5
@@ -15281,7 +15383,7 @@ Two moderator effects that are significantly different from zero:
 - Frequency of self-acceptance behaviors also moderates changes in ideal-level conscientiousness.  
 :::
 
-Results summary across the Big Five facets: trait-specific acceptance goals (*goals*) and frequency of self-acceptance behaviors (*frequency*) as moderators on the latent change score
+Results summary across the Big Five facets: trait-specific acceptance goals (*goals*) and frequency of self-acceptance behaviors (*frequency*) as moderators on the latent change score. *_main* refers to the main effects (change scores) and *_mod* to the moderation effects.  
 ```{r}
 #| echo: true
 #| fig-width: 9.5
@@ -16119,7 +16221,7 @@ mod_traits_sqdiff_groups <- df_sbsa %>%
   group_nest(test) %>% 
   mutate(lmer_mods = map(data, ~lmerTest::lmer(score ~ time_d * rando + (1 | pid), data = .x))) %>% 
   pull(lmer_mods) %>% 
-  purrr::set_names(names(b5_vars))
+  purrr::set_names(sort(names(b5_vars))) # ordered alphabetically
 
 mod_traits_sqdiff_groups_unlist <- as.data.frame(summary(mod_traits_sqdiff_groups[[1]])$coefficients) %>% as_tibble()
 for (i in 2:length(mod_traits_sqdiff_groups)) {
@@ -16128,9 +16230,10 @@ for (i in 2:length(mod_traits_sqdiff_groups)) {
 }
 
 kable(mod_traits_sqdiff_groups_unlist %>% 
-        mutate(outcome = rep(names(b5_vars), each=4), 
+        mutate(outcome = rep(sort(names(b5_vars)), each=4), 
                term = c(rep(c("Intercept", "time", "group", "time*group"), 20))) %>% 
-        select(outcome, term, everything()) %>% rename(p = `Pr(>|t|)`), 
+        select(outcome, term, everything()) %>% rename(p = `Pr(>|t|)`) %>% 
+        arrange(factor(outcome, levels = (names(b5_vars)))),  # order by BFI traits, 
       digits = 3)
 ```
 
@@ -17862,6 +17965,96 @@ ggplot(df_table_ppd_plot, aes(x = fct_rev(trait), y = estimate, color = include_
 We will explore c) whether there are stronger rates of change/acceptance on traits that were selected as change goals than those that were not. 
 
 *TBD!*
+
+### Manipulation check (d)
+
+Does self-improvement intervene on current self trait change (but not ideal self)? Does self-acceptance intervene on ideal self trait change (but not current self)?
+
+Changes in current self traits over time:
+```{r}
+#| echo: true
+#| warning: false
+#| code-fold: true
+#| code-summary: "Show the code"
+#| output: false
+#| cache: true
+
+df_manip_check_curr <- df_sbsa %>% 
+  select(pid, time_d, rando, 
+         paste0(str_trunc(names(b5_vars), 5, ellipsis = ""), "_comb_curr")) %>% 
+  pivot_longer(ends_with("_comb_curr"), 
+               names_to = "test", names_prefix = "facet", values_to = "score", values_drop_na = TRUE) %>% 
+  group_nest(test) %>% 
+  mutate(lmer_mods = map(data, ~lmerTest::lmer(score ~ time_d * rando + (1 | pid), data = .x))) %>% 
+  pull(lmer_mods) %>% 
+  purrr::set_names(sort(names(b5_vars))) # ordered alphabetically
+
+df_manip_check_curr_unlist <- as.data.frame(summary(df_manip_check_curr[[1]])$coefficients) %>% as_tibble()
+for (i in 2:length(df_manip_check_curr)) {
+  df_manip_check_curr_unlist <- bind_rows(df_manip_check_curr_unlist, 
+                                          as.data.frame(summary(df_manip_check_curr[[i]])$coefficients) %>% as_tibble())
+}
+```
+
+```{r}
+#| echo: true
+#| warning: false
+
+kable(df_manip_check_curr_unlist %>% 
+        mutate(outcome = rep(sort(names(b5_vars)), each=4), 
+               term = c(rep(c("Intercept", "time", "group", "time*group"), 20))) %>% 
+        rename(p = `Pr(>|t|)`, str_err = `Std. Error`, est = Estimate) %>% select(outcome, term, est, str_err, p) %>% 
+        mutate(sig = ifelse(p < .05, ifelse(p < .01, ifelse(p < .001, "***", "**"), "*"), " ")) %>% 
+        arrange(factor(outcome, levels = (names(b5_vars)))), # order by BFI traits, 
+      digits = 3)
+```
+
+::: {.callout-note appearance="minimal"}
+No significant *group* effects (higher trait level in self-improvement group at baseline) and also no significant differences in the changes over time in current-self trait levels (*timeXgroup*). Significant changes over time in current-self trait levels (*time*) for most domains/facets (independent of intervention group membership).
+:::
+
+Changes in ideal self traits over time:
+```{r}
+#| echo: true
+#| warning: false
+#| code-fold: true
+#| code-summary: "Show the code"
+#| output: false
+#| cache: true
+
+df_manip_check_ideal <- df_sbsa %>% 
+  select(pid, time_d, rando, 
+         paste0(str_trunc(names(b5_vars), 5, ellipsis = ""), "_comb_ideal")) %>% 
+  pivot_longer(ends_with("_comb_ideal"), 
+               names_to = "test", names_prefix = "facet", values_to = "score", values_drop_na = TRUE) %>% 
+  group_nest(test) %>% 
+  mutate(lmer_mods = map(data, ~lmerTest::lmer(score ~ time_d * rando + (1 | pid), data = .x))) %>% 
+  pull(lmer_mods) %>% 
+  purrr::set_names(sort(names(b5_vars))) # ordered alphabetically
+
+df_manip_check_ideal_unlist <- as.data.frame(summary(df_manip_check_ideal[[1]])$coefficients) %>% as_tibble()
+for (i in 2:length(df_manip_check_ideal)) {
+  df_manip_check_ideal_unlist <- bind_rows(df_manip_check_ideal_unlist, 
+                                          as.data.frame(summary(df_manip_check_ideal[[i]])$coefficients) %>% as_tibble())
+}
+```
+
+```{r}
+#| echo: true
+#| warning: false
+
+kable(df_manip_check_ideal_unlist %>% 
+        mutate(outcome = rep(sort(names(b5_vars)), each=4), 
+               term = c(rep(c("Intercept", "time", "group", "time*group"), 20))) %>% 
+        rename(p = `Pr(>|t|)`, str_err = `Std. Error`, est = Estimate) %>% select(outcome, term, est, str_err, p) %>% 
+        mutate(sig = ifelse(p < .05, ifelse(p < .01, ifelse(p < .001, "***", "**"), "*"), " ")) %>% 
+        arrange(factor(outcome, levels = (names(b5_vars)))), # order by BFI traits, 
+      digits = 3)
+```
+
+::: {.callout-note appearance="minimal"}
+No significant *group* effects (higher trait level in self-improvement group at baseline; except for imagination facet) and also no significant differences in the changes over time in ideal-self trait levels (*timeXgroup*; except for imagination and anxiety facets). No significant changes over time in ideal-self trait levels (*time*) for most domains/facets (independent of intervention group membership) with the exception of sociability.
+:::
 
 <!--
 ## References

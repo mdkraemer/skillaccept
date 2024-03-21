@@ -533,7 +533,8 @@ for (i in 1:length(b5_vars)) {
   # loop across 6 BFI versions
   for (j in 1:length(bfi_versions)) {
     items = paste0(bfi_versions[[j]], item_nrs)
-    items_keyed = str_replace(paste0(b5_vars[[i]][[2]], items), "\\+", "")
+    items_keyed = paste0(b5_vars[[i]][[2]], items)
+    items_keyed = ifelse(str_detect(items_keyed, "-"), -1, 1) # apparently, the function now require the 1/-1 coding
     # reliability objects
     alpha <- df_sbsa %>% 
       select(all_of(items)) %>%
