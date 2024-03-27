@@ -1133,6 +1133,61 @@ fit_configural_openn_ideal <- cfa(configural_openn_ideal, data = df_sbsa_wide_pe
 summary(fit_configural_openn_ideal, fit.measures = TRUE)
 
 
+### goals as moderator
+
+trait_template_goals_goal <- '
+neuro_t1 =~ 1*neuro_curr_par1_t1 + lamb2*neuro_curr_par2_t1 + lamb3*neuro_curr_par3_t1 # This specifies the measurement model for neuro_curr_t1 
+neuro_t2 =~ 1*neuro_curr_par1_t2 + lamb2*neuro_curr_par2_t2 + lamb3*neuro_curr_par3_t2 # This specifies the measurement model for neuro_curr_t2 with the equality constrained factor loadings
+
+goals =~ 1*sb07_10_t1 + sb07_11_t1 + sb07_12_t1 # latent variable for moderator
+
+neuro_t2 ~ 1*neuro_t1     # This parameter regresses neuro_t2 perfectly on neuro_t1
+d_neuro_1 =~ 1*neuro_t2   # This defines the latent change score factor as measured perfectly by scores on neuro_t2
+neuro_t2 ~ 0*1            # This line constrains the intercept of neuro_t2 to 0
+neuro_t2 ~~ 0*neuro_t2    # This fixes the variance of neuro_t2 to 0
+
+d_neuro_1 ~ 1              # This estimates the intercept of the change score 
+neuro_t1 ~ 1               # This estimates the intercept of neuro_t1 
+d_neuro_1 ~~ d_neuro_1     # This estimates the variance of the change scores 
+neuro_t1 ~~ neuro_t1         # This estimates the variance of neuro_t1 
+neuro_t1 ~~ d_neuro_1      # This estimates the self-feedback parameter, as a covariance! -> therefore, the interpretation of the change score remains unconditional
+neuro_t1 ~ goals               # This estimates the moderation effect on personality at T1
+d_neuro_1 ~ goals   # This estimates the moderation effect on the change score
+
+goals ~ 0*1            # This fixes the intercept of the moderator to 0
+goals ~~ goals         # This estimates the variance of the moderator
+
+neuro_curr_par1_t1 ~~ neuro_curr_par1_t2   # This allows residual covariance on indicator X1 across T1 and T2
+neuro_curr_par2_t1 ~~ neuro_curr_par2_t2   # This allows residual covariance on indicator X2 across T1 and T2
+neuro_curr_par3_t1 ~~ neuro_curr_par3_t2   # This allows residual covariance on indicator X3 across T1 and T2
+
+neuro_curr_par1_t1 ~~ res1*neuro_curr_par1_t1   # This allows residual variance on indicator X1 at T1 
+neuro_curr_par2_t1 ~~ res2*neuro_curr_par2_t1   # This allows residual variance on indicator X2 at T1
+neuro_curr_par3_t1 ~~ res3*neuro_curr_par3_t1   # This allows residual variance on indicator X3 at T1
+
+neuro_curr_par1_t2 ~~ res1*neuro_curr_par1_t2  # This allows residual variance on indicator X1 at T2 
+neuro_curr_par2_t2 ~~ res2*neuro_curr_par2_t2  # This allows residual variance on indicator X2 at T2 
+neuro_curr_par3_t2 ~~ res3*neuro_curr_par3_t2  # This allows residual variance on indicator X3 at T2
+
+neuro_curr_par1_t1 ~ 0*1      # This constrains the intercept of X1 to 0 at T1
+neuro_curr_par2_t1 ~ m2*1     # This estimates the intercept of X2 at T1
+neuro_curr_par3_t1 ~ m3*1     # This estimates the intercept of X3 at T1
+
+neuro_curr_par1_t2 ~ 0*1      # This constrains the intercept of X1 to 0 at T2
+neuro_curr_par2_t2 ~ m2*1     # This estimates the intercept of X2 at T2
+neuro_curr_par3_t2 ~ m3*1     # This estimates the intercept of X3 at T2
+
+sb07_10_t1 ~~ sb07_10_t1
+sb07_11_t1 ~~ sb07_11_t1
+sb07_12_t1 ~~ sb07_12_t1
+
+sb07_10_t1 ~ 1
+sb07_11_t1 ~ 1
+sb07_12_t1 ~ 1
+'
+fit_trait_template_goals_goal <- lavaan(trait_template_goals_goal, data=df_sbsa_wide_pers_sb_mod, estimator='mlr', fixed.x=FALSE, missing='fiml')
+summary(fit_trait_template_goals_goal, fit.measures=TRUE, standardized=TRUE, rsquare=F)
+
 ### personal project dimensions:
 
 trait_template_ppd_goal <- '

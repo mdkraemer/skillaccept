@@ -108,6 +108,17 @@
       ],
       "Hash": "31262fd18481fab05c5e7258dac163ca"
     },
+    "NLP": {
+      "Package": "NLP",
+      "Version": "0.2-1",
+      "Source": "Repository",
+      "Repository": "RSPM",
+      "Requirements": [
+        "R",
+        "utils"
+      ],
+      "Hash": "94b0a21c13933f61cf6272a192964624"
+    },
     "OpenMx": {
       "Package": "OpenMx",
       "Version": "2.21.8",
@@ -782,6 +793,23 @@
       ],
       "Hash": "54ed3ea01b11e81a86544faaecfef8e2"
     },
+    "effectsize": {
+      "Package": "effectsize",
+      "Version": "0.8.6",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R",
+        "bayestestR",
+        "datawizard",
+        "insight",
+        "parameters",
+        "performance",
+        "stats",
+        "utils"
+      ],
+      "Hash": "ba2ebc5b29c95b3f99d022333e8aad5f"
+    },
     "ellipsis": {
       "Package": "ellipsis",
       "Version": "0.3.2",
@@ -1275,16 +1303,16 @@
     },
     "insight": {
       "Package": "insight",
-      "Version": "0.19.3",
+      "Version": "0.19.9",
       "Source": "Repository",
-      "Repository": "CRAN",
+      "Repository": "RSPM",
       "Requirements": [
         "R",
         "methods",
         "stats",
         "utils"
       ],
-      "Hash": "e605299a4e3d10404ac7989b05c4a917"
+      "Hash": "2d21917629766e0a5f002cdf4d40b87b"
     },
     "isoband": {
       "Package": "isoband",
@@ -1796,6 +1824,22 @@
       "Source": "Repository",
       "Repository": "CRAN",
       "Hash": "643e16a7da6aac3e18cadc3e14abb94b"
+    },
+    "performance": {
+      "Package": "performance",
+      "Version": "0.10.9",
+      "Source": "Repository",
+      "Repository": "RSPM",
+      "Requirements": [
+        "R",
+        "bayestestR",
+        "datawizard",
+        "insight",
+        "methods",
+        "stats",
+        "utils"
+      ],
+      "Hash": "ef9fcec8b9afc2bc3f8d49544681f6fe"
     },
     "pillar": {
       "Package": "pillar",
@@ -2345,6 +2389,17 @@
       ],
       "Hash": "9374d79226103541b8293009f81da90f"
     },
+    "slam": {
+      "Package": "slam",
+      "Version": "0.1-50",
+      "Source": "Repository",
+      "Repository": "RSPM",
+      "Requirements": [
+        "R",
+        "stats"
+      ],
+      "Hash": "e25793551cbdb843154152e5ee88cbd6"
+    },
     "stringi": {
       "Package": "stringi",
       "Version": "1.7.12",
@@ -2554,6 +2609,26 @@
       ],
       "Hash": "e4e357f28c2edff493936b6cb30c3d65"
     },
+    "tm": {
+      "Package": "tm",
+      "Version": "0.7-12",
+      "Source": "Repository",
+      "Repository": "RSPM",
+      "Requirements": [
+        "BH",
+        "NLP",
+        "R",
+        "Rcpp",
+        "graphics",
+        "parallel",
+        "slam",
+        "stats",
+        "tools",
+        "utils",
+        "xml2"
+      ],
+      "Hash": "eb97fcf79920f33ba49b3b6c6421c104"
+    },
     "tweenr": {
       "Package": "tweenr",
       "Version": "2.0.2",
@@ -2692,6 +2767,18 @@
         "stats"
       ],
       "Hash": "c0e49a9760983e81e55cdd9be92e7182"
+    },
+    "wordcloud": {
+      "Package": "wordcloud",
+      "Version": "2.6",
+      "Source": "Repository",
+      "Repository": "RSPM",
+      "Requirements": [
+        "RColorBrewer",
+        "Rcpp",
+        "methods"
+      ],
+      "Hash": "dddb6538141ed1e2435cb63c6c748d16"
     },
     "xfun": {
       "Package": "xfun",

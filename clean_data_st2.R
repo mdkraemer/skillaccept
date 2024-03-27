@@ -89,6 +89,8 @@ df_sbsa2 <- df_sbsa2_all %>%
 # filter approved cases:
 df_sbsa2 <- df_sbsa2 %>% left_join(approved_ID) %>% filter(status=="APPROVED") %>% select(-status)
 
+df_sbsa2 %>% summarise(n_distinct(dm01_01)) # initial N (before further exclusions)
+
 # we still have duplicate cases in here -> started questionnaire twice 
 
 df_sbsa2 <- df_sbsa2 %>% 
@@ -347,6 +349,10 @@ df_sbsa2 %>% group_by(time, rando, sw06_01) %>% tally() %>% print(n=Inf)
 alpha.swls <- df_sbsa2 %>% 
   select(starts_with("sw06")) %>%
   psych::alpha(check.keys = TRUE)
+omega.swls <- df_sbsa2 %>%
+  dplyr::select(starts_with("sw06")) %>% 
+  psych::omega(m = ., key = ifelse(str_detect(alpha.swls$keys[[1]], "-"), -1, 1), # function now requires the 1/-1 coding
+               plot = FALSE, nfactors=2) # 3 returns error message
 df_sbsa2$swls <- df_sbsa2 %>%
   select(starts_with("sw06")) %>%
   psych::reverse.code(keys=alpha.swls$keys[[1]], items = .) %>%
@@ -360,6 +366,10 @@ keys_meaning <- list(meaning = c("ml01_01", "-ml01_02", "-ml01_03", "ml01_04", "
 alpha.meaning <- df_sbsa2 %>% 
   select(starts_with("ml01")) %>%
   psych::alpha(keys = keys_meaning)
+omega.meaning <- df_sbsa2 %>%
+  dplyr::select(starts_with("ml01")) %>% 
+  psych::omega(m = ., key = ifelse(str_detect(keys_meaning[[1]], "-"), -1, 1), # function now requires the 1/-1 coding
+               plot = FALSE, nfactors=3)
 df_sbsa2$meaning <- df_sbsa2 %>%
   select(starts_with("ml01")) %>%
   psych::reverse.code(keys = keys_meaning[[1]], items = .) %>%
@@ -373,6 +383,10 @@ keys_selfes <- list(meaning = c("rs01_01", "-rs01_02", "rs01_03", "rs01_04", "-r
 alpha.selfes <- df_sbsa2 %>% 
   select(starts_with("rs01")) %>%
   psych::alpha(keys = keys_selfes)
+omega.selfes <- df_sbsa2 %>%
+  dplyr::select(starts_with("rs01")) %>% 
+  psych::omega(m = ., key = ifelse(str_detect(keys_selfes[[1]], "-"), -1, 1), # function now requires the 1/-1 coding
+               plot = FALSE, nfactors=2) # 3 returns error message
 df_sbsa2$selfes <- df_sbsa2 %>%
   select(starts_with("rs01")) %>%
   psych::reverse.code(keys = keys_selfes[[1]], items = .) %>%
@@ -387,6 +401,10 @@ keys_concept <- list(concept = c("-sc01_01", "-sc01_02", "-sc01_03", "-sc01_04",
 alpha.concept <- df_sbsa2 %>% 
   select(starts_with("sc01")) %>%
   psych::alpha(keys = keys_concept)
+omega.concept <- df_sbsa2 %>%
+  dplyr::select(starts_with("sc01")) %>% 
+  psych::omega(m = ., key = ifelse(str_detect(keys_concept[[1]], "-"), -1, 1), # function now requires the 1/-1 coding
+               plot = FALSE, nfactors=3)
 df_sbsa2$concept <- df_sbsa2 %>%
   select(starts_with("sc01")) %>%
   psych::reverse.code(keys = keys_concept[[1]], items = .) %>%
@@ -524,7 +542,7 @@ for (i in 1:length(b5_vars)) {
     if (i %in% c(1:5)) { # omega only for B5 traits
       omega <- df_sbsa2 %>% 
         select(all_of(items)) %>%
-        psych::omega(m = ., keys = items_keyed, plot = FALSE, nfactors=3)
+        psych::omega(m = ., key = items_keyed, plot = FALSE, nfactors=3)
       eval(call("<-", as.name(paste0("omega_", short_name, "_", names(bfi_versions)[j])), omega))
     }
     # mean scores
@@ -536,6 +554,72 @@ for (i in 1:length(b5_vars)) {
     df_sbsa2[, paste0(short_name, "_", names(bfi_versions)[j])] <- trait # add to df
   }
 }  
+
+# put all measures of internal consistency in one table (for supplement)
+int_consist_traits_st2 <- tibble(
+  trait = c("lifesat", "meaning", "selfes", "concept", str_trunc(names(b5_vars), 5, ellipsis = "")[1:5]),
+  rel_alpha_current = c(# well-being 
+                   alpha.swls$total$raw_alpha, alpha.meaning$total$raw_alpha, 
+                   alpha.selfes$total$raw_alpha, alpha.concept$total$raw_alpha, 
+                   # bfi dimensions current 
+                   alpha_extra_comb_curr$total$raw_alpha, alpha_agree_comb_curr$total$raw_alpha, 
+                   alpha_consc_comb_curr$total$raw_alpha, alpha_neuro_comb_curr$total$raw_alpha, 
+                   alpha_openn_comb_curr$total$raw_alpha), 
+  rel_alpha_ideal = c(# well-being 
+                   NA, NA, NA, NA,
+                   # bfi dimensions ideal 
+                   alpha_extra_comb_ideal$total$raw_alpha, alpha_agree_comb_ideal$total$raw_alpha, 
+                   alpha_consc_comb_ideal$total$raw_alpha, alpha_neuro_comb_ideal$total$raw_alpha, 
+                   alpha_openn_comb_ideal$total$raw_alpha),
+  rel_omega_t_current = c(# well-being 
+                   omega.swls$omega.tot, omega.meaning$omega.tot, 
+                   omega.selfes$omega.tot, omega.concept$omega.tot, 
+                   # bfi dimensions current 
+                   omega_extra_comb_curr$omega.tot, omega_agree_comb_curr$omega.tot, 
+                   omega_consc_comb_curr$omega.tot, omega_neuro_comb_curr$omega.tot, 
+                   omega_openn_comb_curr$omega.tot), 
+  rel_omega_t_ideal = c(# well-being 
+                   NA, NA, NA, NA,
+                   # bfi dimensions ideal 
+                   omega_extra_comb_ideal$omega.tot, omega_agree_comb_ideal$omega.tot, 
+                   omega_consc_comb_ideal$omega.tot, omega_neuro_comb_ideal$omega.tot, 
+                   omega_openn_comb_ideal$omega.tot),
+  rel_omega_h_current = c(# well-being 
+                   omega.swls$omega_h, omega.meaning$omega_h, 
+                   omega.selfes$omega_h, omega.concept$omega_h, 
+                   # bfi dimensions current 
+                   omega_extra_comb_curr$omega_h, omega_agree_comb_curr$omega_h, 
+                   omega_consc_comb_curr$omega_h, omega_neuro_comb_curr$omega_h, 
+                   omega_openn_comb_curr$omega_h), 
+  rel_omega_h_ideal = c(# well-being 
+                   NA, NA, NA, NA,
+                   # bfi dimensions ideal 
+                   omega_extra_comb_ideal$omega_h, omega_agree_comb_ideal$omega_h, 
+                   omega_consc_comb_ideal$omega_h, omega_neuro_comb_ideal$omega_h, 
+                   omega_openn_comb_ideal$omega_h))
+
+int_consist_facets_st2 <- tibble(
+  facet = str_trunc(names(b5_vars), 5, ellipsis = "")[6:20],
+  rel_alpha_current = c(
+    # bfi facets current 
+    alpha_socia_comb_curr$total$raw_alpha, alpha_asser_comb_curr$total$raw_alpha, 
+    alpha_energ_comb_curr$total$raw_alpha, alpha_compa_comb_curr$total$raw_alpha, 
+    alpha_respe_comb_curr$total$raw_alpha, alpha_trust_comb_curr$total$raw_alpha, 
+    alpha_organ_comb_curr$total$raw_alpha, alpha_produ_comb_curr$total$raw_alpha, 
+    alpha_respo_comb_curr$total$raw_alpha, alpha_anxie_comb_curr$total$raw_alpha, 
+    alpha_volat_comb_curr$total$raw_alpha, alpha_depre_comb_curr$total$raw_alpha, 
+    alpha_curio_comb_curr$total$raw_alpha, alpha_aesth_comb_curr$total$raw_alpha, 
+    alpha_imagi_comb_curr$total$raw_alpha), 
+  rel_alpha_ideal = c(
+    # bfi facets ideal 
+    alpha_socia_comb_ideal$total$raw_alpha, alpha_asser_comb_ideal$total$raw_alpha, 
+    alpha_energ_comb_ideal$total$raw_alpha, alpha_compa_comb_ideal$total$raw_alpha, 
+    alpha_respe_comb_ideal$total$raw_alpha, alpha_trust_comb_ideal$total$raw_alpha, 
+    alpha_organ_comb_ideal$total$raw_alpha, alpha_produ_comb_ideal$total$raw_alpha, 
+    alpha_respo_comb_ideal$total$raw_alpha, alpha_anxie_comb_ideal$total$raw_alpha, 
+    alpha_volat_comb_ideal$total$raw_alpha, alpha_depre_comb_ideal$total$raw_alpha, 
+    alpha_curio_comb_ideal$total$raw_alpha, alpha_aesth_comb_ideal$total$raw_alpha, 
+    alpha_imagi_comb_ideal$total$raw_alpha))
 
 # squared difference between current and ideal self
 for (i in 1:length(b5_vars)) {
@@ -688,6 +772,7 @@ df_sbsa2 <- df_sbsa2 %>% left_join(demog_all)
 
 # drop potentially sensitive variables
 df_sbsa2 <- df_sbsa2 %>% select(-c(case, serial, ref, started, lastdata, starts_with("dm0"), # identifiers, timestamps
-                                 sb02_01, sa02_01, starts_with("sb08"), starts_with("sa08"), sb14_01, sa13_01)) # free-form texts
+                                   sb02_01, sa02_01, starts_with("sb08"), starts_with("sa08"))) # , free-form texts
+                                   # sb14_01, sa13_01)) # still need those for the word clouds
 
 base::save(df_sbsa2, file = "data/df_sbsa2.rda")
