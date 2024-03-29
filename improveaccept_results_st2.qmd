@@ -7151,7 +7151,7 @@ kable(params_lcs_swls_hyp2_cg, digits = 3)
 ```
 
 ::: {.callout-note appearance="minimal"}
-Life satisfaction changes in the control group not significant at preregistered alpha-level (.001), *b* = `r round(params_lcs_swls_hyp2_cg %>% filter(term=="d_swls_1 ~1 ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_swls_hyp2_cg %>% filter(term=="d_swls_1 ~1 ") %>% pull(p.value), 3)`. Still a positive effect, but weaker effect size than in intervention group.  
+Life satisfaction changes in the control group significantly at positively (at *p* < .001), *b* = `r round(params_lcs_swls_hyp2_cg %>% filter(term=="d_swls_1 ~1 ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_swls_hyp2_cg %>% filter(term=="d_swls_1 ~1 ") %>% pull(p.value), 3)`. Slightly weaker effect size than in intervention group.  
 :::
 
 ##### Meaning in life
@@ -7264,7 +7264,7 @@ kable(params_lcs_meaning_hyp2_cg, digits = 3)
 ```
 
 ::: {.callout-note appearance="minimal"}
-Meaning increases significantly in the control group, *b* = `r round(params_lcs_meaning_hyp2_cg %>% filter(term=="d_meaning_1 ~1 ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_meaning_hyp2_cg %>% filter(term=="d_meaning_1 ~1 ") %>% pull(p.value), 3)`, although with a somewhat weaker effect size than in the intervention group.  
+Meaning increases significantly in the control group, *b* = `r round(params_lcs_meaning_hyp2_cg %>% filter(term=="d_meaning_1 ~1 ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_meaning_hyp2_cg %>% filter(term=="d_meaning_1 ~1 ") %>% pull(p.value), 3)`, with an even stronger effect size than in the intervention groups.  
 :::
 
 ##### Self-esteem
@@ -7377,7 +7377,7 @@ kable(params_lcs_selfes_hyp2_cg, digits = 3)
 ```
 
 ::: {.callout-note appearance="minimal"}
-Self-esteem changes in the control group not significant at preregistered alpha-level (.001), *b* = `r round(params_lcs_selfes_hyp2_cg %>% filter(term=="d_selfes_1 ~1 ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_selfes_hyp2_cg %>% filter(term=="d_selfes_1 ~1 ") %>% pull(p.value), 3)`. Still a positive effect, but weaker effect size than in intervention group.  
+Self-esteem changes significantly and positively in the control group, *b* = `r round(params_lcs_selfes_hyp2_cg %>% filter(term=="d_selfes_1 ~1 ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_selfes_hyp2_cg %>% filter(term=="d_selfes_1 ~1 ") %>% pull(p.value), 3)`. Comparable effect size to the intervention groups.  
 :::
 
 ##### Self concept clarity
@@ -7490,7 +7490,7 @@ kable(params_lcs_concept_hyp2_cg, digits = 3)
 ```
 
 ::: {.callout-note appearance="minimal"}
-Self concept clarity changes in the control group not significant at preregistered alpha-level (.001), *b* = `r round(params_lcs_concept_hyp2_cg %>% filter(term=="d_concept_1 ~1 ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_concept_hyp2_cg %>% filter(term=="d_concept_1 ~1 ") %>% pull(p.value), 3)`. Still a positive effect, but weaker effect size than in intervention group.  
+Self concept clarity changes in the control group not significant, *b* = `r round(params_lcs_concept_hyp2_cg %>% filter(term=="d_concept_1 ~1 ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_concept_hyp2_cg %>% filter(term=="d_concept_1 ~1 ") %>% pull(p.value), 3)`. Still a slight positive estimate, but weaker effect size than in intervention group.  
 :::
 
 #### Follow-up effects (changes from T2 to T3)
@@ -8397,6 +8397,9 @@ df_sbsa2_wide_pers_sb <- df_sbsa2 %>%
   select(-c(sb07_01_t2, sb07_02_t2, sb07_03_t2, sb07_04_t2, sb07_05_t2, 
             sb07_06_t2, sb07_07_t2, sb07_08_t2, sb07_09_t2, sb07_10_t2, 
             sb07_11_t2, sb07_12_t2, sb07_13_t2, sb07_14_t2, sb07_15_t2, sb06_01_t2))
+# standardize goal variables (better interpretation for when they are in SEM as a single manifest variable, not so much a problem when they form a latent scale)
+df_sbsa2_wide_pers_sb <- df_sbsa2_wide_pers_sb %>% 
+  mutate_at(c(colnames(df_sbsa2_wide_pers_sb)[-1]), ~(scale(.) %>% as.vector)) 
 # colnames(df_sbsa2_wide_pers_sb)
 
 group_assign <- df_sbsa2 %>% select(pid, rando) %>% unique()
@@ -8417,7 +8420,10 @@ df_sbsa2_wide_pers_sb_fu <- df_sbsa2 %>%
   select(-c(sb07_01_t2, sb07_02_t2, sb07_03_t2, sb07_04_t2, sb07_05_t2, 
             sb07_06_t2, sb07_07_t2, sb07_08_t2, sb07_09_t2, sb07_10_t2, 
             sb07_11_t2, sb07_12_t2, sb07_13_t2, sb07_14_t2, sb07_15_t2, sb06_01_t2))
-# colnames(df_sbsa2_wide_pers_sb)
+# standardize goal variables (better interpretation for when they are in SEM as a single manifest variable, not so much a problem when they form a latent scale)
+df_sbsa2_wide_pers_sb_fu <- df_sbsa2_wide_pers_sb_fu %>% 
+  mutate_at(c(colnames(df_sbsa2_wide_pers_sb_fu)[-1]), ~(scale(.) %>% as.vector)) 
+# colnames(df_sbsa2_wide_pers_sb_fu)
 
 df_sbsa2_wide_pers_sb_fu <- df_sbsa2_wide_pers %>% left_join(group_assign) %>% 
   filter(rando=="Self-Improvement" & !is.na(valid_t2)) %>% select(-rando, -ends_with("_t1")) %>%
@@ -11967,7 +11973,7 @@ kable(df_table_hyp4[1:20, ], digits = 3)
 ```
 
 ::: {.callout-note appearance="minimal"}
-Three covariances/correlations that significantly differ from zero:  
+Two covariances/correlations that significantly differ from zero:  
 - Changes in current-level conscientiousness covary with the specific trait goals (latent factor of the three C facets).  
 - Changes in current-level neuroticism covary with the specific trait goals (latent factor of the three N facets).  
 :::
@@ -11982,7 +11988,7 @@ kable(df_table_hyp4[21:80, ], digits = 3)
 
 ::: {.callout-note appearance="minimal"}
 Looking at the facets, we see five covariances that significantly differ from zero (at p < .05):  
-- For sociability and assertiveness, changes in the current-level the specific facet change goal (both effects barely significant).  
+- For sociability and assertiveness, changes in the current-level the specific facet change goal (both effects barely significant and in unexpected direction).  
 - For productiveness, changes in the current-level the specific facet change goal.  
 - Changes in current-level depression and volatility covary with the respective specific facet change goal.  
 :::
@@ -12151,6 +12157,9 @@ df_sbsa2_wide_pers_sa <- df_sbsa2 %>%
   select(-c(sa07_01_t2, sa07_02_t2, sa07_03_t2, sa07_04_t2, sa07_05_t2, 
             sa07_06_t2, sa07_07_t2, sa07_08_t2, sa07_09_t2, sa07_10_t2, 
             sa07_11_t2, sa07_12_t2, sa07_13_t2, sa07_14_t2, sa07_15_t2, sa06_01_t2))
+# standardize goal variables (better interpretation for when they are in SEM as a single manifest variable, not so much a problem when they form a latent scale)
+df_sbsa2_wide_pers_sa <- df_sbsa2_wide_pers_sa %>% 
+  mutate_at(c(colnames(df_sbsa2_wide_pers_sa)[-1]), ~(scale(.) %>% as.vector)) 
 # colnames(df_sbsa2_wide_pers_sa)
 
 group_assign <- df_sbsa2 %>% select(pid, rando) %>% unique()
@@ -12170,6 +12179,9 @@ df_sbsa2_wide_pers_sa_fu <- df_sbsa2 %>%
   select(-c(sa07_01_t2, sa07_02_t2, sa07_03_t2, sa07_04_t2, sa07_05_t2, 
             sa07_06_t2, sa07_07_t2, sa07_08_t2, sa07_09_t2, sa07_10_t2, 
             sa07_11_t2, sa07_12_t2, sa07_13_t2, sa07_14_t2, sa07_15_t2, sa06_01_t2))
+# standardize goal variables (better interpretation for when they are in SEM as a single manifest variable, not so much a problem when they form a latent scale)
+df_sbsa2_wide_pers_sa_fu <- df_sbsa2_wide_pers_sa_fu %>% 
+  mutate_at(c(colnames(df_sbsa2_wide_pers_sa_fu)[-1]), ~(scale(.) %>% as.vector)) 
 # colnames(df_sbsa2_wide_pers_sa)
 
 df_sbsa2_wide_pers_sa_fu <- df_sbsa2_wide_pers %>% left_join(group_assign) %>% filter(rando=="Self-Acceptance" & !is.na(valid_t2)) %>% select(-rando, -ends_with("_t1")) %>%
@@ -15857,6 +15869,9 @@ df_sbsa2_wide_pers_sb_mod <- df_sbsa2 %>%
             sb07_06_t2, sb07_07_t2, sb07_08_t2, sb07_09_t2, sb07_10_t2, 
             sb07_11_t2, sb07_12_t2, sb07_13_t2, sb07_14_t2, sb07_15_t2, 
             sb04_01_t1, sb04_02_t1, sb04_03_t1)) # frequency of self-improvement behaviors measured at T2
+# standardize goal variables (better interpretation for when they are in SEM as a single manifest variable, not so much a problem when they form a latent scale)
+df_sbsa2_wide_pers_sb_mod <- df_sbsa2_wide_pers_sb_mod %>% 
+  mutate_at(c(colnames(df_sbsa2_wide_pers_sb_mod)[-1]), ~(scale(.) %>% as.vector)) 
 # colnames(df_sbsa2_wide_pers_sb_mod)
 
 group_assign <- df_sbsa2 %>% select(pid, rando) %>% unique()
@@ -15878,6 +15893,9 @@ df_sbsa2_wide_pers_sb_mod_fu <- df_sbsa2 %>%
             sb07_06_t2, sb07_07_t2, sb07_08_t2, sb07_09_t2, sb07_10_t2, 
             sb07_11_t2, sb07_12_t2, sb07_13_t2, sb07_14_t2, sb07_15_t2, 
             sb04_01_t1, sb04_02_t1, sb04_03_t1)) # frequency of self-improvement behaviors measured at T2
+# standardize goal variables (better interpretation for when they are in SEM as a single manifest variable, not so much a problem when they form a latent scale)
+df_sbsa2_wide_pers_sb_mod_fu <- df_sbsa2_wide_pers_sb_mod_fu %>% 
+  mutate_at(c(colnames(df_sbsa2_wide_pers_sb_mod_fu)[-1]), ~(scale(.) %>% as.vector)) 
 # colnames(df_sbsa2_wide_pers_sb_mod_fu)
 
 df_sbsa2_wide_pers_sb_mod_fu <- df_sbsa2_wide_pers %>% left_join(group_assign) %>% 
@@ -16909,7 +16927,7 @@ kable(params_lcs_consc_ideal_frequ_hyp6, digits = 3)
 ```
 
 ::: {.callout-note appearance="minimal"}
-The frequency of self-improvement behaviors significantly moderates changes in conscientiousness (ideal-self), *b* = `r round(params_lcs_consc_ideal_frequ_hyp6 %>% filter(term=="d_consc_1 ~ frequ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_consc_ideal_frequ_hyp6 %>% filter(term=="d_consc_1 ~ frequ") %>% pull(p.value), 3)`. 
+The moderation effect of the frequency of self-improvement behaviors with the conscientiousness change score (ideal-self) is not significantly different from zero, *b* = `r round(params_lcs_consc_ideal_frequ_hyp6 %>% filter(term=="d_consc_1 ~ frequ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_consc_ideal_frequ_hyp6 %>% filter(term=="d_consc_1 ~ frequ") %>% pull(p.value), 3)`. 
 :::
 
 ##### Neuroticism: specific, facet-level change goals as moderator of change
@@ -17551,7 +17569,7 @@ kable(params_lcs_compa_curr_frequ_hyp6, digits = 3)
 ```
 
 ::: {.callout-note appearance="minimal"}
-The frequency of self-improvement behaviors significantly moderates changes in compassion (current-self), *b* = `r round(params_lcs_compa_curr_frequ_hyp6 %>% filter(term=="d_compa_1 ~ frequ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_compa_curr_frequ_hyp6 %>% filter(term=="d_compa_1 ~ frequ") %>% pull(p.value), 3)`. 
+The moderation effect of the frequency of self-improvement behaviors with the compassion change score (current-self) is not significantly different from zero, *b* = `r round(params_lcs_compa_curr_frequ_hyp6 %>% filter(term=="d_compa_1 ~ frequ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_compa_curr_frequ_hyp6 %>% filter(term=="d_compa_1 ~ frequ") %>% pull(p.value), 3)`. 
 :::
 
 ##### Respectfulness - specific, facet-level change goal as moderator of change
@@ -17760,7 +17778,7 @@ kable(params_lcs_produ_curr_frequ_hyp6, digits = 3)
 ```
 
 ::: {.callout-note appearance="minimal"}
-The frequency of self-improvement behaviors significantly moderates changes in productiveness (current-self), *b* = `r round(params_lcs_produ_curr_frequ_hyp6 %>% filter(term=="d_produ_1 ~ frequ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_produ_curr_frequ_hyp6 %>% filter(term=="d_produ_1 ~ frequ") %>% pull(p.value), 3)`. 
+The moderation effect of the frequency of self-improvement behaviors with the productiveness change score (current-self) is not significantly different from zero, *b* = `r round(params_lcs_produ_curr_frequ_hyp6 %>% filter(term=="d_produ_1 ~ frequ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_produ_curr_frequ_hyp6 %>% filter(term=="d_produ_1 ~ frequ") %>% pull(p.value), 3)`. 
 :::
 
 ##### Responsibility - specific, facet-level change goal as moderator of change
@@ -17838,7 +17856,7 @@ kable(params_lcs_anxie_curr_specif_hyp6, digits = 3)
 ```
 
 ::: {.callout-note appearance="minimal"}
-The moderation effect of the facet-specific change goal with the anxiety change score (current-self) is not significantly different from zero (at *p* < .001), *b* = `r round(params_lcs_anxie_curr_specif_hyp6 %>% filter(term=="d_anxie_1 ~ sb07_10_t1") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_anxie_curr_specif_hyp6 %>% filter(term=="d_anxie_1 ~ sb07_10_t1") %>% pull(p.value), 3)`. 
+The frequency of self-improvement behaviors significantly moderates changes in anxiety (current-self), *b* = `r round(params_lcs_anxie_curr_specif_hyp6 %>% filter(term=="d_anxie_1 ~ sb07_10_t1") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_anxie_curr_specif_hyp6 %>% filter(term=="d_anxie_1 ~ sb07_10_t1") %>% pull(p.value), 3)`. 
 :::
 
 ##### Anxiety - frequency of self-improvement behaviors as moderator of change
@@ -18543,7 +18561,7 @@ kable(params_lcs_produ_curr_frequ_hyp6_fu, digits = 3)
 ```
 
 ::: {.callout-note appearance="minimal"}
-The frequency of self-improvement behaviors significantly moderates changes in productiveness (current-self) from T2 to T3, *b* = `r round(params_lcs_produ_curr_frequ_hyp6_fu %>% filter(term=="d_produ_1 ~ frequ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_produ_curr_frequ_hyp6_fu %>% filter(term=="d_produ_1 ~ frequ") %>% pull(p.value), 3)`. 
+The moderation effect of the frequency of self-improvement behaviors with the productiveness change score from T2 to T3 (current-self) is not significantly different from zero, *b* = `r round(params_lcs_produ_curr_frequ_hyp6_fu %>% filter(term=="d_produ_1 ~ frequ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_produ_curr_frequ_hyp6_fu %>% filter(term=="d_produ_1 ~ frequ") %>% pull(p.value), 3)`. 
 :::
 
 ##### Responsibility - specific, facet-level change goal as moderator of change
@@ -18621,7 +18639,7 @@ kable(params_lcs_anxie_curr_specif_hyp6_fu, digits = 3)
 ```
 
 ::: {.callout-note appearance="minimal"}
-The facet-specific change goal significantly moderates changes in anxiety from T2 to T3 (current-self), *b* = `r round(params_lcs_anxie_curr_specif_hyp6_fu %>% filter(term=="d_anxie_1 ~ sb07_10_t1") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_anxie_curr_specif_hyp6_fu %>% filter(term=="d_anxie_1 ~ sb07_10_t1") %>% pull(p.value), 3)`. Main effect was an increase in anxiety from T2 to T3 and this increase was less pronounced for those with a higher anxiety change goal.  
+The moderation effect of the facet-specific change goal with the responsibility change score from T2 to T3 (current-self) is not significantly different from zero, *b* = `r round(params_lcs_anxie_curr_specif_hyp6_fu %>% filter(term=="d_anxie_1 ~ sb07_10_t1") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_anxie_curr_specif_hyp6_fu %>% filter(term=="d_anxie_1 ~ sb07_10_t1") %>% pull(p.value), 3)`.
 :::
 
 ##### Anxiety - frequency of self-improvement behaviors as moderator of change
@@ -19326,7 +19344,7 @@ kable(params_lcs_produ_ideal_frequ_hyp6, digits = 3)
 ```
 
 ::: {.callout-note appearance="minimal"}
-The frequency of self-improvement behaviors significantly moderates changes in productiveness (ideal-self), *b* = `r round(params_lcs_produ_ideal_frequ_hyp6 %>% filter(term=="d_produ_1 ~ frequ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_produ_ideal_frequ_hyp6 %>% filter(term=="d_produ_1 ~ frequ") %>% pull(p.value), 3)`. 
+The moderation effect of the frequency of self-improvement behaviors with the productiveness change score (ideal-self) is not significantly different from zero, *b* = `r round(params_lcs_produ_ideal_frequ_hyp6 %>% filter(term=="d_produ_1 ~ frequ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_produ_ideal_frequ_hyp6 %>% filter(term=="d_produ_1 ~ frequ") %>% pull(p.value), 3)`. 
 :::
 
 ##### Responsibility - specific, facet-level change goal as moderator of change
@@ -19534,7 +19552,7 @@ kable(params_lcs_volat_ideal_frequ_hyp6, digits = 3)
 ```
 
 ::: {.callout-note appearance="minimal"}
-The moderation effect of the frequency of self-improvement behaviors with the volatility change score (ideal-self) is significantly different from zero, *b* = `r round(params_lcs_volat_ideal_frequ_hyp6 %>% filter(term=="d_volat_1 ~ frequ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_volat_ideal_frequ_hyp6 %>% filter(term=="d_volat_1 ~ frequ") %>% pull(p.value), 3)`. 
+The moderation effect of the frequency of self-improvement behaviors with the volatility change score (ideal-self) is not significantly different from zero, *b* = `r round(params_lcs_volat_ideal_frequ_hyp6 %>% filter(term=="d_volat_1 ~ frequ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_volat_ideal_frequ_hyp6 %>% filter(term=="d_volat_1 ~ frequ") %>% pull(p.value), 3)`. 
 :::
 
 ##### Curiosity - specific, facet-level change goal as moderator of change
@@ -19909,6 +19927,8 @@ Plotting the effect size across all analyses (only showing the moderation effect
 - *current* = current-level personality  
 - *goals* = specific, facet-level change goal(s) as moderator  
 - *frequency* = frequency of self-improvement behavior as moderator  
+
+Important: these are 95% confidence intervals (for better visual comparability with Study 1 plot)  
 ```{r}
 #| echo: true
 #| fig-width: 9.5
@@ -20143,6 +20163,8 @@ Plotting the effect size across all analyses (only showing the moderation effect
 - *ideal* = ideal-level personality  
 - *goals* = specific, facet-level change goal(s) as moderator  
 - *frequency* = frequency of self-improvement behavior as moderator  
+
+Important: these are 95% confidence intervals (for better visual comparability with Study 1 plot)  
 ```{r}
 #| echo: true
 #| fig-width: 9.5
@@ -20172,7 +20194,7 @@ ggplot(df_table_hyp6_plot_ideal, aes(x = fct_rev(trait), y = estimate, color = i
 
 *In the self-acceptance group, change in ideal-self ratings but not change in current-self ratings will be moderated by acceptance goals (both general and trait-/facet-specific goals) and the frequency of self-acceptance behaviors.* 
 
- We will test this one domain/facet at a time. To test this hypothesis, we will estimate the mean-level difference across time for both current and ideal trait ratings using latent change models and specify acceptance goals (or the frequency of self-acceptance behaviors) as a moderator of latent trait change. We will check in a second set of models whether changes in ideal-self ratings persist from T2 to T3.
+We will test this one domain/facet at a time. To test this hypothesis, we will estimate the mean-level difference across time for both current and ideal trait ratings using latent change models and specify acceptance goals (or the frequency of self-acceptance behaviors) as a moderator of latent trait change. We will check in a second set of models whether changes in ideal-self ratings persist from T2 to T3.
  
 Reshape and split data set by intervention group:
 ```{r}
@@ -20195,6 +20217,9 @@ df_sbsa2_wide_pers_sa_mod <- df_sbsa2 %>%
             sa07_06_t2, sa07_07_t2, sa07_08_t2, sa07_09_t2, sa07_10_t2, 
             sa07_11_t2, sa07_12_t2, sa07_13_t2, sa07_14_t2, sa07_15_t2, 
             sa04_01_t1, sa04_02_t1, sa04_03_t1)) # frequency of self-acceptance behaviors measured at T2
+# standardize goal variables (better interpretation for when they are in SEM as a single manifest variable, not so much a problem when they form a latent scale)
+df_sbsa2_wide_pers_sa_mod <- df_sbsa2_wide_pers_sa_mod %>% 
+  mutate_at(c(colnames(df_sbsa2_wide_pers_sa_mod)[-1]), ~(scale(.) %>% as.vector)) 
 # colnames(df_sbsa2_wide_pers_sa_mod)
 
 group_assign <- df_sbsa2 %>% select(pid, rando) %>% unique()
@@ -20216,6 +20241,9 @@ df_sbsa2_wide_pers_sa_mod_fu <- df_sbsa2 %>%
             sa07_06_t2, sa07_07_t2, sa07_08_t2, sa07_09_t2, sa07_10_t2, 
             sa07_11_t2, sa07_12_t2, sa07_13_t2, sa07_14_t2, sa07_15_t2, 
             sa04_01_t1, sa04_02_t1, sa04_03_t1)) # frequency of self-improvement behaviors measured at T2
+# standardize goal variables (better interpretation for when they are in SEM as a single manifest variable, not so much a problem when they form a latent scale)
+df_sbsa2_wide_pers_sa_mod_fu <- df_sbsa2_wide_pers_sa_mod_fu %>% 
+  mutate_at(c(colnames(df_sbsa2_wide_pers_sa_mod_fu)[-1]), ~(scale(.) %>% as.vector)) 
 # colnames(df_sbsa2_wide_pers_sa_mod_fu)
 
 df_sbsa2_wide_pers_sa_mod_fu <- df_sbsa2_wide_pers %>% left_join(group_assign) %>% 
@@ -20720,7 +20748,7 @@ kable(params_lcs_consc_ideal_frequ_hyp7, digits = 3)
 ```
 
 ::: {.callout-note appearance="minimal"}
-The frequency of self-acceptance behaviors significantly moderates changes in conscientiousness (ideal-self), *b* = `r round(params_lcs_consc_ideal_frequ_hyp7 %>% filter(term=="d_consc_1 ~ frequ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_consc_ideal_frequ_hyp7 %>% filter(term=="d_consc_1 ~ frequ") %>% pull(p.value), 3)`.  
+The moderation effect of the frequency of self-acceptance behaviors with the conscientiousness change score (ideal-self) is not significantly different from zero, *b* = `r round(params_lcs_consc_ideal_frequ_hyp7 %>% filter(term=="d_consc_1 ~ frequ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_consc_ideal_frequ_hyp7 %>% filter(term=="d_consc_1 ~ frequ") %>% pull(p.value), 3)`.  
 :::
 
 ##### Neuroticism: specific, facet-level acceptance goals as moderator of change
@@ -21244,7 +21272,7 @@ kable(params_lcs_consc_curr_frequ_hyp7, digits = 3)
 ```
 
 ::: {.callout-note appearance="minimal"}
-The frequency of self-acceptance behaviors significantly moderates changes in conscientiousness (current-self), *b* = `r round(params_lcs_consc_curr_frequ_hyp7 %>% filter(term=="d_consc_1 ~ frequ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_consc_curr_frequ_hyp7 %>% filter(term=="d_consc_1 ~ frequ") %>% pull(p.value), 3)`.  
+The moderation effect of the frequency of self-acceptance behaviors with the conscientiousness change score (current-self) is not significantly different from zero, *b* = `r round(params_lcs_consc_curr_frequ_hyp7 %>% filter(term=="d_consc_1 ~ frequ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_consc_curr_frequ_hyp7 %>% filter(term=="d_consc_1 ~ frequ") %>% pull(p.value), 3)`.  
 :::
 
 ##### Neuroticism: specific, facet-level acceptance goals as moderator of change
@@ -22302,7 +22330,7 @@ kable(params_lcs_volat_ideal_frequ_hyp7, digits = 3)
 ```
 
 ::: {.callout-note appearance="minimal"}
-The moderation effect of the frequency of self-acceptance behaviors with the volatility change score (ideal-self) is significantly different from zero, *b* = `r round(params_lcs_volat_ideal_frequ_hyp7 %>% filter(term=="d_volat_1 ~ frequ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_volat_ideal_frequ_hyp7 %>% filter(term=="d_volat_1 ~ frequ") %>% pull(p.value), 3)`. 
+The moderation effect of the frequency of self-acceptance behaviors with the volatility change score (ideal-self) is not significantly different from zero, *b* = `r round(params_lcs_volat_ideal_frequ_hyp7 %>% filter(term=="d_volat_1 ~ frequ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_volat_ideal_frequ_hyp7 %>% filter(term=="d_volat_1 ~ frequ") %>% pull(p.value), 3)`. 
 :::
 
 ##### Curiosity - specific, facet-level acceptance goal as moderator of change
@@ -23266,7 +23294,7 @@ kable(params_lcs_socia_curr_specif_hyp7, digits = 3)
 ```
 
 ::: {.callout-note appearance="minimal"}
-The moderation effect of the facet-specific acceptance goal with the sociability change score (current-self) is not significantly different from zero, *b* = `r round(params_lcs_socia_curr_specif_hyp7 %>% filter(term=="d_socia_1 ~ sa07_01_t1") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_socia_curr_specif_hyp7 %>% filter(term=="d_socia_1 ~ sa07_01_t1") %>% pull(p.value), 3)`. 
+The moderation effect of the facet-specific acceptance goal with the sociability change score (current-self) is not significantly different from zero (at *p* < .001), *b* = `r round(params_lcs_socia_curr_specif_hyp7 %>% filter(term=="d_socia_1 ~ sa07_01_t1") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_socia_curr_specif_hyp7 %>% filter(term=="d_socia_1 ~ sa07_01_t1") %>% pull(p.value), 3)`. 
 :::
 
 ##### Sociability - frequency of self-acceptance behaviors as moderator of change
@@ -23474,7 +23502,7 @@ kable(params_lcs_respe_curr_specif_hyp7, digits = 3)
 ```
 
 ::: {.callout-note appearance="minimal"}
-The facet-specific acceptance goal significantly moderates changes in respectfulness (current-self) between T1 and T2 (but also not at *p* < .001 ...), *b* = `r round(params_lcs_respe_curr_specif_hyp7 %>% filter(term=="d_respe_1 ~ sa07_05_t1") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_respe_curr_specif_hyp7 %>% filter(term=="d_respe_1 ~ sa07_05_t1") %>% pull(p.value), 3)`. 
+The moderation effect of the frequency of self-acceptance behaviors with the respectfulness change score (current-self) is not significantly different from zero, *b* = `r round(params_lcs_respe_curr_specif_hyp7 %>% filter(term=="d_respe_1 ~ sa07_05_t1") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_respe_curr_specif_hyp7 %>% filter(term=="d_respe_1 ~ sa07_05_t1") %>% pull(p.value), 3)`. 
 :::
 
 ##### Respectfulness - frequency of self-acceptance behaviors as moderator of change
@@ -24148,9 +24176,7 @@ kable(df_table_hyp7[1:10, ], digits = 3)
 ```
 
 ::: {.callout-note appearance="minimal"}
-No moderator effects at the domain level that are significantly different from zero at *p* < .001:  
-
-- Only at p < .05: The frequency of self-acceptance behaviors moderates changes in ideal-level conscientiousness.  
+No significant main or moderator effects at the domain level (ideal self) that are significantly different from zero.  
 :::
 
 Results summary across the Big Five facets: trait-specific acceptance goals (*goals*) and frequency of self-acceptance behaviors (*frequency*) as moderators on the latent change score. *_main* refers to the main effects (change scores) and *_mod* to the moderation effects.  
@@ -24162,12 +24188,9 @@ kable(df_table_hyp7[11:40, ], digits = 3)
 ```
 
 ::: {.callout-note appearance="minimal"}
-No moderator effects at the facet level that are significantly different from zero at *p* < .001:  
+No significant main or moderator effects at the domain level (ideal self) that are significantly different from zero at *p* < .001.  
 
-- Only at p < .05: The facet-specific acceptance goal moderates changes in ideal-level sociability (opposite direction of effect).  
-- Only at p < .05: The frequency of self-acceptance behaviors moderates changes in ideal-level trust (opposite direction of effect).   
-- Only at p < .05: The frequency of self-acceptance behaviors moderates changes in ideal-level productiveness (opposite direction of effect).   
-- Only at p < .05: The frequency of self-acceptance behaviors moderates changes in ideal-level responsibility.   
+- Only at p < .05: The facet-specific acceptance goal moderates changes in ideal-level sociability.  
 :::
 
 Prepare data frame for plotting:
@@ -24239,6 +24262,9 @@ Plotting the effect size across all analyses:
 - *ideal* = ideal-level personality  
 - *goals* = specific, facet-level acceptance goal(s) as moderator  
 - *frequency* = frequency of self-acceptance behavior as moderator  
+
+Important: these are 95% confidence intervals (for better visual comparability with Study 1 plot)  
+
 ```{r}
 #| echo: true
 #| fig-width: 9.5
@@ -24388,7 +24414,7 @@ kable(df_table_hyp7_curr[1:10, ], digits = 3)
 ```
 
 ::: {.callout-note appearance="minimal"}
-No moderation effects at the domain level that are significantly different from zero at *p* < .001:  
+Significant main effects except for agreeableness. No moderation effects at the domain level that are significantly different from zero at *p* < .001:  
 
 - Only at p < .05: The frequency of self-acceptance behaviors moderates changes in current-level neuroticism.  
 :::
@@ -24404,7 +24430,6 @@ kable(df_table_hyp7_curr[11:40, ], digits = 3)
 ::: {.callout-note appearance="minimal"}
 No moderation effects at the facet level that are significantly different from zero at *p* < .001:  
 
-- Only at p < .01: The facet-specific acceptance goal moderates changes in current-level respectfulness.  
 - Only at p < .05: The facet-specific acceptance goal moderates changes in current-level trust.  
 - Only at p < .05: The frequency of self-acceptance behaviors moderates changes in current-level anxiety.    
 - Only at p < .05: The frequency of self-acceptance behaviors moderates changes in current-level depression.    
@@ -24479,7 +24504,10 @@ Plotting the effect size across all analyses:
 
 - *current* = current-level personality  
 - *goals* = specific, facet-level acceptance goal(s) as moderator  
-- *frequency* = frequency of self-acceptance behavior as moderator  
+- *frequency* = frequency of self-acceptance behavior as moderator
+
+Important: these are 95% confidence intervals (for better visual comparability with Study 1 plot)  
+
 ```{r}
 #| echo: true
 #| fig-width: 9.5
@@ -24684,7 +24712,7 @@ kable(broom::tidy(lcs_swls_group_strong, conf.int = TRUE, conf.level = 0.95) %>%
 ```
 
 ::: {.callout-note appearance="minimal"}
-Slightly more positive change in life satisfaction in the Self-Acceptance group but no substantial differences according to the LRTs.
+Slightly more positive change in life satisfaction in the self-improvement group but no substantial differences according to the LRTs.
 :::
 
 ```{r}
@@ -25018,7 +25046,7 @@ kable(broom::tidy(lcs_selfes_group_strong, conf.int = TRUE, conf.level = 0.95) %
 ```
 
 ::: {.callout-note appearance="minimal"}
-Slightly more positive change in self-esteem in the Self-Acceptance group but no substantial differences according to the LRTs.
+Slightly more positive change in self-esteem in the self-improvement group but no substantial differences according to the LRTs.
 :::
 
 ```{r}
@@ -25185,7 +25213,7 @@ kable(broom::tidy(lcs_concept_group_strong, conf.int = TRUE, conf.level = 0.95) 
 ```
 
 ::: {.callout-note appearance="minimal"}
-Slightly more positive change in self-concept clarity in the Self-Acceptance group but no substantial differences according to the LRTs.
+Slightly more positive change in self-concept clarity in the self-improvement group but no substantial differences according to the LRTs.
 :::
 
 ```{r}
@@ -25505,7 +25533,7 @@ kable(broom::tidy(fit_lcs_agree_main_strong_current, conf.int = TRUE, conf.level
 ```
 
 ::: {.callout-note appearance="minimal"}
-Similar change in agreeableness in both groups (increase is slightly larger in self-improvement group). No significant differences according to the LRTs.
+No change in agreeableness in both groups (increase is slightly larger in self-acceptance group). No significant differences according to the LRTs.
 :::
 
 Conscientiousness (current self): results  
@@ -25531,10 +25559,10 @@ kable(broom::tidy(fit_lcs_consc_main_strong_current, conf.int = TRUE, conf.level
 ```
 
 ::: {.callout-note appearance="minimal"}
-Similar change in conscientiousness in both groups (increase is slightly larger in self-improvement group). No significant differences according to the LRTs.
+Similar change in conscientiousness in both groups (increase is slightly larger in self-acceptance group). No significant differences according to the LRTs.
 :::
 
-neuroticism (current self): results  
+Neuroticism (current self): results  
 ```{r}
 #| echo: true
 #| warning: false
@@ -25557,7 +25585,7 @@ kable(broom::tidy(fit_lcs_neuro_main_strong_current, conf.int = TRUE, conf.level
 ```
 
 ::: {.callout-note appearance="minimal"}
-Similar change in neuroticism in both groups (increase is slightly larger in self-improvement group). No significant differences according to the LRTs.
+Similar change in neuroticism in both groups (decrease is slightly larger in self-improvement group). No significant differences according to the LRTs.
 :::
 
 Openness (current self): results  
@@ -25573,7 +25601,7 @@ lavTestLRT(fit_lcs_openn_main_config_current, fit_lcs_openn_main_weak_current, f
 # labelled parameter as "d_int_a" & "d_int_b" (a = Self-Acceptance group, b = Self-Improvement group)
 params_main_lcs_openn_current <- broom::tidy(fit_lcs_openn_main_weak_current, conf.int = TRUE, conf.level = 0.95) %>% 
         select(term, label, estimate, std.all, statistic, p.value) %>% 
-        filter(term %in% c("d_openn_1 ~1 ")) %>% mutate(sig_diff = "*")
+        filter(term %in% c("d_openn_1 ~1 ")) %>% mutate(sig_diff = " ")
 kable(params_main_lcs_openn_current, digits = 3) 
 
 # constrained to be equal in the strong measurement invariance model:
@@ -25583,7 +25611,7 @@ kable(broom::tidy(fit_lcs_openn_main_strong_current, conf.int = TRUE, conf.level
 ```
 
 ::: {.callout-note appearance="minimal"}
-Almost no change in current-self openness in the self-improvement group but significant increase in self-acceptance group. Significant between-group difference in means according to the LRT (at *p* < .05).
+Similar (quite small) change in openness in both groups (increase is slightly larger in self-acceptance group). No significant differences according to the LRTs.
 :::
 
 ##### Ideal self personality traits
@@ -25601,7 +25629,7 @@ lavTestLRT(fit_lcs_extra_main_config_ideal, fit_lcs_extra_main_weak_ideal, fit_l
 # labelled parameter as "d_int_a" & "d_int_b" (a = Self-Acceptance group, b = Self-Improvement group)
 params_main_lcs_extra_ideal <- broom::tidy(fit_lcs_extra_main_weak_ideal, conf.int = TRUE, conf.level = 0.95) %>% 
         select(term, label, estimate, std.all, statistic, p.value) %>% 
-        filter(term %in% c("d_extra_1 ~1 ")) %>% mutate(sig_diff = "**")
+        filter(term %in% c("d_extra_1 ~1 ")) %>% mutate(sig_diff = " ")
 kable(params_main_lcs_extra_ideal, digits = 3) 
 
 # constrained to be equal in the strong measurement invariance model:
@@ -25611,7 +25639,7 @@ kable(broom::tidy(fit_lcs_extra_main_strong_ideal, conf.int = TRUE, conf.level =
 ```
 
 ::: {.callout-note appearance="minimal"}
-Increase in ideal-self extraversion is significantly higher in the self-acceptance group (n.s. in the self-improvement group). 
+Slight decrease in extraversion that is n.s. and slightly more pronounced in the self-acceptance group. 
 :::
 
 Agreeableness (ideal self): results  
@@ -25637,7 +25665,7 @@ kable(broom::tidy(fit_lcs_agree_main_strong_ideal, conf.int = TRUE, conf.level =
 ```
 
 ::: {.callout-note appearance="minimal"}
-Similar change in agreeableness in both groups (increase is slightly larger in self-improvement group). No significant differences according to the LRTs.
+Almost no change in agreeableness in both groups (n.s.). Slight decrease in self-acceptance group. No significant differences according to the LRTs.
 :::
 
 Conscientiousness (ideal self): results  
@@ -25663,10 +25691,10 @@ kable(broom::tidy(fit_lcs_consc_main_strong_ideal, conf.int = TRUE, conf.level =
 ```
 
 ::: {.callout-note appearance="minimal"}
-Similar change in conscientiousness in both groups (increase is slightly larger in self-improvement group). No significant differences according to the LRTs.
+Almost no change in conscientiousness in both groups (n.s.). Increase is slightly less pronounced in self-acceptance group. No significant differences according to the LRTs.
 :::
 
-neuroticism (ideal self): results  
+Neuroticism (ideal self): results  
 ```{r}
 #| echo: true
 #| warning: false
@@ -25689,7 +25717,7 @@ kable(broom::tidy(fit_lcs_neuro_main_strong_ideal, conf.int = TRUE, conf.level =
 ```
 
 ::: {.callout-note appearance="minimal"}
-Very similar change in neuroticism in both groups (increase is slightly larger in self-improvement group). No significant differences according to the LRTs.
+Very similar change in neuroticism in both groups (slight decrease in self-improvement group). No significant differences according to the LRTs.
 :::
 
 Openness (ideal self): results  
@@ -25715,7 +25743,7 @@ kable(broom::tidy(fit_lcs_openn_main_strong_ideal, conf.int = TRUE, conf.level =
 ```
 
 ::: {.callout-note appearance="minimal"}
-Similar change in ideal-self openness in both groups (increase is slightly larger in self-improvement group). No significant differences according to the LRTs.
+Similar change in ideal-self openness in both groups (slight decrease in self-improvement group). No significant differences according to the LRTs.
 :::
 
 ##### Summary of latent main effects
@@ -25939,6 +25967,164 @@ kable(df_manip_check_ideal_fu_unlist %>%
 ::: {.callout-note appearance="minimal"}
 No further changes from T2 to T3 that are significant at *p* < .001 (independent of intervention group membership). No group differences. 
 :::
+
+
+#### Descriptive plots: mean-level changes
+
+Prepare data frame for plotting:
+```{r}
+#| echo: true
+#| warning: false
+#| code-fold: true
+#| code-summary: "Show the code"
+#| output: false
+#| cache: true
+
+df_manip_check_forplot <- df_sbsa2 %>% 
+  select(pid, time, rando, contains("_comb_"), -c(na_comb_curr, na_comb_ideal)) %>% 
+  pivot_longer(-c(pid, time, rando), 
+               cols_vary = "slowest",
+               names_to = c("trait", "reference"),
+               names_pattern = "(.*)_(.*)",
+               values_to = "score") %>% 
+  mutate(trait = gsub("_comb", "", trait),
+         reference = ifelse(reference=="curr", "current", reference)) %>% 
+  left_join(tibble(long = str_to_title(names(b5_vars)), trait = str_trunc(names(b5_vars), 5, ellipsis = ""))) %>% 
+  select(-trait, trait = long) %>% 
+  filter(!is.na(score)) %>% 
+  group_by(trait, reference, rando, time) %>% 
+  summarise(n = n(), m_trait = mean(score), sd_trait = sd(score)) %>% 
+  ungroup() %>% 
+  mutate(Group = factor(rando, 
+                        levels = c("Self-Improvement", "Self-Acceptance", "Waitlist-Control"), 
+                        labels = c("Self-Improvement", "Self-Acceptance", "Waitlist-Control")),
+         Time = factor(time),
+         Trait = factor(trait, 
+                        levels = str_to_title(names(b5_vars))[c(1,6:8, 2,9:11, 3,12:14, 4,15:17, 5,18:20)], # group facets with each trait
+                        labels = str_to_title(names(b5_vars))[c(1,6:8, 2,9:11, 3,12:14, 4,15:17, 5,18:20)]),
+         Reference = factor(reference, levels = c("current", "ideal"), labels = c("Current Self", "Ideal Self")),
+         lwr95 = m_trait - qnorm(0.975)*sd_trait/sqrt(n),
+         upr95 = m_trait + qnorm(0.975)*sd_trait/sqrt(n)) %>% 
+  select(-c(time, rando, trait, reference)) %>% 
+  group_by(Trait) %>% 
+  mutate(level = mean(m_trait)) %>% 
+  ungroup()
+```
+
+Plotting mean-level changes on a descriptive level: Big Five dimensions and facets  
+```{r}
+#| echo: true
+#| fig-width: 8
+#| fig-height: 9.5
+#| code-fold: true
+#| code-summary: "Show the code"
+
+ggplot(df_manip_check_forplot, 
+       aes(y = m_trait, x = Time, shape = Group, color = Reference)) + 
+  geom_point(position = position_dodge(0.45)) +
+  scale_shape_manual(values=c(17, 19, 15)) + 
+  geom_errorbar(aes(ymin = lwr95, ymax = upr95), width=.3, position=position_dodge(0.45)) +
+  ylab("Mean Trait Level (95% CI)") + 
+  facet_wrap( ~ Trait, ncol = 4) +
+  theme_bw() +
+  theme(panel.grid.minor = element_blank(),
+        strip.background=element_rect(fill="grey93"))
+```
+
+Plotting mean-level changes on a descriptive level: Extraversion
+```{r}
+#| echo: true
+#| fig-width: 5
+#| fig-height: 3.5
+#| code-fold: true
+#| code-summary: "Show the code"
+
+ggplot(df_manip_check_forplot %>% filter(Trait=="Extraversion"), 
+       aes(y = m_trait, x = Time, shape = Group, color = Reference)) + 
+  geom_point(position = position_dodge(0.35)) +
+  scale_shape_manual(values=c(17, 19, 15)) + 
+  geom_errorbar(aes(ymin = lwr95, ymax = upr95), width=.3, position=position_dodge(0.35)) +
+  ylab("Mean Trait Level (95% CI)") + 
+  theme_bw() +
+  theme(panel.grid.minor = element_blank(),
+        strip.background=element_rect(fill="grey93"))
+```
+
+Plotting mean-level changes on a descriptive level: Agreeableness
+```{r}
+#| echo: true
+#| fig-width: 5
+#| fig-height: 3.5
+#| code-fold: true
+#| code-summary: "Show the code"
+
+ggplot(df_manip_check_forplot %>% filter(Trait=="Agreeableness"), 
+       aes(y = m_trait, x = Time, shape = Group, color = Reference)) + 
+  geom_point(position = position_dodge(0.35)) +
+  scale_shape_manual(values=c(17, 19, 15)) + 
+  geom_errorbar(aes(ymin = lwr95, ymax = upr95), width=.3, position=position_dodge(0.35)) +
+  ylab("Mean Trait Level (95% CI)") + 
+  theme_bw() +
+  theme(panel.grid.minor = element_blank(),
+        strip.background=element_rect(fill="grey93"))
+```
+
+Plotting mean-level changes on a descriptive level: Conscientiousness
+```{r}
+#| echo: true
+#| fig-width: 5
+#| fig-height: 3.5
+#| code-fold: true
+#| code-summary: "Show the code"
+
+ggplot(df_manip_check_forplot %>% filter(Trait=="Conscientiousness"), 
+       aes(y = m_trait, x = Time, shape = Group, color = Reference)) + 
+  geom_point(position = position_dodge(0.35)) +
+  scale_shape_manual(values=c(17, 19, 15)) + 
+  geom_errorbar(aes(ymin = lwr95, ymax = upr95), width=.3, position=position_dodge(0.35)) +
+  ylab("Mean Trait Level (95% CI)") + 
+  theme_bw() +
+  theme(panel.grid.minor = element_blank(),
+        strip.background=element_rect(fill="grey93"))
+```
+
+Plotting mean-level changes on a descriptive level: Neuroticism
+```{r}
+#| echo: true
+#| fig-width: 5
+#| fig-height: 3.5
+#| code-fold: true
+#| code-summary: "Show the code"
+
+ggplot(df_manip_check_forplot %>% filter(Trait=="Neuroticism"), 
+       aes(y = m_trait, x = Time, shape = Group, color = Reference)) + 
+  geom_point(position = position_dodge(0.35)) +
+  scale_shape_manual(values=c(17, 19, 15)) + 
+  geom_errorbar(aes(ymin = lwr95, ymax = upr95), width=.3, position=position_dodge(0.35)) +
+  ylab("Mean Trait Level (95% CI)") + 
+  theme_bw() +
+  theme(panel.grid.minor = element_blank(),
+        strip.background=element_rect(fill="grey93"))
+```
+
+Plotting mean-level changes on a descriptive level: Openness
+```{r}
+#| echo: true
+#| fig-width: 5
+#| fig-height: 3.5
+#| code-fold: true
+#| code-summary: "Show the code"
+
+ggplot(df_manip_check_forplot %>% filter(Trait=="Openness"), 
+       aes(y = m_trait, x = Time, shape = Group, color = Reference)) + 
+  geom_point(position = position_dodge(0.35)) +
+  scale_shape_manual(values=c(17, 19, 15)) + 
+  geom_errorbar(aes(ymin = lwr95, ymax = upr95), width=.3, position=position_dodge(0.35)) +
+  ylab("Mean Trait Level (95% CI)") + 
+  theme_bw() +
+  theme(panel.grid.minor = element_blank(),
+        strip.background=element_rect(fill="grey93"))
+```
 
 ### Word clouds of change descriptions (e)
 

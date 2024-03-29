@@ -1361,6 +1361,115 @@ summary(df_sbsa$sa06_01)
 ggplot(df_sbsa %>% filter(!is.na(sb06_01)), aes(x=sb06_01)) + geom_histogram(bins=5) + 
   labs(x="General change goal", y="Frequency") + theme_bw()
 
+### self-feedback parameter as a covariance!
+
+trait_template_test <- '
+trait_t1 =~ 1*ind01_t1 +  lamb2*ind02_t1 + lamb3*ind03_t1 # This specifies the measurement model for trait_t1 
+trait_t2 =~ 1*ind01_t2 +  lamb2*ind02_t2 + lamb3*ind03_t2 # This specifies the measurement model for trait_t2 with the equality constrained factor loadings
+
+trait_t2 ~ 1*trait_t1     # This parameter regresses trait_t2 perfectly on trait_t1
+d_trait_1 =~ 1*trait_t2   # This defines the latent change score factor as measured perfectly by scores on trait_t2
+trait_t2 ~ 0*1            # This line constrains the intercept of trait_t2 to 0
+trait_t2 ~~ 0*trait_t2    # This fixes the variance of trait_t2 to 0
+
+d_trait_1 ~ 1              # This estimates the intercept of the change score 
+trait_t1 ~ 1               # This estimates the intercept of trait_t1 
+d_trait_1 ~~ d_trait_1     # This estimates the variance of the change scores 
+trait_t1 ~~ trait_t1         # This estimates the variance of trait_t1 
+d_trait_1 ~~ trait_t1   # This estimates the self-feedback parameter, as a covariance! -> therefore, the interpretation of the change score remains unconditional
+
+ind01_t1 ~~ ind01_t2   # This allows residual covariance on indicator X1 across T1 and T2
+ind02_t1 ~~ ind02_t2   # This allows residual covariance on indicator X2 across T1 and T2
+ind03_t1 ~~ ind03_t2   # This allows residual covariance on indicator X3 across T1 and T2
+
+ind01_t1 ~~ res1*ind01_t1   # This allows residual variance on indicator X1 at T1 
+ind02_t1 ~~ res2*ind02_t1   # This allows residual variance on indicator X2 at T1
+ind03_t1 ~~ res3*ind03_t1   # This allows residual variance on indicator X3 at T1
+
+ind01_t2 ~~ res1*ind01_t2  # This allows residual variance on indicator X1 at T2 
+ind02_t2 ~~ res2*ind02_t2  # This allows residual variance on indicator X2 at T2 
+ind03_t2 ~~ res3*ind03_t2  # This allows residual variance on indicator X3 at T2
+
+ind01_t1 ~ 0*1      # This constrains the intercept of X1 to 0 at T1
+ind02_t1 ~ m2*1     # This estimates the intercept of X2 at T1
+ind03_t1 ~ m3*1     # This estimates the intercept of X3 at T1
+
+ind01_t2 ~ 0*1      # This constrains the intercept of X1 to 0 at T2
+ind02_t2 ~ m2*1     # This estimates the intercept of X2 at T2
+ind03_t2 ~ m3*1     # This estimates the intercept of X3 at T2
+'
+template_filled_test <- str_replace_all(trait_template_test, 
+                                        c("trait" = "neuro",
+                                          "ind01" = "neuro_curr_par1", # three item parcels
+                                          "ind02" = "neuro_curr_par2", 
+                                          "ind03" = "neuro_curr_par3"))
+trait_main_fit_test <- lavaan(template_filled_test, 
+                              data = bind_rows(df_sbsa_wide_pers_sa_mod, df_sbsa_wide_pers_sb_mod) %>% left_join(group_assign), 
+                              estimator='mlr', fixed.x=FALSE, missing='fiml')
+summary(trait_main_fit_test)
+
+### standardization in single/manifest goal variable
+
+trait_template_test2 <- '
+facet_t1 =~ 1*ind1_t1 + lamb2*ind2_t1 + lamb3*ind3_t1 + lamb4*ind4_t1 # This specifies the measurement model for facet at T1
+facet_t2 =~ 1*ind1_t2 + lamb2*ind2_t2 + lamb3*ind3_t2 + lamb4*ind4_t2 # This specifies the measurement model for facet at T2 (with equality constraints)
+
+facet_t2 ~ 1*facet_t1     # This parameter regresses facet_t2 perfectly on facet_t1
+d_facet_1 =~ 1*facet_t2   # This defines the latent change score factor as measured perfectly by scores on facet_t2
+facet_t2 ~ 0*1            # This line constrains the intercept of facet_t2 to 0
+facet_t2 ~~ 0*facet_t2    # This fixes the variance of facet_t2 to 0
+
+d_facet_1 ~ 1              # This estimates the intercept of the change score 
+facet_t1 ~ 1               # This estimates the intercept of facet_t1 
+d_facet_1 ~~ d_facet_1     # This estimates the variance of the change scores 
+facet_t1 ~~ facet_t1       # This estimates the variance of facet_t1 
+facet_t1 ~~ d_facet_1      # This estimates the self-feedback parameter, as a covariance! -> therefore, the interpretation of the change score remains unconditional
+facet_t1 ~ ind_goal        # This estimates the moderation effect on personality at T1
+d_facet_1 ~ ind_goal       # This estimates the moderation effect on the change score
+
+ind1_t1 ~~ ind1_t2   # This allows residual covariance on indicator X1 across T1 and T2
+ind2_t1 ~~ ind2_t2   # This allows residual covariance on indicator X2 across T1 and T2
+ind3_t1 ~~ ind3_t2   # This allows residual covariance on indicator X3 across T1 and T2
+ind4_t1 ~~ ind4_t2   # This allows residual covariance on indicator X4 across T1 and T2
+
+ind1_t1 ~~ res1*ind1_t1   # This allows residual variance on indicator X1 at T1 
+ind2_t1 ~~ res2*ind2_t1   # This allows residual variance on indicator X2 at T1
+ind3_t1 ~~ res3*ind3_t1   # This allows residual variance on indicator X3 at T1
+ind4_t1 ~~ res4*ind4_t1   # This allows residual variance on indicator X4 at T1
+
+ind1_t2 ~~ res1*ind1_t2  # This allows residual variance on indicator X1 at T2 
+ind2_t2 ~~ res2*ind2_t2  # This allows residual variance on indicator X2 at T2 
+ind3_t2 ~~ res3*ind3_t2  # This allows residual variance on indicator X3 at T2
+ind4_t2 ~~ res4*ind4_t2  # This allows residual variance on indicator X4 at T2
+
+ind1_t1 ~ 0*1      # This constrains the intercept of X1 to 0 at T1
+ind2_t1 ~ m2*1     # This estimates the intercept of X2 at T1
+ind3_t1 ~ m3*1     # This estimates the intercept of X3 at T1
+ind4_t1 ~ m4*1     # This estimates the intercept of X4 at T1
+
+ind1_t2 ~ 0*1      # This constrains the intercept of X1 to 0 at T2
+ind2_t2 ~ m2*1     # This estimates the intercept of X2 at T2
+ind3_t2 ~ m3*1     # This estimates the intercept of X3 at T2
+ind4_t2 ~ m4*1     # This estimates the intercept of X4 at T2
+
+ind_goal ~~ ind_goal
+ind_goal ~ 1
+'
+
+df_sbsa_wide_pers_sb_mod <- df_sbsa_wide_pers_sb_mod %>% 
+  mutate(asb07_01_t1 = scale(sb07_01_t1)) %>% as.vector()
+
+items = paste0(bfi_versions[[5]], b5_vars[[6]][[1]])
+mod_name = paste0("asb07_", str_pad(6-5, 2, pad = "0"), "_t1")
+
+template_filled_test2 <- str_replace_all(trait_template_test2, 
+                                         c("facet" = "socia",
+                                           "ind1" = items[1], "ind2" = items[2], "ind3" = items[3], "ind4" = items[4],
+                                           "ind_goal" = mod_name))
+trait_main_fit_test2 <- lavaan(template_filled_test2, data = df_sbsa_wide_pers_sb_mod, estimator='mlr', fixed.x=FALSE, missing='fiml')
+summary(trait_main_fit_test2, fit.measures = TRUE)
+
+
 
 
 

@@ -5129,6 +5129,9 @@ df_sbsa_wide_pers_sb <- df_sbsa %>%
   select(-c(sb07_01_t2, sb07_02_t2, sb07_03_t2, sb07_04_t2, sb07_05_t2, 
             sb07_06_t2, sb07_07_t2, sb07_08_t2, sb07_09_t2, sb07_10_t2, 
             sb07_11_t2, sb07_12_t2, sb07_13_t2, sb07_14_t2, sb07_15_t2, sb06_01_t2))
+# standardize goal variables (better interpretation for when they are in SEM as a single manifest variable, not so much a problem when they form a latent scale)
+df_sbsa_wide_pers_sb <- df_sbsa_wide_pers_sb %>% 
+  mutate_at(c(colnames(df_sbsa_wide_pers_sb)[-1]), ~(scale(.) %>% as.vector)) 
 # colnames(df_sbsa_wide_pers_sb)
 
 group_assign <- df_sbsa %>% select(pid, rando) %>% unique()
@@ -8747,11 +8750,13 @@ kable(df_table_hyp4[21:80, ], digits = 3)
 ```
 
 ::: {.callout-note appearance="minimal"}
-Looking at the facets, we see five covariances that significantly differ from zero:  
+Looking at the facets, we see a few covariances that significantly differ from zero:  
 - For sociability, changes in the current-level covary with the general change goal and changes in the ideal-level with the specific facet change goal (both effects barely significant).  
 - For assertiveness, changes in the ideal-level covary with the general change goal. 
 - Matching the effects from neuroticism above, we find that changes in current-level anxiety and depression covary with the respective specific facet change goal. Changes in ideal-level volatility covary with the general change goal.  
 - Further, changes in ideal-level respectfulness covary with the specific facet change goal (small effect that is barely significant; in the right direction, though -> minus sign is because a reverse-keyed item was used as reference indicator).  
+- For anxiety and depression, changes in the current-level covary with the specific facet change goal.  
+- For volatility, changes in the ideal-level covary with the general change goal.  
 :::
 
 Prepare data frame for plotting:
@@ -8915,6 +8920,9 @@ df_sbsa_wide_pers_sa <- df_sbsa %>%
   select(-c(sa07_01_t2, sa07_02_t2, sa07_03_t2, sa07_04_t2, sa07_05_t2, 
             sa07_06_t2, sa07_07_t2, sa07_08_t2, sa07_09_t2, sa07_10_t2, 
             sa07_11_t2, sa07_12_t2, sa07_13_t2, sa07_14_t2, sa07_15_t2, sa06_01_t2))
+# standardize goal variables (better interpretation for when they are in SEM as a single manifest variable, not so much a problem when they form a latent scale)
+df_sbsa_wide_pers_sa <- df_sbsa_wide_pers_sa %>% 
+  mutate_at(c(colnames(df_sbsa_wide_pers_sa)[-1]), ~(scale(.) %>% as.vector)) 
 # colnames(df_sbsa_wide_pers_sa)
 
 group_assign <- df_sbsa %>% select(pid, rando) %>% unique()
@@ -10461,7 +10469,7 @@ kable(params_lcs_openn_ideal_hyp5, digits = 3)
 
 ::: {.callout-note appearance="minimal"}
 
-Correlation of general acceptance goal with openness change score (ideal-self) is significantly different from zero, *r* = `r round(params_lcs_openn_ideal_hyp5 %>% filter(term=="d_openn_1 ~~ sa06_01_t1") %>% pull(std.all), 3)`, *p* = `r round(params_lcs_openn_ideal_hyp5 %>% filter(term=="d_openn_1 ~~ sa06_01_t1") %>% pull(p.value), 3)`.
+Correlation of general acceptance goal with openness change score (ideal-self) is not significantly different from zero, *r* = `r round(params_lcs_openn_ideal_hyp5 %>% filter(term=="d_openn_1 ~~ sa06_01_t1") %>% pull(std.all), 3)`, *p* = `r round(params_lcs_openn_ideal_hyp5 %>% filter(term=="d_openn_1 ~~ sa06_01_t1") %>% pull(p.value), 3)`.
 :::
 
 ##### Openness - current-self: specific, facet-level acceptance goals
@@ -12419,8 +12427,8 @@ Five covariances significantly differ from zero:
 
 - changes in current-level extraversion covary with the general acceptance goal  
 - changes in current-level conscientiousness covary with the specific acceptance goals (latent factor of the three C facets) -> unexpected direction of the effect!  
+- changes in current-level neuroticism covary with the general acceptance goals  
 - changes in ideal-level neuroticism covary with the specific acceptance goals (latent factor of the three N facets)  
-- changes in ideal-level openness covary with the general acceptance goal  
 :::
 
 Results summary across the Big Five facets: covariance of the latent change score and acceptance goal(s)
@@ -12601,6 +12609,9 @@ df_sbsa_wide_pers_sb_mod <- df_sbsa %>%
             sb07_06_t2, sb07_07_t2, sb07_08_t2, sb07_09_t2, sb07_10_t2, 
             sb07_11_t2, sb07_12_t2, sb07_13_t2, sb07_14_t2, sb07_15_t2, 
             sb04_01_t1, sb04_02_t1, sb04_03_t1)) # frequency of self-improvement behaviors measured at T2
+# standardize goal variables (better interpretation for when they are in SEM as a single manifest variable, not so much a problem when they form a latent scale)
+df_sbsa_wide_pers_sb_mod <- df_sbsa_wide_pers_sb_mod %>% 
+  mutate_at(c(colnames(df_sbsa_wide_pers_sb_mod)[-1]), ~(scale(.) %>% as.vector)) 
 # colnames(df_sbsa_wide_pers_sb_mod)
 
 group_assign <- df_sbsa %>% select(pid, rando) %>% unique()
@@ -12609,7 +12620,7 @@ df_sbsa_wide_pers_sb_mod <- df_sbsa_wide_pers %>% left_join(group_assign) %>% fi
   left_join(df_sbsa_wide_pers_sb_mod)
 ```
 
-#### Big Five traits
+#### Big Five traits (run models)
 
 Run models for all traits with a template & loop:
 ```{r}
@@ -12677,7 +12688,7 @@ ind_goal_3 ~ 1
 
 trait_facets_nrs <- list(a1 = c(1:3), b2 = c(4:6), c3 = c(7:9), d4 = c(10:12), e5 = c(13:15)) # matching facet nrs to traits 
 
-# loop across 5 traits
+# loop across 5 traits -> change in current-self ratings
 for (i in 1:5) {
   item_nrs = b5_vars[[i]][[1]]
   short_name = str_trunc(names(b5_vars)[i], 5, ellipsis = "")
@@ -12696,6 +12707,27 @@ for (i in 1:5) {
                                      str_sub(names(bfi_versions)[5], 6), "_specif_hyp6")), template_filled))
   eval(call("<-", as.name(paste0("fit_mi_lcs_", short_name, "_", 
                                      str_sub(names(bfi_versions)[5], 6), "_specif_hyp6")), trait_model_fit))
+}  
+
+# loop across 5 traits -> change in *ideal*-self ratings (not hypothesis-conform)
+for (i in 1:5) {
+  item_nrs = b5_vars[[i]][[1]]
+  short_name = str_trunc(names(b5_vars)[i], 5, ellipsis = "")
+  # use BFI version combined pre&post current
+  # items = paste0(bfi_versions[[5]], item_nrs) # using parcels instead!
+  mod_names = paste0("sb07_", str_pad(trait_facets_nrs[[i]], 2, pad = "0"), "_t1")
+  template_filled <- str_replace_all(trait_template_mod_goal, 
+                                       c("trait" = short_name,
+                                         "ind01" = paste0(short_name, "_ideal_par1"), # ideal instead of current!
+                                         "ind02" = paste0(short_name, "_ideal_par2"), 
+                                         "ind03" = paste0(short_name, "_ideal_par3"), 
+                                         "ind_goal_1" = mod_names[1], "ind_goal_2" = mod_names[2], 
+                                         "ind_goal_3" = mod_names[3]))
+  trait_model_fit <- lavaan(template_filled, data=df_sbsa_wide_pers_sb_mod, estimator='mlr', fixed.x=FALSE, missing='fiml')
+  eval(call("<-", as.name(paste0("mi_lcs_", short_name, "_", 
+                                     str_sub(names(bfi_versions)[6], 6), "_specif_hyp6")), template_filled)) # ideal instead of curr
+  eval(call("<-", as.name(paste0("fit_mi_lcs_", short_name, "_", 
+                                     str_sub(names(bfi_versions)[6], 6), "_specif_hyp6")), trait_model_fit))
 }  
 
 # 2nd, for frequency of self-improvement behavior
@@ -12751,7 +12783,7 @@ sb04_02_t2 ~ 1
 sb04_03_t2 ~ 1
 '
 
-# loop across 5 traits
+# loop across 5 traits -> change in current-self ratings
 for (i in 1:5) {
   item_nrs = b5_vars[[i]][[1]]
   short_name = str_trunc(names(b5_vars)[i], 5, ellipsis = "")
@@ -12768,7 +12800,27 @@ for (i in 1:5) {
   eval(call("<-", as.name(paste0("fit_mi_lcs_", short_name, "_", 
                                      str_sub(names(bfi_versions)[5], 6), "_frequ_hyp6")), trait_model_fit))
 }  
+
+# loop across 5 traits -> change in *ideal*-self ratings (not hypothesis-conform)
+for (i in 1:5) {
+  item_nrs = b5_vars[[i]][[1]]
+  short_name = str_trunc(names(b5_vars)[i], 5, ellipsis = "")
+  # use BFI version combined pre&post current
+  # items = paste0(bfi_versions[[5]], item_nrs) # using parcels instead!
+  template_filled <- str_replace_all(trait_template_mod_frequ, 
+                                       c("trait" = short_name,
+                                         "ind01" = paste0(short_name, "_ideal_par1"),  # ideal instead of current!
+                                         "ind02" = paste0(short_name, "_ideal_par2"), 
+                                         "ind03" = paste0(short_name, "_ideal_par3")))
+  trait_model_fit <- lavaan(template_filled, data=df_sbsa_wide_pers_sb_mod, estimator='mlr', fixed.x=FALSE, missing='fiml')
+  eval(call("<-", as.name(paste0("mi_lcs_", short_name, "_", 
+                                     str_sub(names(bfi_versions)[6], 6), "_frequ_hyp6")), template_filled)) # ideal instead of curr
+  eval(call("<-", as.name(paste0("fit_mi_lcs_", short_name, "_", 
+                                     str_sub(names(bfi_versions)[6], 6), "_frequ_hyp6")), trait_model_fit))
+}  
 ```
+
+#### Big Five traits (current self)
 
 ##### Extraversion: specific, facet-level change goals as moderator of change
 
@@ -12793,7 +12845,7 @@ kable(params_lcs_extra_curr_specif_hyp6, digits = 3)
 ```
 
 ::: {.callout-note appearance="minimal"}
-The moderation effect of specific, facet-level change goals with the extraversion change score (current-self) is not significantly different from zero, *b* = `r round(params_lcs_extra_curr_specif_hyp6 %>% filter(term=="d_extra_1 ~ goals") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_extra_curr_specif_hyp6 %>% filter(term=="d_extra_1 ~ goals") %>% pull(p.value), 3)`. 
+Specific, facet-level change goals significantly moderate changes in extraversion (current-self), *b* = `r round(params_lcs_extra_curr_specif_hyp6 %>% filter(term=="d_extra_1 ~ goals") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_extra_curr_specif_hyp6 %>% filter(term=="d_extra_1 ~ goals") %>% pull(p.value), 3)`. 
 :::
 
 ##### Extraversion: frequency of self-improvement behaviors as moderator of change
@@ -12871,7 +12923,7 @@ kable(params_lcs_agree_curr_frequ_hyp6, digits = 3)
 ```
 
 ::: {.callout-note appearance="minimal"}
-The frequency of self-improvement behaviors significantly moderates changes in agreeableness (current-self), *b* = `r round(params_lcs_agree_curr_frequ_hyp6 %>% filter(term=="d_agree_1 ~ frequ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_agree_curr_frequ_hyp6 %>% filter(term=="d_agree_1 ~ frequ") %>% pull(p.value), 3)`. 
+The moderation effect of the frequency of self-improvement behaviors with the agreeableness change score (current-self) is not significantly different from zero, *b* = `r round(params_lcs_agree_curr_frequ_hyp6 %>% filter(term=="d_agree_1 ~ frequ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_agree_curr_frequ_hyp6 %>% filter(term=="d_agree_1 ~ frequ") %>% pull(p.value), 3)`. 
 :::
 
 ##### Conscientiousness: specific, facet-level change goals as moderator of change
@@ -12897,7 +12949,7 @@ kable(params_lcs_consc_curr_specif_hyp6, digits = 3)
 ```
 
 ::: {.callout-note appearance="minimal"}
-The moderation effect of specific, facet-level change goals with the conscientiousness change score (current-self) is not significantly different from zero, *b* = `r round(params_lcs_consc_curr_specif_hyp6 %>% filter(term=="d_consc_1 ~ goals") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_consc_curr_specif_hyp6 %>% filter(term=="d_consc_1 ~ goals") %>% pull(p.value), 3)`. 
+Specific, facet-level change goals significantly moderate changes in conscientiousness (current-self), *b* = `r round(params_lcs_consc_curr_specif_hyp6 %>% filter(term=="d_consc_1 ~ goals") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_consc_curr_specif_hyp6 %>% filter(term=="d_consc_1 ~ goals") %>% pull(p.value), 3)`. 
 :::
 
 ##### Conscientiousness: frequency of self-improvement behaviors as moderator of change
@@ -12923,7 +12975,7 @@ kable(params_lcs_consc_curr_frequ_hyp6, digits = 3)
 ```
 
 ::: {.callout-note appearance="minimal"}
-The frequency of self-improvement behaviors significantly moderates changes in conscientiousness (current-self), *b* = `r round(params_lcs_consc_curr_frequ_hyp6 %>% filter(term=="d_consc_1 ~ frequ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_consc_curr_frequ_hyp6 %>% filter(term=="d_consc_1 ~ frequ") %>% pull(p.value), 3)`. 
+The moderation effect of the frequency of self-improvement behaviors with the conscientiousness change score (current-self) is not significantly different from zero, *b* = `r round(params_lcs_consc_curr_frequ_hyp6 %>% filter(term=="d_consc_1 ~ frequ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_consc_curr_frequ_hyp6 %>% filter(term=="d_consc_1 ~ frequ") %>% pull(p.value), 3)`. 
 :::
 
 ##### Neuroticism: specific, facet-level change goals as moderator of change
@@ -13030,7 +13082,269 @@ kable(params_lcs_openn_curr_frequ_hyp6, digits = 3)
 The frequency of self-improvement behaviors significantly moderates changes in openness (current-self), *b* = `r round(params_lcs_openn_curr_frequ_hyp6 %>% filter(term=="d_openn_1 ~ frequ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_openn_curr_frequ_hyp6 %>% filter(term=="d_openn_1 ~ frequ") %>% pull(p.value), 3)`. 
 :::
 
-#### Big Five facets
+#### Big Five traits (ideal self)
+
+##### Extraversion: specific, facet-level change goals as moderator of change
+
+Results summary (*goals* = trait/facet specific change goal):
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+
+# model fit
+kable(broom::glance(fit_mi_lcs_extra_ideal_specif_hyp6) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+
+# parameters of interest
+params_lcs_extra_ideal_specif_hyp6 <- broom::tidy(fit_mi_lcs_extra_ideal_specif_hyp6, conf.int = TRUE, conf.level = 0.95) %>% 
+        select(term, estimate, conf.low, conf.high, std.all, statistic, p.value) %>% 
+        filter(term %in% c("extra_t2 ~ extra_t1", "d_extra_1 =~ extra_t2", "extra_t1 ~~ d_extra_1", # change parameters
+                           "d_extra_1 ~ goals", "goals ~~ goals", "extra_t1 ~ goals", # change goals
+                           "d_extra_1 ~1 ", "extra_t1 ~1 ", "", # means
+                           "d_extra_1 ~~ d_extra_1"))
+kable(params_lcs_extra_ideal_specif_hyp6, digits = 3) 
+```
+
+::: {.callout-note appearance="minimal"}
+The moderation effect of specific, facet-level change goals with the extraversion change score (ideal-self) is not significantly different from zero, *b* = `r round(params_lcs_extra_ideal_specif_hyp6 %>% filter(term=="d_extra_1 ~ goals") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_extra_ideal_specif_hyp6 %>% filter(term=="d_extra_1 ~ goals") %>% pull(p.value), 3)`. 
+:::
+
+##### Extraversion: frequency of self-improvement behaviors as moderator of change
+
+Results summary (*frequ* = frequency of self improvement behavior):
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+
+# model fit
+kable(broom::glance(fit_mi_lcs_extra_ideal_frequ_hyp6) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+
+# parameters of interest
+params_lcs_extra_ideal_frequ_hyp6 <- broom::tidy(fit_mi_lcs_extra_ideal_frequ_hyp6, conf.int = TRUE, conf.level = 0.95) %>% 
+        select(term, estimate, conf.low, conf.high, std.all, statistic, p.value) %>% 
+        filter(term %in% c("extra_t2 ~ extra_t1", "d_extra_1 =~ extra_t2", "extra_t1 ~~ d_extra_1", # change parameters
+                           "d_extra_1 ~ frequ", "frequ ~~ frequ", "extra_t1 ~ frequ", # frequency of self improvement
+                           "d_extra_1 ~1 ", "extra_t1 ~1 ", "", # means
+                           "d_extra_1 ~~ d_extra_1"))
+kable(params_lcs_extra_ideal_frequ_hyp6, digits = 3) 
+```
+
+::: {.callout-note appearance="minimal"}
+The moderation effect of the frequency of self-improvement behaviors with the extraversion change score (ideal-self) is not significantly different from zero, *b* = `r round(params_lcs_extra_ideal_frequ_hyp6 %>% filter(term=="d_extra_1 ~ frequ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_extra_ideal_frequ_hyp6 %>% filter(term=="d_extra_1 ~ frequ") %>% pull(p.value), 3)`. 
+:::
+
+##### Agreeableness: specific, facet-level change goals as moderator of change
+
+Results summary (*goals* = trait/facet specific change goal):
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+
+# model fit
+kable(broom::glance(fit_mi_lcs_agree_ideal_specif_hyp6) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+
+# parameters of interest
+params_lcs_agree_ideal_specif_hyp6 <- broom::tidy(fit_mi_lcs_agree_ideal_specif_hyp6, conf.int = TRUE, conf.level = 0.95) %>% 
+        select(term, estimate, conf.low, conf.high, std.all, statistic, p.value) %>% 
+        filter(term %in% c("agree_t2 ~ agree_t1", "d_agree_1 =~ agree_t2", "agree_t1 ~~ d_agree_1", # change parameters
+                           "d_agree_1 ~ goals", "goals ~~ goals", "agree_t1 ~ goals", # change goals
+                           "d_agree_1 ~1 ", "agree_t1 ~1 ", "", # means
+                           "d_agree_1 ~~ d_agree_1"))
+kable(params_lcs_agree_ideal_specif_hyp6, digits = 3) 
+```
+
+::: {.callout-note appearance="minimal"}
+The moderation effect of specific, facet-level change goals with the agreeableness change score (ideal-self) is not significantly different from zero, *b* = `r round(params_lcs_agree_ideal_specif_hyp6 %>% filter(term=="d_agree_1 ~ goals") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_agree_ideal_specif_hyp6 %>% filter(term=="d_agree_1 ~ goals") %>% pull(p.value), 3)`. 
+:::
+
+##### Agreeableness: frequency of self-improvement behaviors as moderator of change
+
+Results summary (*frequ* = frequency of self improvement behavior):
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+
+# model fit
+kable(broom::glance(fit_mi_lcs_agree_ideal_frequ_hyp6) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+
+# parameters of interest
+params_lcs_agree_ideal_frequ_hyp6 <- broom::tidy(fit_mi_lcs_agree_ideal_frequ_hyp6, conf.int = TRUE, conf.level = 0.95) %>% 
+        select(term, estimate, conf.low, conf.high, std.all, statistic, p.value) %>% 
+        filter(term %in% c("agree_t2 ~ agree_t1", "d_agree_1 =~ agree_t2", "agree_t1 ~~ d_agree_1", # change parameters
+                           "d_agree_1 ~ frequ", "frequ ~~ frequ", "agree_t1 ~ frequ", # frequency of self improvement
+                           "d_agree_1 ~1 ", "agree_t1 ~1 ", "", # means
+                           "d_agree_1 ~~ d_agree_1"))
+kable(params_lcs_agree_ideal_frequ_hyp6, digits = 3) 
+```
+
+::: {.callout-note appearance="minimal"}
+The moderation effect of the frequency of self-improvement behaviors with the agreeableness change score (ideal-self) is not significantly different from zero, *b* = `r round(params_lcs_agree_ideal_frequ_hyp6 %>% filter(term=="d_agree_1 ~ frequ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_agree_ideal_frequ_hyp6 %>% filter(term=="d_agree_1 ~ frequ") %>% pull(p.value), 3)`. 
+:::
+
+##### Conscientiousness: specific, facet-level change goals as moderator of change
+
+Results summary (*goals* = trait/facet specific change goal):
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+
+# model fit
+kable(broom::glance(fit_mi_lcs_consc_ideal_specif_hyp6) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+
+# parameters of interest
+params_lcs_consc_ideal_specif_hyp6 <- broom::tidy(fit_mi_lcs_consc_ideal_specif_hyp6, conf.int = TRUE, conf.level = 0.95) %>% 
+        select(term, estimate, conf.low, conf.high, std.all, statistic, p.value) %>% 
+        filter(term %in% c("consc_t2 ~ consc_t1", "d_consc_1 =~ consc_t2", "consc_t1 ~~ d_consc_1", # change parameters
+                           "d_consc_1 ~ goals", "goals ~~ goals", "consc_t1 ~ goals", # change goals
+                           "d_consc_1 ~1 ", "consc_t1 ~1 ", "", # means
+                           "d_consc_1 ~~ d_consc_1"))
+kable(params_lcs_consc_ideal_specif_hyp6, digits = 3) 
+```
+
+::: {.callout-note appearance="minimal"}
+The moderation effect of specific, facet-level change goals with the conscientiousness change score (ideal-self) is not significantly different from zero, *b* = `r round(params_lcs_consc_ideal_specif_hyp6 %>% filter(term=="d_consc_1 ~ goals") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_consc_ideal_specif_hyp6 %>% filter(term=="d_consc_1 ~ goals") %>% pull(p.value), 3)`. 
+:::
+
+##### Conscientiousness: frequency of self-improvement behaviors as moderator of change
+
+Results summary (*frequ* = frequency of self improvement behavior):
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+
+# model fit
+kable(broom::glance(fit_mi_lcs_consc_ideal_frequ_hyp6) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+
+# parameters of interest
+params_lcs_consc_ideal_frequ_hyp6 <- broom::tidy(fit_mi_lcs_consc_ideal_frequ_hyp6, conf.int = TRUE, conf.level = 0.95) %>% 
+        select(term, estimate, conf.low, conf.high, std.all, statistic, p.value) %>% 
+        filter(term %in% c("consc_t2 ~ consc_t1", "d_consc_1 =~ consc_t2", "consc_t1 ~~ d_consc_1", # change parameters
+                           "d_consc_1 ~ frequ", "frequ ~~ frequ", "consc_t1 ~ frequ", # frequency of self improvement
+                           "d_consc_1 ~1 ", "consc_t1 ~1 ", "", # means
+                           "d_consc_1 ~~ d_consc_1"))
+kable(params_lcs_consc_ideal_frequ_hyp6, digits = 3) 
+```
+
+::: {.callout-note appearance="minimal"}
+The moderation effect of the frequency of self-improvement behaviors with the conscientiousness change score (ideal-self) is not significantly different from zero, *b* = `r round(params_lcs_consc_ideal_frequ_hyp6 %>% filter(term=="d_consc_1 ~ frequ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_consc_ideal_frequ_hyp6 %>% filter(term=="d_consc_1 ~ frequ") %>% pull(p.value), 3)`. 
+:::
+
+##### Neuroticism: specific, facet-level change goals as moderator of change
+
+Results summary (*goals* = trait/facet specific change goal):
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+
+# model fit
+kable(broom::glance(fit_mi_lcs_neuro_ideal_specif_hyp6) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+
+# parameters of interest
+params_lcs_neuro_ideal_specif_hyp6 <- broom::tidy(fit_mi_lcs_neuro_ideal_specif_hyp6, conf.int = TRUE, conf.level = 0.95) %>% 
+        select(term, estimate, conf.low, conf.high, std.all, statistic, p.value) %>% 
+        filter(term %in% c("neuro_t2 ~ neuro_t1", "d_neuro_1 =~ neuro_t2", "neuro_t1 ~~ d_neuro_1", # change parameters
+                           "d_neuro_1 ~ goals", "goals ~~ goals", "neuro_t1 ~ goals", # change goals
+                           "d_neuro_1 ~1 ", "neuro_t1 ~1 ", "", # means
+                           "d_neuro_1 ~~ d_neuro_1"))
+kable(params_lcs_neuro_ideal_specif_hyp6, digits = 3) 
+```
+
+::: {.callout-note appearance="minimal"}
+The moderation effect of specific, facet-level change goals with the neuroticism change score (ideal-self) is not significantly different from zero, *b* = `r round(params_lcs_neuro_ideal_specif_hyp6 %>% filter(term=="d_neuro_1 ~ goals") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_neuro_ideal_specif_hyp6 %>% filter(term=="d_neuro_1 ~ goals") %>% pull(p.value), 3)`. 
+:::
+
+##### Neuroticism: frequency of self-improvement behaviors as moderator of change
+
+Results summary (*frequ* = frequency of self improvement behavior):
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+
+# model fit
+kable(broom::glance(fit_mi_lcs_neuro_ideal_frequ_hyp6) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+
+# parameters of interest
+params_lcs_neuro_ideal_frequ_hyp6 <- broom::tidy(fit_mi_lcs_neuro_ideal_frequ_hyp6, conf.int = TRUE, conf.level = 0.95) %>% 
+        select(term, estimate, conf.low, conf.high, std.all, statistic, p.value) %>% 
+        filter(term %in% c("neuro_t2 ~ neuro_t1", "d_neuro_1 =~ neuro_t2", "neuro_t1 ~~ d_neuro_1", # change parameters
+                           "d_neuro_1 ~ frequ", "frequ ~~ frequ", "neuro_t1 ~ frequ", # frequency of self improvement
+                           "d_neuro_1 ~1 ", "neuro_t1 ~1 ", "", # means
+                           "d_neuro_1 ~~ d_neuro_1"))
+kable(params_lcs_neuro_ideal_frequ_hyp6, digits = 3) 
+```
+
+::: {.callout-note appearance="minimal"}
+The moderation effect of the frequency of self-improvement behaviors with the neuroticism change score (ideal-self) is not significantly different from zero, *b* = `r round(params_lcs_neuro_ideal_frequ_hyp6 %>% filter(term=="d_neuro_1 ~ frequ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_neuro_ideal_frequ_hyp6 %>% filter(term=="d_neuro_1 ~ frequ") %>% pull(p.value), 3)`. 
+:::
+
+##### Openness: specific, facet-level change goals as moderator of change
+
+Results summary (*goals* = trait/facet specific change goal):
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+
+# model fit
+kable(broom::glance(fit_mi_lcs_openn_ideal_specif_hyp6) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+
+# parameters of interest
+params_lcs_openn_ideal_specif_hyp6 <- broom::tidy(fit_mi_lcs_openn_ideal_specif_hyp6, conf.int = TRUE, conf.level = 0.95) %>% 
+        select(term, estimate, conf.low, conf.high, std.all, statistic, p.value) %>% 
+        filter(term %in% c("openn_t2 ~ openn_t1", "d_openn_1 =~ openn_t2", "openn_t1 ~~ d_openn_1", # change parameters
+                           "d_openn_1 ~ goals", "goals ~~ goals", "openn_t1 ~ goals", # change goals
+                           "d_openn_1 ~1 ", "openn_t1 ~1 ", "", # means
+                           "d_openn_1 ~~ d_openn_1"))
+kable(params_lcs_openn_ideal_specif_hyp6, digits = 3) 
+```
+
+::: {.callout-note appearance="minimal"}
+The moderation effect of specific, facet-level change goals with the openness change score (ideal-self) is not significantly different from zero, *b* = `r round(params_lcs_openn_ideal_specif_hyp6 %>% filter(term=="d_openn_1 ~ goals") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_openn_ideal_specif_hyp6 %>% filter(term=="d_openn_1 ~ goals") %>% pull(p.value), 3)`. 
+:::
+
+##### Openness: frequency of self-improvement behaviors as moderator of change
+
+Results summary (*frequ* = frequency of self improvement behavior):
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+
+# model fit
+kable(broom::glance(fit_mi_lcs_openn_ideal_frequ_hyp6) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+
+# parameters of interest
+params_lcs_openn_ideal_frequ_hyp6 <- broom::tidy(fit_mi_lcs_openn_ideal_frequ_hyp6, conf.int = TRUE, conf.level = 0.95) %>% 
+        select(term, estimate, conf.low, conf.high, std.all, statistic, p.value) %>% 
+        filter(term %in% c("openn_t2 ~ openn_t1", "d_openn_1 =~ openn_t2", "openn_t1 ~~ d_openn_1", # change parameters
+                           "d_openn_1 ~ frequ", "frequ ~~ frequ", "openn_t1 ~ frequ", # frequency of self improvement
+                           "d_openn_1 ~1 ", "openn_t1 ~1 ", "", # means
+                           "d_openn_1 ~~ d_openn_1"))
+kable(params_lcs_openn_ideal_frequ_hyp6, digits = 3) 
+```
+
+::: {.callout-note appearance="minimal"}
+The moderation effect of the frequency of self-improvement behaviors with the openness change score (ideal-self) is not significantly different from zero, *b* = `r round(params_lcs_openn_ideal_frequ_hyp6 %>% filter(term=="d_openn_1 ~ frequ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_openn_ideal_frequ_hyp6 %>% filter(term=="d_openn_1 ~ frequ") %>% pull(p.value), 3)`. 
+:::
+
+#### Big Five facets (run models)
 
 Run models for all facets with a template & loop:
 ```{r}
@@ -13091,7 +13405,7 @@ ind_goal ~~ ind_goal
 ind_goal ~ 1
 '
 
-# loop across 15 facets
+# loop across 15 facets -> change in current-self ratings
 for (i in 6:length(b5_vars)) {
   item_nrs = b5_vars[[i]][[1]]
   short_name = str_trunc(names(b5_vars)[i], 5, ellipsis = "")
@@ -13107,6 +13421,24 @@ for (i in 6:length(b5_vars)) {
                                      str_sub(names(bfi_versions)[5], 6), "_specif_hyp6")), template_filled))
   eval(call("<-", as.name(paste0("fit_mi_lcs_", short_name, "_", 
                                      str_sub(names(bfi_versions)[5], 6), "_specif_hyp6")), facet_model_fit))
+}  
+
+# loop across 15 facets -> change in ideal-self ratings
+for (i in 6:length(b5_vars)) {
+  item_nrs = b5_vars[[i]][[1]]
+  short_name = str_trunc(names(b5_vars)[i], 5, ellipsis = "")
+  # use BFI version combined pre&post current
+  items = paste0(bfi_versions[[6]], item_nrs) # ideal
+  mod_name = paste0("sb07_", str_pad(i-5, 2, pad = "0"), "_t1")
+  template_filled <- str_replace_all(facet_template_mod_goal, 
+                                       c("facet" = short_name,
+                                         "ind1" = items[1], "ind2" = items[2], "ind3" = items[3], "ind4" = items[4],
+                                         "ind_goal" = mod_name))
+  facet_model_fit <- lavaan(template_filled, data=df_sbsa_wide_pers_sb_mod, estimator='mlr', fixed.x=FALSE, missing='fiml')
+  eval(call("<-", as.name(paste0("mi_lcs_", short_name, "_", 
+                                     str_sub(names(bfi_versions)[6], 6), "_specif_hyp6")), template_filled)) # ideal
+  eval(call("<-", as.name(paste0("fit_mi_lcs_", short_name, "_", 
+                                     str_sub(names(bfi_versions)[6], 6), "_specif_hyp6")), facet_model_fit))
 }  
 
 # 2nd, for frequency of self-improvement behavior
@@ -13167,7 +13499,7 @@ sb04_02_t2 ~ 1
 sb04_03_t2 ~ 1
 '
 
-# loop across 15 facets
+# loop across 15 facets -> change in current-self ratings
 for (i in 6:length(b5_vars)) {
   item_nrs = b5_vars[[i]][[1]]
   short_name = str_trunc(names(b5_vars)[i], 5, ellipsis = "")
@@ -13182,8 +13514,25 @@ for (i in 6:length(b5_vars)) {
   eval(call("<-", as.name(paste0("fit_mi_lcs_", short_name, "_", 
                                      str_sub(names(bfi_versions)[5], 6), "_frequ_hyp6")), facet_model_fit))
 }  
+
+# loop across 15 facets -> change in ideal-self ratings
+for (i in 6:length(b5_vars)) {
+  item_nrs = b5_vars[[i]][[1]]
+  short_name = str_trunc(names(b5_vars)[i], 5, ellipsis = "")
+  # use BFI version combined pre&post current
+  items = paste0(bfi_versions[[6]], item_nrs) # ideal
+  template_filled <- str_replace_all(facet_template_mod_frequ, 
+                                       c("facet" = short_name,
+                                         "ind1" = items[1], "ind2" = items[2], "ind3" = items[3], "ind4" = items[4]))
+  facet_model_fit <- lavaan(template_filled, data=df_sbsa_wide_pers_sb_mod, estimator='mlr', fixed.x=FALSE, missing='fiml')
+  eval(call("<-", as.name(paste0("mi_lcs_", short_name, "_", 
+                                     str_sub(names(bfi_versions)[6], 6), "_frequ_hyp6")), template_filled)) # ideal
+  eval(call("<-", as.name(paste0("fit_mi_lcs_", short_name, "_", 
+                                     str_sub(names(bfi_versions)[6], 6), "_frequ_hyp6")), facet_model_fit))
+}  
 ```
 
+#### Big Five facets (current self)
 
 ##### Sociability - specific, facet-level change goal as moderator of change
 
@@ -13208,7 +13557,7 @@ kable(params_lcs_socia_curr_specif_hyp6, digits = 3)
 ```
 
 ::: {.callout-note appearance="minimal"}
-The moderation effect of the facet-specific change goal with the sociability change score (current-self) is not significantly different from zero, *b* = `r round(params_lcs_socia_curr_specif_hyp6 %>% filter(term=="d_socia_1 ~ sb07_01_t1") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_socia_curr_specif_hyp6 %>% filter(term=="d_socia_1 ~ sb07_01_t1") %>% pull(p.value), 3)`. 
+Facet-specific change goals significantly moderate changes in sociability (current-self), *b* = `r round(params_lcs_socia_curr_specif_hyp6 %>% filter(term=="d_socia_1 ~ sb07_01_t1") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_socia_curr_specif_hyp6 %>% filter(term=="d_socia_1 ~ sb07_01_t1") %>% pull(p.value), 3)`. 
 :::
 
 ##### Sociability - frequency of self-improvement behaviors as moderator of change
@@ -13390,7 +13739,7 @@ kable(params_lcs_compa_curr_frequ_hyp6, digits = 3)
 ```
 
 ::: {.callout-note appearance="minimal"}
-The frequency of self-improvement behaviors significantly moderates changes in compassion (current-self), *b* = `r round(params_lcs_compa_curr_frequ_hyp6 %>% filter(term=="d_compa_1 ~ frequ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_compa_curr_frequ_hyp6 %>% filter(term=="d_compa_1 ~ frequ") %>% pull(p.value), 3)`. 
+The moderation effect of the frequency of self-improvement behaviors with the compassion change score (current-self) is not significantly different from zero, *b* = `r round(params_lcs_compa_curr_frequ_hyp6 %>% filter(term=="d_compa_1 ~ frequ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_compa_curr_frequ_hyp6 %>% filter(term=="d_compa_1 ~ frequ") %>% pull(p.value), 3)`. 
 :::
 
 ##### Respectfulness - specific, facet-level change goal as moderator of change
@@ -13416,7 +13765,7 @@ kable(params_lcs_respe_curr_specif_hyp6, digits = 3)
 ```
 
 ::: {.callout-note appearance="minimal"}
-The moderation effect of the facet-specific change goal with the respectfulness change score (current-self) is not significantly different from zero, *b* = `r round(params_lcs_respe_curr_specif_hyp6 %>% filter(term=="d_respe_1 ~ sb07_05_t1") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_respe_curr_specif_hyp6 %>% filter(term=="d_respe_1 ~ sb07_05_t1") %>% pull(p.value), 3)`. 
+The facet-specific change goal significantly moderates changes in respectfulness (current-self), *b* = `r round(params_lcs_respe_curr_specif_hyp6 %>% filter(term=="d_respe_1 ~ sb07_05_t1") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_respe_curr_specif_hyp6 %>% filter(term=="d_respe_1 ~ sb07_05_t1") %>% pull(p.value), 3)`. 
 :::
 
 ##### Respectfulness - frequency of self-improvement behaviors as moderator of change
@@ -13521,7 +13870,7 @@ kable(params_lcs_organ_curr_specif_hyp6, digits = 3)
 ```
 
 ::: {.callout-note appearance="minimal"}
-The moderation effect of the facet-specific change goal with the organization change score (current-self) is not significantly different from zero, *b* = `r round(params_lcs_organ_curr_specif_hyp6 %>% filter(term=="d_organ_1 ~ sb07_07_t1") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_organ_curr_specif_hyp6 %>% filter(term=="d_organ_1 ~ sb07_07_t1") %>% pull(p.value), 3)`. 
+The facet-specific change goal significantly moderates changes in organization (current-self), *b* = `r round(params_lcs_organ_curr_specif_hyp6 %>% filter(term=="d_organ_1 ~ sb07_07_t1") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_organ_curr_specif_hyp6 %>% filter(term=="d_organ_1 ~ sb07_07_t1") %>% pull(p.value), 3)`. 
 :::
 
 ##### Organization - frequency of self-improvement behaviors as moderator of change
@@ -13573,7 +13922,7 @@ kable(params_lcs_produ_curr_specif_hyp6, digits = 3)
 ```
 
 ::: {.callout-note appearance="minimal"}
-The moderation effect of the facet-specific change goal with the productiveness change score (current-self) is not significantly different from zero, *b* = `r round(params_lcs_produ_curr_specif_hyp6 %>% filter(term=="d_produ_1 ~ sb07_08_t1") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_produ_curr_specif_hyp6 %>% filter(term=="d_produ_1 ~ sb07_08_t1") %>% pull(p.value), 3)`. 
+The facet-specific change goal significantly moderates changes in productiveness (current-self), *b* = `r round(params_lcs_produ_curr_specif_hyp6 %>% filter(term=="d_produ_1 ~ sb07_08_t1") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_produ_curr_specif_hyp6 %>% filter(term=="d_produ_1 ~ sb07_08_t1") %>% pull(p.value), 3)`. 
 :::
 
 ##### Productiveness - frequency of self-improvement behaviors as moderator of change
@@ -13599,7 +13948,7 @@ kable(params_lcs_produ_curr_frequ_hyp6, digits = 3)
 ```
 
 ::: {.callout-note appearance="minimal"}
-The frequency of self-improvement behaviors significantly moderates changes in productiveness (current-self), *b* = `r round(params_lcs_produ_curr_frequ_hyp6 %>% filter(term=="d_produ_1 ~ frequ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_produ_curr_frequ_hyp6 %>% filter(term=="d_produ_1 ~ frequ") %>% pull(p.value), 3)`. 
+The moderation effect of the frequency of self-improvement behaviors with the productiveness change score (current-self) is not significantly different from zero, *b* = `r round(params_lcs_produ_curr_frequ_hyp6 %>% filter(term=="d_produ_1 ~ frequ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_produ_curr_frequ_hyp6 %>% filter(term=="d_produ_1 ~ frequ") %>% pull(p.value), 3)`. 
 :::
 
 ##### Responsibility - specific, facet-level change goal as moderator of change
@@ -13937,7 +14286,7 @@ kable(params_lcs_aesth_curr_specif_hyp6, digits = 3)
 ```
 
 ::: {.callout-note appearance="minimal"}
-The facet-specific change goal significantly moderates changes in the aesthetic score (current-self), *b* = `r round(params_lcs_aesth_curr_specif_hyp6 %>% filter(term=="d_aesth_1 ~ sb07_14_t1") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_aesth_curr_specif_hyp6 %>% filter(term=="d_aesth_1 ~ sb07_14_t1") %>% pull(p.value), 3)`. 
+The moderation effect of the facet-specific change goal with the aesthetic change score (current-self) is not significantly different from zero, *b* = `r round(params_lcs_aesth_curr_specif_hyp6 %>% filter(term=="d_aesth_1 ~ sb07_14_t1") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_aesth_curr_specif_hyp6 %>% filter(term=="d_aesth_1 ~ sb07_14_t1") %>% pull(p.value), 3)`. 
 :::
 
 ##### Aesthetic - frequency of self-improvement behaviors as moderator of change
@@ -14026,7 +14375,7 @@ kable(params_lcs_aesth_curr_frequ_hyp6, digits = 3)
 ```
 
 ::: {.callout-note appearance="minimal"}
-The frequency of self-improvement behaviors significantly moderates changes in the aesthetic score (current-self), *b* = `r round(params_lcs_aesth_curr_frequ_hyp6 %>% filter(term=="d_aesth_1 ~ frequ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_aesth_curr_frequ_hyp6 %>% filter(term=="d_aesth_1 ~ frequ") %>% pull(p.value), 3)`. 
+The moderation effect of the frequency of self-improvement behaviors with the aesthetic change score (current-self) is not significantly different from zero, *b* = `r round(params_lcs_aesth_curr_frequ_hyp6 %>% filter(term=="d_aesth_1 ~ frequ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_aesth_curr_frequ_hyp6 %>% filter(term=="d_aesth_1 ~ frequ") %>% pull(p.value), 3)`. 
 :::
 
 ##### Imagination - specific, facet-level change goal as moderator of change
@@ -14081,7 +14430,792 @@ kable(params_lcs_imagi_curr_frequ_hyp6, digits = 3)
 The moderation effect of the frequency of self-improvement behaviors with the imagination change score (current-self) is not significantly different from zero, *b* = `r round(params_lcs_imagi_curr_frequ_hyp6 %>% filter(term=="d_imagi_1 ~ frequ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_imagi_curr_frequ_hyp6 %>% filter(term=="d_imagi_1 ~ frequ") %>% pull(p.value), 3)`. 
 :::
 
+#### Big Five facets (ideal self)
+
+##### Sociability - specific, facet-level change goal as moderator of change
+
+Results summary (*sb07_xx_t1* = trait/facet specific change goal):
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+
+# model fit
+kable(broom::glance(fit_mi_lcs_socia_ideal_specif_hyp6) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+
+# parameters of interest
+params_lcs_socia_ideal_specif_hyp6 <- broom::tidy(fit_mi_lcs_socia_ideal_specif_hyp6, conf.int = TRUE, conf.level = 0.95) %>% 
+  select(term, estimate, conf.low, conf.high, std.all, statistic, p.value) %>% 
+  filter(term %in% c("socia_t2 ~ socia_t1", "d_socia_1 =~ socia_t2", "socia_t1 ~~ d_socia_1", # change parameters
+                     "d_socia_1 ~ sb07_01_t1", "sb07_01_t1 ~~ sb07_01_t1", "d_socia_1 ~ sb07_01_t1", # change goals
+                     "d_socia_1 ~1 ", "socia_t1 ~1 ", "", # means
+                     "d_socia_1 ~~ d_socia_1"))
+kable(params_lcs_socia_ideal_specif_hyp6, digits = 3) 
+```
+
+::: {.callout-note appearance="minimal"}
+The moderation effect of the facet-specific change goal with the sociability change score (ideal-self) is not significantly different from zero, *b* = `r round(params_lcs_socia_ideal_specif_hyp6 %>% filter(term=="d_socia_1 ~ sb07_01_t1") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_socia_ideal_specif_hyp6 %>% filter(term=="d_socia_1 ~ sb07_01_t1") %>% pull(p.value), 3)`. 
+:::
+
+##### Sociability - frequency of self-improvement behaviors as moderator of change
+
+Results summary (*frequ* = frequency of self-improvement behavior):
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+
+# model fit
+kable(broom::glance(fit_mi_lcs_socia_ideal_frequ_hyp6) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+
+# parameters of interest
+params_lcs_socia_ideal_frequ_hyp6 <- broom::tidy(fit_mi_lcs_socia_ideal_frequ_hyp6, conf.int = TRUE, conf.level = 0.95) %>% 
+        select(term, estimate, conf.low, conf.high, std.all, statistic, p.value) %>% 
+        filter(term %in% c("socia_t2 ~ socia_t1", "d_socia_1 =~ socia_t2", "socia_t1 ~~ d_socia_1", # change parameters
+                           "d_socia_1 ~ frequ", "frequ ~~ frequ", "socia_t1 ~ frequ", # frequency of self improvement
+                           "d_socia_1 ~1 ", "socia_t1 ~1 ", "", # means
+                           "d_socia_1 ~~ d_socia_1"))
+kable(params_lcs_socia_ideal_frequ_hyp6, digits = 3) 
+```
+
+::: {.callout-note appearance="minimal"}
+The moderation effect of the frequency of self-improvement behaviors with sociability change score (ideal-self) is not significantly different from zero, *b* = `r round(params_lcs_socia_ideal_frequ_hyp6 %>% filter(term=="d_socia_1 ~ frequ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_socia_ideal_frequ_hyp6 %>% filter(term=="d_socia_1 ~ frequ") %>% pull(p.value), 3)`. 
+:::
+
+##### Assertiveness - specific, facet-level change goal as moderator of change
+
+Results summary (*sb07_xx_t1* = trait/facet specific change goal):
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+
+# model fit
+kable(broom::glance(fit_mi_lcs_asser_ideal_specif_hyp6) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+
+# parameters of interest
+params_lcs_asser_ideal_specif_hyp6 <- broom::tidy(fit_mi_lcs_asser_ideal_specif_hyp6, conf.int = TRUE, conf.level = 0.95) %>% 
+  select(term, estimate, conf.low, conf.high, std.all, statistic, p.value) %>% 
+  filter(term %in% c("asser_t2 ~ asser_t1", "d_asser_1 =~ asser_t2", "asser_t1 ~~ d_asser_1", # change parameters
+                     "d_asser_1 ~ sb07_02_t1", "sb07_02_t1 ~~ sb07_02_t1", "d_asser_1 ~ sb07_02_t1", # change goals
+                     "d_asser_1 ~1 ", "asser_t1 ~1 ", "", # means
+                     "d_asser_1 ~~ d_asser_1"))
+kable(params_lcs_asser_ideal_specif_hyp6, digits = 3) 
+```
+
+::: {.callout-note appearance="minimal"}
+The moderation effect of the facet-specific change goal with the assertiveness change score (ideal-self) is not significantly different from zero, *b* = `r round(params_lcs_asser_ideal_specif_hyp6 %>% filter(term=="d_asser_1 ~ sb07_02_t1") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_asser_ideal_specif_hyp6 %>% filter(term=="d_asser_1 ~ sb07_02_t1") %>% pull(p.value), 3)`. 
+:::
+
+##### Assertiveness - frequency of self-improvement behaviors as moderator of change
+
+Results summary (*frequ* = frequency of self-improvement behavior):
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+
+# model fit
+kable(broom::glance(fit_mi_lcs_asser_ideal_frequ_hyp6) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+
+# parameters of interest
+params_lcs_asser_ideal_frequ_hyp6 <- broom::tidy(fit_mi_lcs_asser_ideal_frequ_hyp6, conf.int = TRUE, conf.level = 0.95) %>% 
+        select(term, estimate, conf.low, conf.high, std.all, statistic, p.value) %>% 
+        filter(term %in% c("asser_t2 ~ asser_t1", "d_asser_1 =~ asser_t2", "asser_t1 ~~ d_asser_1", # change parameters
+                           "d_asser_1 ~ frequ", "frequ ~~ frequ", "asser_t1 ~ frequ", # frequency of self improvement
+                           "d_asser_1 ~1 ", "asser_t1 ~1 ", "", # means
+                           "d_asser_1 ~~ d_asser_1"))
+kable(params_lcs_asser_ideal_frequ_hyp6, digits = 3) 
+```
+
+::: {.callout-note appearance="minimal"}
+The moderation effect of the frequency of self-improvement behaviors with the assertiveness change score (ideal-self) is not significantly different from zero, *b* = `r round(params_lcs_asser_ideal_frequ_hyp6 %>% filter(term=="d_asser_1 ~ frequ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_asser_ideal_frequ_hyp6 %>% filter(term=="d_asser_1 ~ frequ") %>% pull(p.value), 3)`. 
+:::
+
+##### Energy - specific, facet-level change goal as moderator of change
+
+Results summary (*sb07_xx_t1* = trait/facet specific change goal):
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+
+# model fit
+kable(broom::glance(fit_mi_lcs_energ_ideal_specif_hyp6) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+
+# parameters of interest
+params_lcs_energ_ideal_specif_hyp6 <- broom::tidy(fit_mi_lcs_energ_ideal_specif_hyp6, conf.int = TRUE, conf.level = 0.95) %>% 
+  select(term, estimate, conf.low, conf.high, std.all, statistic, p.value) %>% 
+  filter(term %in% c("energ_t2 ~ energ_t1", "d_energ_1 =~ energ_t2", "energ_t1 ~~ d_energ_1", # change parameters
+                     "d_energ_1 ~ sb07_03_t1", "sb07_03_t1 ~~ sb07_03_t1", "d_energ_1 ~ sb07_03_t1", # change goals
+                     "d_energ_1 ~1 ", "energ_t1 ~1 ", "", # means
+                     "d_energ_1 ~~ d_energ_1"))
+kable(params_lcs_energ_ideal_specif_hyp6, digits = 3) 
+```
+
+::: {.callout-note appearance="minimal"}
+The moderation effect of the facet-specific change goal with the energy change score (ideal-self) is not significantly different from zero, *b* = `r round(params_lcs_energ_ideal_specif_hyp6 %>% filter(term=="d_energ_1 ~ sb07_03_t1") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_energ_ideal_specif_hyp6 %>% filter(term=="d_energ_1 ~ sb07_03_t1") %>% pull(p.value), 3)`. 
+:::
+
+##### Energy - frequency of self-improvement behaviors as moderator of change
+
+Results summary (*frequ* = frequency of self-improvement behavior):
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+
+# model fit
+kable(broom::glance(fit_mi_lcs_energ_ideal_frequ_hyp6) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+
+# parameters of interest
+params_lcs_energ_ideal_frequ_hyp6 <- broom::tidy(fit_mi_lcs_energ_ideal_frequ_hyp6, conf.int = TRUE, conf.level = 0.95) %>% 
+        select(term, estimate, conf.low, conf.high, std.all, statistic, p.value) %>% 
+        filter(term %in% c("energ_t2 ~ energ_t1", "d_energ_1 =~ energ_t2", "energ_t1 ~~ d_energ_1", # change parameters
+                           "d_energ_1 ~ frequ", "frequ ~~ frequ", "energ_t1 ~ frequ", # frequency of self improvement
+                           "d_energ_1 ~1 ", "energ_t1 ~1 ", "", # means
+                           "d_energ_1 ~~ d_energ_1"))
+kable(params_lcs_energ_ideal_frequ_hyp6, digits = 3) 
+```
+
+::: {.callout-note appearance="minimal"}
+The moderation effect of the frequency of self-improvement behaviors with the energy change score (ideal-self) is not significantly different from zero, *b* = `r round(params_lcs_energ_ideal_frequ_hyp6 %>% filter(term=="d_energ_1 ~ frequ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_energ_ideal_frequ_hyp6 %>% filter(term=="d_energ_1 ~ frequ") %>% pull(p.value), 3)`. 
+:::
+
+##### Compassion - specific, facet-level change goal as moderator of change
+
+Results summary (*sb07_xx_t1* = trait/facet specific change goal):
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+
+# model fit
+kable(broom::glance(fit_mi_lcs_compa_ideal_specif_hyp6) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+
+# parameters of interest
+params_lcs_compa_ideal_specif_hyp6 <- broom::tidy(fit_mi_lcs_compa_ideal_specif_hyp6, conf.int = TRUE, conf.level = 0.95) %>% 
+  select(term, estimate, conf.low, conf.high, std.all, statistic, p.value) %>% 
+  filter(term %in% c("compa_t2 ~ compa_t1", "d_compa_1 =~ compa_t2", "compa_t1 ~~ d_compa_1", # change parameters
+                     "d_compa_1 ~ sb07_04_t1", "sb07_04_t1 ~~ sb07_04_t1", "d_compa_1 ~ sb07_04_t1", # change goals
+                     "d_compa_1 ~1 ", "compa_t1 ~1 ", "", # means
+                     "d_compa_1 ~~ d_compa_1"))
+kable(params_lcs_compa_ideal_specif_hyp6, digits = 3) 
+```
+
+::: {.callout-note appearance="minimal"}
+The moderation effect of the facet-specific change goal with the compassion change score (ideal-self) is not significantly different from zero, *b* = `r round(params_lcs_compa_ideal_specif_hyp6 %>% filter(term=="d_compa_1 ~ sb07_04_t1") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_compa_ideal_specif_hyp6 %>% filter(term=="d_compa_1 ~ sb07_04_t1") %>% pull(p.value), 3)`. 
+:::
+
+##### Compassion - frequency of self-improvement behaviors as moderator of change
+
+Results summary (*frequ* = frequency of self-improvement behavior):
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+
+# model fit
+kable(broom::glance(fit_mi_lcs_compa_ideal_frequ_hyp6) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+
+# parameters of interest
+params_lcs_compa_ideal_frequ_hyp6 <- broom::tidy(fit_mi_lcs_compa_ideal_frequ_hyp6, conf.int = TRUE, conf.level = 0.95) %>% 
+        select(term, estimate, conf.low, conf.high, std.all, statistic, p.value) %>% 
+        filter(term %in% c("compa_t2 ~ compa_t1", "d_compa_1 =~ compa_t2", "compa_t1 ~~ d_compa_1", # change parameters
+                           "d_compa_1 ~ frequ", "frequ ~~ frequ", "compa_t1 ~ frequ", # frequency of self improvement
+                           "d_compa_1 ~1 ", "compa_t1 ~1 ", "", # means
+                           "d_compa_1 ~~ d_compa_1"))
+kable(params_lcs_compa_ideal_frequ_hyp6, digits = 3) 
+```
+
+::: {.callout-note appearance="minimal"}
+The moderation effect of the frequency of self-improvement behaviors with the compassion change score (ideal-self) is not significantly different from zero, *b* = `r round(params_lcs_compa_ideal_frequ_hyp6 %>% filter(term=="d_compa_1 ~ frequ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_compa_ideal_frequ_hyp6 %>% filter(term=="d_compa_1 ~ frequ") %>% pull(p.value), 3)`. 
+:::
+
+##### Respectfulness - specific, facet-level change goal as moderator of change
+
+Results summary (*sb07_xx_t1* = trait/facet specific change goal):
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+
+# model fit
+kable(broom::glance(fit_mi_lcs_respe_ideal_specif_hyp6) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+
+# parameters of interest
+params_lcs_respe_ideal_specif_hyp6 <- broom::tidy(fit_mi_lcs_respe_ideal_specif_hyp6, conf.int = TRUE, conf.level = 0.95) %>% 
+  select(term, estimate, conf.low, conf.high, std.all, statistic, p.value) %>% 
+  filter(term %in% c("respe_t2 ~ respe_t1", "d_respe_1 =~ respe_t2", "respe_t1 ~~ d_respe_1", # change parameters
+                     "d_respe_1 ~ sb07_05_t1", "sb07_05_t1 ~~ sb07_05_t1", "d_respe_1 ~ sb07_05_t1", # change goals
+                     "d_respe_1 ~1 ", "respe_t1 ~1 ", "", # means
+                     "d_respe_1 ~~ d_respe_1"))
+kable(params_lcs_respe_ideal_specif_hyp6, digits = 3) 
+```
+
+::: {.callout-note appearance="minimal"}
+The moderation effect of the facet-specific change goal with the respectfulness change score (ideal-self) is not significantly different from zero, *b* = `r round(params_lcs_respe_ideal_specif_hyp6 %>% filter(term=="d_respe_1 ~ sb07_05_t1") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_respe_ideal_specif_hyp6 %>% filter(term=="d_respe_1 ~ sb07_05_t1") %>% pull(p.value), 3)`. 
+:::
+
+##### Respectfulness - frequency of self-improvement behaviors as moderator of change
+
+Results summary (*frequ* = frequency of self-improvement behavior):
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+
+# model fit
+kable(broom::glance(fit_mi_lcs_respe_ideal_frequ_hyp6) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+
+# parameters of interest
+params_lcs_respe_ideal_frequ_hyp6 <- broom::tidy(fit_mi_lcs_respe_ideal_frequ_hyp6, conf.int = TRUE, conf.level = 0.95) %>% 
+        select(term, estimate, conf.low, conf.high, std.all, statistic, p.value) %>% 
+        filter(term %in% c("respe_t2 ~ respe_t1", "d_respe_1 =~ respe_t2", "respe_t1 ~~ d_respe_1", # change parameters
+                           "d_respe_1 ~ frequ", "frequ ~~ frequ", "respe_t1 ~ frequ", # frequency of self improvement
+                           "d_respe_1 ~1 ", "respe_t1 ~1 ", "", # means
+                           "d_respe_1 ~~ d_respe_1"))
+kable(params_lcs_respe_ideal_frequ_hyp6, digits = 3) 
+```
+
+::: {.callout-note appearance="minimal"}
+The moderation effect of the frequency of self-improvement behaviors with the respectfulness change score (ideal-self) is not significantly different from zero, *b* = `r round(params_lcs_respe_ideal_frequ_hyp6 %>% filter(term=="d_respe_1 ~ frequ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_respe_ideal_frequ_hyp6 %>% filter(term=="d_respe_1 ~ frequ") %>% pull(p.value), 3)`. 
+:::
+
+##### Trust - specific, facet-level change goal as moderator of change
+
+Results summary (*sb07_xx_t1* = trait/facet specific change goal):
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+
+# model fit
+kable(broom::glance(fit_mi_lcs_trust_ideal_specif_hyp6) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+
+# parameters of interest
+params_lcs_trust_ideal_specif_hyp6 <- broom::tidy(fit_mi_lcs_trust_ideal_specif_hyp6, conf.int = TRUE, conf.level = 0.95) %>% 
+  select(term, estimate, conf.low, conf.high, std.all, statistic, p.value) %>% 
+  filter(term %in% c("trust_t2 ~ trust_t1", "d_trust_1 =~ trust_t2", "trust_t1 ~~ d_trust_1", # change parameters
+                     "d_trust_1 ~ sb07_06_t1", "sb07_06_t1 ~~ sb07_06_t1", "d_trust_1 ~ sb07_06_t1", # change goals
+                     "d_trust_1 ~1 ", "trust_t1 ~1 ", "", # means
+                     "d_trust_1 ~~ d_trust_1"))
+kable(params_lcs_trust_ideal_specif_hyp6, digits = 3) 
+```
+
+::: {.callout-note appearance="minimal"}
+The moderation effect of the facet-specific change goal with the trust change score (ideal-self) is not significantly different from zero, *b* = `r round(params_lcs_trust_ideal_specif_hyp6 %>% filter(term=="d_trust_1 ~ sb07_06_t1") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_trust_ideal_specif_hyp6 %>% filter(term=="d_trust_1 ~ sb07_06_t1") %>% pull(p.value), 3)`. 
+:::
+
+##### Trust - frequency of self-improvement behaviors as moderator of change
+
+Results summary (*frequ* = frequency of self-improvement behavior):
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+
+# model fit
+kable(broom::glance(fit_mi_lcs_trust_ideal_frequ_hyp6) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+
+# parameters of interest
+params_lcs_trust_ideal_frequ_hyp6 <- broom::tidy(fit_mi_lcs_trust_ideal_frequ_hyp6, conf.int = TRUE, conf.level = 0.95) %>% 
+        select(term, estimate, conf.low, conf.high, std.all, statistic, p.value) %>% 
+        filter(term %in% c("trust_t2 ~ trust_t1", "d_trust_1 =~ trust_t2", "trust_t1 ~~ d_trust_1", # change parameters
+                           "d_trust_1 ~ frequ", "frequ ~~ frequ", "trust_t1 ~ frequ", # frequency of self improvement
+                           "d_trust_1 ~1 ", "trust_t1 ~1 ", "", # means
+                           "d_trust_1 ~~ d_trust_1"))
+kable(params_lcs_trust_ideal_frequ_hyp6, digits = 3) 
+```
+
+::: {.callout-note appearance="minimal"}
+
+The moderation effect of the self-improvement behaviors with the trust change score (ideal-self) is not significantly different from zero, *b* = `r round(params_lcs_trust_ideal_frequ_hyp6 %>% filter(term=="d_trust_1 ~ frequ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_trust_ideal_frequ_hyp6 %>% filter(term=="d_trust_1 ~ frequ") %>% pull(p.value), 3)`. 
+:::
+
+##### Organization - specific, facet-level change goal as moderator of change
+
+Results summary (*sb07_xx_t1* = trait/facet specific change goal):
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+
+# model fit
+kable(broom::glance(fit_mi_lcs_organ_ideal_specif_hyp6) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+
+# parameters of interest
+params_lcs_organ_ideal_specif_hyp6 <- broom::tidy(fit_mi_lcs_organ_ideal_specif_hyp6, conf.int = TRUE, conf.level = 0.95) %>% 
+  select(term, estimate, conf.low, conf.high, std.all, statistic, p.value) %>% 
+  filter(term %in% c("organ_t2 ~ organ_t1", "d_organ_1 =~ organ_t2", "organ_t1 ~~ d_organ_1", # change parameters
+                     "d_organ_1 ~ sb07_07_t1", "sb07_07_t1 ~~ sb07_07_t1", "d_organ_1 ~ sb07_07_t1", # change goals
+                     "d_organ_1 ~1 ", "organ_t1 ~1 ", "", # means
+                     "d_organ_1 ~~ d_organ_1"))
+kable(params_lcs_organ_ideal_specif_hyp6, digits = 3) 
+```
+
+::: {.callout-note appearance="minimal"}
+The moderation effect of the facet-specific change goal with the organization change score (ideal-self) is not significantly different from zero, *b* = `r round(params_lcs_organ_ideal_specif_hyp6 %>% filter(term=="d_organ_1 ~ sb07_07_t1") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_organ_ideal_specif_hyp6 %>% filter(term=="d_organ_1 ~ sb07_07_t1") %>% pull(p.value), 3)`. 
+:::
+
+##### Organization - frequency of self-improvement behaviors as moderator of change
+
+Results summary (*frequ* = frequency of self-improvement behavior):
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+
+# model fit
+kable(broom::glance(fit_mi_lcs_organ_ideal_frequ_hyp6) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+
+# parameters of interest
+params_lcs_organ_ideal_frequ_hyp6 <- broom::tidy(fit_mi_lcs_organ_ideal_frequ_hyp6, conf.int = TRUE, conf.level = 0.95) %>% 
+        select(term, estimate, conf.low, conf.high, std.all, statistic, p.value) %>% 
+        filter(term %in% c("organ_t2 ~ organ_t1", "d_organ_1 =~ organ_t2", "organ_t1 ~~ d_organ_1", # change parameters
+                           "d_organ_1 ~ frequ", "frequ ~~ frequ", "organ_t1 ~ frequ", # frequency of self improvement
+                           "d_organ_1 ~1 ", "organ_t1 ~1 ", "", # means
+                           "d_organ_1 ~~ d_organ_1"))
+kable(params_lcs_organ_ideal_frequ_hyp6, digits = 3) 
+```
+
+::: {.callout-note appearance="minimal"}
+The moderation effect of the frequency of self-improvement behaviors with the organization change score (ideal-self) is not significantly different from zero (at *p* < .001), *b* = `r round(params_lcs_organ_ideal_frequ_hyp6 %>% filter(term=="d_organ_1 ~ frequ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_organ_ideal_frequ_hyp6 %>% filter(term=="d_organ_1 ~ frequ") %>% pull(p.value), 3)`. 
+:::
+
+##### Productiveness - specific, facet-level change goal as moderator of change
+
+Results summary (*sb07_xx_t1* = trait/facet specific change goal):
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+
+# model fit
+kable(broom::glance(fit_mi_lcs_produ_ideal_specif_hyp6) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+
+# parameters of interest
+params_lcs_produ_ideal_specif_hyp6 <- broom::tidy(fit_mi_lcs_produ_ideal_specif_hyp6, conf.int = TRUE, conf.level = 0.95) %>% 
+  select(term, estimate, conf.low, conf.high, std.all, statistic, p.value) %>% 
+  filter(term %in% c("produ_t2 ~ produ_t1", "d_produ_1 =~ produ_t2", "produ_t1 ~~ d_produ_1", # change parameters
+                     "d_produ_1 ~ sb07_08_t1", "sb07_08_t1 ~~ sb07_08_t1", "d_produ_1 ~ sb07_08_t1", # change goals
+                     "d_produ_1 ~1 ", "produ_t1 ~1 ", "", # means
+                     "d_produ_1 ~~ d_produ_1"))
+kable(params_lcs_produ_ideal_specif_hyp6, digits = 3) 
+```
+
+::: {.callout-note appearance="minimal"}
+The moderation effect of the facet-specific change goal with the productiveness change score (ideal-self) is not significantly different from zero, *b* = `r round(params_lcs_produ_ideal_specif_hyp6 %>% filter(term=="d_produ_1 ~ sb07_08_t1") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_produ_ideal_specif_hyp6 %>% filter(term=="d_produ_1 ~ sb07_08_t1") %>% pull(p.value), 3)`. 
+:::
+
+##### Productiveness - frequency of self-improvement behaviors as moderator of change
+
+Results summary (*frequ* = frequency of self-improvement behavior):
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+
+# model fit
+kable(broom::glance(fit_mi_lcs_produ_ideal_frequ_hyp6) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+
+# parameters of interest
+params_lcs_produ_ideal_frequ_hyp6 <- broom::tidy(fit_mi_lcs_produ_ideal_frequ_hyp6, conf.int = TRUE, conf.level = 0.95) %>% 
+        select(term, estimate, conf.low, conf.high, std.all, statistic, p.value) %>% 
+        filter(term %in% c("produ_t2 ~ produ_t1", "d_produ_1 =~ produ_t2", "produ_t1 ~~ d_produ_1", # change parameters
+                           "d_produ_1 ~ frequ", "frequ ~~ frequ", "produ_t1 ~ frequ", # frequency of self improvement
+                           "d_produ_1 ~1 ", "produ_t1 ~1 ", "", # means
+                           "d_produ_1 ~~ d_produ_1"))
+kable(params_lcs_produ_ideal_frequ_hyp6, digits = 3) 
+```
+
+::: {.callout-note appearance="minimal"}
+The moderation effect of the frequency of self-improvement behaviors with the productiveness change score (ideal-self) is not significantly different from zero, *b* = `r round(params_lcs_produ_ideal_frequ_hyp6 %>% filter(term=="d_produ_1 ~ frequ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_produ_ideal_frequ_hyp6 %>% filter(term=="d_produ_1 ~ frequ") %>% pull(p.value), 3)`. 
+:::
+
+##### Responsibility - specific, facet-level change goal as moderator of change
+
+Results summary (*sb07_xx_t1* = trait/facet specific change goal):
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+
+# model fit
+kable(broom::glance(fit_mi_lcs_respo_ideal_specif_hyp6) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+
+# parameters of interest
+params_lcs_respo_ideal_specif_hyp6 <- broom::tidy(fit_mi_lcs_respo_ideal_specif_hyp6, conf.int = TRUE, conf.level = 0.95) %>% 
+  select(term, estimate, conf.low, conf.high, std.all, statistic, p.value) %>% 
+  filter(term %in% c("respo_t2 ~ respo_t1", "d_respo_1 =~ respo_t2", "respo_t1 ~~ d_respo_1", # change parameters
+                     "d_respo_1 ~ sb07_09_t1", "sb07_09_t1 ~~ sb07_09_t1", "d_respo_1 ~ sb07_09_t1", # change goals
+                     "d_respo_1 ~1 ", "respo_t1 ~1 ", "", # means
+                     "d_respo_1 ~~ d_respo_1"))
+kable(params_lcs_respo_ideal_specif_hyp6, digits = 3) 
+```
+
+::: {.callout-note appearance="minimal"}
+The moderation effect of the facet-specific change goal with the responsibility change score (ideal-self) is not significantly different from zero, *b* = `r round(params_lcs_respo_ideal_specif_hyp6 %>% filter(term=="d_respo_1 ~ sb07_09_t1") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_respo_ideal_specif_hyp6 %>% filter(term=="d_respo_1 ~ sb07_09_t1") %>% pull(p.value), 3)`. 
+:::
+
+##### Responsibility - frequency of self-improvement behaviors as moderator of change
+
+Results summary (*frequ* = frequency of self-improvement behavior):
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+
+# model fit
+kable(broom::glance(fit_mi_lcs_respo_ideal_frequ_hyp6) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+
+# parameters of interest
+params_lcs_respo_ideal_frequ_hyp6 <- broom::tidy(fit_mi_lcs_respo_ideal_frequ_hyp6, conf.int = TRUE, conf.level = 0.95) %>% 
+        select(term, estimate, conf.low, conf.high, std.all, statistic, p.value) %>% 
+        filter(term %in% c("respo_t2 ~ respo_t1", "d_respo_1 =~ respo_t2", "respo_t1 ~~ d_respo_1", # change parameters
+                           "d_respo_1 ~ frequ", "frequ ~~ frequ", "respo_t1 ~ frequ", # frequency of self improvement
+                           "d_respo_1 ~1 ", "respo_t1 ~1 ", "", # means
+                           "d_respo_1 ~~ d_respo_1"))
+kable(params_lcs_respo_ideal_frequ_hyp6, digits = 3) 
+```
+
+::: {.callout-note appearance="minimal"}
+The moderation effect of the frequency of self-improvement behaviors with the responsibility change score (ideal-self) is not significantly different from zero, *b* = `r round(params_lcs_respo_ideal_frequ_hyp6 %>% filter(term=="d_respo_1 ~ frequ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_respo_ideal_frequ_hyp6 %>% filter(term=="d_respo_1 ~ frequ") %>% pull(p.value), 3)`. 
+:::
+
+##### Anxiety - specific, facet-level change goal as moderator of change
+
+Results summary (*sb07_xx_t1* = trait/facet specific change goal):
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+
+# model fit
+kable(broom::glance(fit_mi_lcs_anxie_ideal_specif_hyp6) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+
+# parameters of interest
+params_lcs_anxie_ideal_specif_hyp6 <- broom::tidy(fit_mi_lcs_anxie_ideal_specif_hyp6, conf.int = TRUE, conf.level = 0.95) %>% 
+  select(term, estimate, conf.low, conf.high, std.all, statistic, p.value) %>% 
+  filter(term %in% c("anxie_t2 ~ anxie_t1", "d_anxie_1 =~ anxie_t2", "anxie_t1 ~~ d_anxie_1", # change parameters
+                     "d_anxie_1 ~ sb07_10_t1", "sb07_10_t1 ~~ sb07_10_t1", "d_anxie_1 ~ sb07_10_t1", # change goals
+                     "d_anxie_1 ~1 ", "anxie_t1 ~1 ", "", # means
+                     "d_anxie_1 ~~ d_anxie_1"))
+kable(params_lcs_anxie_ideal_specif_hyp6, digits = 3) 
+```
+
+::: {.callout-note appearance="minimal"}
+The moderation effect of the facet-specific change goal with the anxiety change score (ideal-self) is not significantly different from zero, *b* = `r round(params_lcs_anxie_ideal_specif_hyp6 %>% filter(term=="d_anxie_1 ~ sb07_10_t1") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_anxie_ideal_specif_hyp6 %>% filter(term=="d_anxie_1 ~ sb07_10_t1") %>% pull(p.value), 3)`. 
+:::
+
+##### Anxiety - frequency of self-improvement behaviors as moderator of change
+
+Results summary (*frequ* = frequency of self-improvement behavior):
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+
+# model fit
+kable(broom::glance(fit_mi_lcs_anxie_ideal_frequ_hyp6) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+
+# parameters of interest
+params_lcs_anxie_ideal_frequ_hyp6 <- broom::tidy(fit_mi_lcs_anxie_ideal_frequ_hyp6, conf.int = TRUE, conf.level = 0.95) %>% 
+        select(term, estimate, conf.low, conf.high, std.all, statistic, p.value) %>% 
+        filter(term %in% c("anxie_t2 ~ anxie_t1", "d_anxie_1 =~ anxie_t2", "anxie_t1 ~~ d_anxie_1", # change parameters
+                           "d_anxie_1 ~ frequ", "frequ ~~ frequ", "anxie_t1 ~ frequ", # frequency of self improvement
+                           "d_anxie_1 ~1 ", "anxie_t1 ~1 ", "", # means
+                           "d_anxie_1 ~~ d_anxie_1"))
+kable(params_lcs_anxie_ideal_frequ_hyp6, digits = 3) 
+```
+
+::: {.callout-note appearance="minimal"}
+The moderation effect of the frequency of self-improvement behaviors with the anxiety change score (ideal-self) is not significantly different from zero, *b* = `r round(params_lcs_anxie_ideal_frequ_hyp6 %>% filter(term=="d_anxie_1 ~ frequ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_anxie_ideal_frequ_hyp6 %>% filter(term=="d_anxie_1 ~ frequ") %>% pull(p.value), 3)`. 
+:::
+
+##### Depression - specific, facet-level change goal as moderator of change
+
+Results summary (*sb07_xx_t1* = trait/facet specific change goal):
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+
+# model fit
+kable(broom::glance(fit_mi_lcs_depre_ideal_specif_hyp6) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+
+# parameters of interest
+params_lcs_depre_ideal_specif_hyp6 <- broom::tidy(fit_mi_lcs_depre_ideal_specif_hyp6, conf.int = TRUE, conf.level = 0.95) %>% 
+  select(term, estimate, conf.low, conf.high, std.all, statistic, p.value) %>% 
+  filter(term %in% c("depre_t2 ~ depre_t1", "d_depre_1 =~ depre_t2", "depre_t1 ~~ d_depre_1", # change parameters
+                     "d_depre_1 ~ sb07_11_t1", "sb07_11_t1 ~~ sb07_11_t1", "d_depre_1 ~ sb07_11_t1", # change goals
+                     "d_depre_1 ~1 ", "depre_t1 ~1 ", "", # means
+                     "d_depre_1 ~~ d_depre_1"))
+kable(params_lcs_depre_ideal_specif_hyp6, digits = 3) 
+```
+
+::: {.callout-note appearance="minimal"}
+The moderation effect of the facet-specific change goal with the depression change score (ideal-self) is not significantly different from zero, *b* = `r round(params_lcs_depre_ideal_specif_hyp6 %>% filter(term=="d_depre_1 ~ sb07_11_t1") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_depre_ideal_specif_hyp6 %>% filter(term=="d_depre_1 ~ sb07_11_t1") %>% pull(p.value), 3)`. 
+:::
+
+##### Depression - frequency of self-improvement behaviors as moderator of change
+
+Results summary (*frequ* = frequency of self-improvement behavior):
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+
+# model fit
+kable(broom::glance(fit_mi_lcs_depre_ideal_frequ_hyp6) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+
+# parameters of interest
+params_lcs_depre_ideal_frequ_hyp6 <- broom::tidy(fit_mi_lcs_depre_ideal_frequ_hyp6, conf.int = TRUE, conf.level = 0.95) %>% 
+        select(term, estimate, conf.low, conf.high, std.all, statistic, p.value) %>% 
+        filter(term %in% c("depre_t2 ~ depre_t1", "d_depre_1 =~ depre_t2", "depre_t1 ~~ d_depre_1", # change parameters
+                           "d_depre_1 ~ frequ", "frequ ~~ frequ", "depre_t1 ~ frequ", # frequency of self improvement
+                           "d_depre_1 ~1 ", "depre_t1 ~1 ", "", # means
+                           "d_depre_1 ~~ d_depre_1"))
+kable(params_lcs_depre_ideal_frequ_hyp6, digits = 3) 
+```
+
+::: {.callout-note appearance="minimal"}
+The moderation effect of the frequency of self-improvement behaviors with the depression change score (ideal-self) is not significantly different from zero, *b* = `r round(params_lcs_depre_ideal_frequ_hyp6 %>% filter(term=="d_depre_1 ~ frequ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_depre_ideal_frequ_hyp6 %>% filter(term=="d_depre_1 ~ frequ") %>% pull(p.value), 3)`. 
+:::
+
+##### Volatility - specific, facet-level change goal as moderator of change
+
+Results summary (*sb07_xx_t1* = trait/facet specific change goal):
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+
+# model fit
+kable(broom::glance(fit_mi_lcs_volat_ideal_specif_hyp6) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+
+# parameters of interest
+params_lcs_volat_ideal_specif_hyp6 <- broom::tidy(fit_mi_lcs_volat_ideal_specif_hyp6, conf.int = TRUE, conf.level = 0.95) %>% 
+  select(term, estimate, conf.low, conf.high, std.all, statistic, p.value) %>% 
+  filter(term %in% c("volat_t2 ~ volat_t1", "d_volat_1 =~ volat_t2", "volat_t1 ~~ d_volat_1", # change parameters
+                     "d_volat_1 ~ sb07_12_t1", "sb07_12_t1 ~~ sb07_12_t1", "d_volat_1 ~ sb07_12_t1", # change goals
+                     "d_volat_1 ~1 ", "volat_t1 ~1 ", "", # means
+                     "d_volat_1 ~~ d_volat_1"))
+kable(params_lcs_volat_ideal_specif_hyp6, digits = 3) 
+```
+
+::: {.callout-note appearance="minimal"}
+The moderation effect of the facet-specific change goal with the volatility change score (ideal-self) is not significantly different from zero, *b* = `r round(params_lcs_volat_ideal_specif_hyp6 %>% filter(term=="d_volat_1 ~ sb07_12_t1") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_volat_ideal_specif_hyp6 %>% filter(term=="d_volat_1 ~ sb07_12_t1") %>% pull(p.value), 3)`. 
+:::
+
+##### Volatility - frequency of self-improvement behaviors as moderator of change
+
+Results summary (*frequ* = frequency of self-improvement behavior):
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+
+# model fit
+kable(broom::glance(fit_mi_lcs_volat_ideal_frequ_hyp6) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+
+# parameters of interest
+params_lcs_volat_ideal_frequ_hyp6 <- broom::tidy(fit_mi_lcs_volat_ideal_frequ_hyp6, conf.int = TRUE, conf.level = 0.95) %>% 
+        select(term, estimate, conf.low, conf.high, std.all, statistic, p.value) %>% 
+        filter(term %in% c("volat_t2 ~ volat_t1", "d_volat_1 =~ volat_t2", "volat_t1 ~~ d_volat_1", # change parameters
+                           "d_volat_1 ~ frequ", "frequ ~~ frequ", "volat_t1 ~ frequ", # frequency of self improvement
+                           "d_volat_1 ~1 ", "volat_t1 ~1 ", "", # means
+                           "d_volat_1 ~~ d_volat_1"))
+kable(params_lcs_volat_ideal_frequ_hyp6, digits = 3) 
+```
+
+::: {.callout-note appearance="minimal"}
+The moderation effect of the frequency of self-improvement behaviors with the volatility change score (ideal-self) is not significantly different from zero, *b* = `r round(params_lcs_volat_ideal_frequ_hyp6 %>% filter(term=="d_volat_1 ~ frequ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_volat_ideal_frequ_hyp6 %>% filter(term=="d_volat_1 ~ frequ") %>% pull(p.value), 3)`. 
+:::
+
+##### Curiosity - specific, facet-level change goal as moderator of change
+
+Results summary (*sb07_xx_t1* = trait/facet specific change goal):
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+
+# model fit
+kable(broom::glance(fit_mi_lcs_curio_ideal_specif_hyp6) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+
+# parameters of interest
+params_lcs_curio_ideal_specif_hyp6 <- broom::tidy(fit_mi_lcs_curio_ideal_specif_hyp6, conf.int = TRUE, conf.level = 0.95) %>% 
+  select(term, estimate, conf.low, conf.high, std.all, statistic, p.value) %>% 
+  filter(term %in% c("curio_t2 ~ curio_t1", "d_curio_1 =~ curio_t2", "curio_t1 ~~ d_curio_1", # change parameters
+                     "d_curio_1 ~ sb07_13_t1", "sb07_13_t1 ~~ sb07_13_t1", "d_curio_1 ~ sb07_13_t1", # change goals
+                     "d_curio_1 ~1 ", "curio_t1 ~1 ", "", # means
+                     "d_curio_1 ~~ d_curio_1"))
+kable(params_lcs_curio_ideal_specif_hyp6, digits = 3) 
+```
+
+::: {.callout-note appearance="minimal"}
+The moderation effect of the facet-specific change goal with the curiosity change score (ideal-self) is not significantly different from zero, *b* = `r round(params_lcs_curio_ideal_specif_hyp6 %>% filter(term=="d_curio_1 ~ sb07_13_t1") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_curio_ideal_specif_hyp6 %>% filter(term=="d_curio_1 ~ sb07_13_t1") %>% pull(p.value), 3)`. 
+:::
+
+##### Curiosity - frequency of self-improvement behaviors as moderator of change
+
+Results summary (*frequ* = frequency of self-improvement behavior):
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+
+# model fit
+kable(broom::glance(fit_mi_lcs_curio_ideal_frequ_hyp6) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+
+# parameters of interest
+params_lcs_curio_ideal_frequ_hyp6 <- broom::tidy(fit_mi_lcs_curio_ideal_frequ_hyp6, conf.int = TRUE, conf.level = 0.95) %>% 
+        select(term, estimate, conf.low, conf.high, std.all, statistic, p.value) %>% 
+        filter(term %in% c("curio_t2 ~ curio_t1", "d_curio_1 =~ curio_t2", "curio_t1 ~~ d_curio_1", # change parameters
+                           "d_curio_1 ~ frequ", "frequ ~~ frequ", "curio_t1 ~ frequ", # frequency of self improvement
+                           "d_curio_1 ~1 ", "curio_t1 ~1 ", "", # means
+                           "d_curio_1 ~~ d_curio_1"))
+kable(params_lcs_curio_ideal_frequ_hyp6, digits = 3) 
+```
+
+::: {.callout-note appearance="minimal"}
+The moderation effect of the frequency of self-improvement behaviors with the curiosity change score (ideal-self) is not significantly different from zero, *b* = `r round(params_lcs_curio_ideal_frequ_hyp6 %>% filter(term=="d_curio_1 ~ frequ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_curio_ideal_frequ_hyp6 %>% filter(term=="d_curio_1 ~ frequ") %>% pull(p.value), 3)`. 
+:::
+
+##### Aesthetic - specific, facet-level change goal as moderator of change
+
+Results summary (*sb07_xx_t1* = trait/facet specific change goal):  
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+
+# model fit
+kable(broom::glance(fit_mi_lcs_aesth_ideal_specif_hyp6) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+
+# parameters of interest
+params_lcs_aesth_ideal_specif_hyp6 <- broom::tidy(fit_mi_lcs_aesth_ideal_specif_hyp6, conf.int = TRUE, conf.level = 0.95) %>% 
+  select(term, estimate, conf.low, conf.high, std.all, statistic, p.value) %>% 
+  filter(term %in% c("aesth_t2 ~ aesth_t1", "d_aesth_1 =~ aesth_t2", "aesth_t1 ~~ d_aesth_1", # change parameters
+                     "d_aesth_1 ~ sb07_14_t1", "sb07_14_t1 ~~ sb07_14_t1", "d_aesth_1 ~ sb07_14_t1", # change goals
+                     "d_aesth_1 ~1 ", "aesth_t1 ~1 ", "", # means
+                     "d_aesth_1 ~~ d_aesth_1"))
+kable(params_lcs_aesth_ideal_specif_hyp6, digits = 3) 
+```
+
+::: {.callout-note appearance="minimal"}
+The moderation effect of the facet-specific change goal with the aesthetic change score (ideal-self) is not significantly different from zero, *b* = `r round(params_lcs_aesth_ideal_specif_hyp6 %>% filter(term=="d_aesth_1 ~ sb07_14_t1") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_aesth_ideal_specif_hyp6 %>% filter(term=="d_aesth_1 ~ sb07_14_t1") %>% pull(p.value), 3)`. 
+:::
+
+##### Aesthetic - frequency of self-improvement behaviors as moderator of change
+
+Results summary (*frequ* = frequency of self-improvement behavior):  
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+
+# model fit
+kable(broom::glance(fit_mi_lcs_aesth_ideal_frequ_hyp6) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+
+# parameters of interest
+params_lcs_aesth_ideal_frequ_hyp6 <- broom::tidy(fit_mi_lcs_aesth_ideal_frequ_hyp6, conf.int = TRUE, conf.level = 0.95) %>% 
+        select(term, estimate, conf.low, conf.high, std.all, statistic, p.value) %>% 
+        filter(term %in% c("aesth_t2 ~ aesth_t1", "d_aesth_1 =~ aesth_t2", "aesth_t1 ~~ d_aesth_1", # change parameters
+                           "d_aesth_1 ~ frequ", "frequ ~~ frequ", "aesth_t1 ~ frequ", # frequency of self improvement
+                           "d_aesth_1 ~1 ", "aesth_t1 ~1 ", "", # means
+                           "d_aesth_1 ~~ d_aesth_1"))
+kable(params_lcs_aesth_ideal_frequ_hyp6, digits = 3) 
+```
+
+::: {.callout-note appearance="minimal"}
+The moderation effect of the frequency of self-improvement behaviors with the aesthetic change score (ideal-self) is not significantly different from zero, *b* = `r round(params_lcs_aesth_ideal_frequ_hyp6 %>% filter(term=="d_aesth_1 ~ frequ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_aesth_ideal_frequ_hyp6 %>% filter(term=="d_aesth_1 ~ frequ") %>% pull(p.value), 3)`. 
+:::
+
+##### Imagination - specific, facet-level change goal as moderator of change
+
+Results summary (*sb07_xx_t1* = trait/facet specific change goal):
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+
+# model fit
+kable(broom::glance(fit_mi_lcs_imagi_ideal_specif_hyp6) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+
+# parameters of interest
+params_lcs_imagi_ideal_specif_hyp6 <- broom::tidy(fit_mi_lcs_imagi_ideal_specif_hyp6, conf.int = TRUE, conf.level = 0.95) %>% 
+  select(term, estimate, conf.low, conf.high, std.all, statistic, p.value) %>% 
+  filter(term %in% c("imagi_t2 ~ imagi_t1", "d_imagi_1 =~ imagi_t2", "imagi_t1 ~~ d_imagi_1", # change parameters
+                     "d_imagi_1 ~ sb07_15_t1", "sb07_15_t1 ~~ sb07_15_t1", "d_imagi_1 ~ sb07_15_t1", # change goals
+                     "d_imagi_1 ~1 ", "imagi_t1 ~1 ", "", # means
+                     "d_imagi_1 ~~ d_imagi_1"))
+kable(params_lcs_imagi_ideal_specif_hyp6, digits = 3) 
+```
+
+::: {.callout-note appearance="minimal"}
+The moderation effect of the facet-specific change goal with the imagination change score (ideal-self) is not significantly different from zero, *b* = `r round(params_lcs_imagi_ideal_specif_hyp6 %>% filter(term=="d_imagi_1 ~ sb07_15_t1") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_imagi_ideal_specif_hyp6 %>% filter(term=="d_imagi_1 ~ sb07_15_t1") %>% pull(p.value), 3)`. 
+:::
+
+##### Imagination - frequency of self-improvement behaviors as moderator of change
+
+Results summary (*frequ* = frequency of self-improvement behavior):
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+
+# model fit
+kable(broom::glance(fit_mi_lcs_imagi_ideal_frequ_hyp6) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+
+# parameters of interest
+params_lcs_imagi_ideal_frequ_hyp6 <- broom::tidy(fit_mi_lcs_imagi_ideal_frequ_hyp6, conf.int = TRUE, conf.level = 0.95) %>% 
+        select(term, estimate, conf.low, conf.high, std.all, statistic, p.value) %>% 
+        filter(term %in% c("imagi_t2 ~ imagi_t1", "d_imagi_1 =~ imagi_t2", "imagi_t1 ~~ d_imagi_1", # change parameters
+                           "d_imagi_1 ~ frequ", "frequ ~~ frequ", "imagi_t1 ~ frequ", # frequency of self improvement
+                           "d_imagi_1 ~1 ", "imagi_t1 ~1 ", "", # means
+                           "d_imagi_1 ~~ d_imagi_1"))
+kable(params_lcs_imagi_ideal_frequ_hyp6, digits = 3) 
+```
+
+::: {.callout-note appearance="minimal"}
+The moderation effect of the frequency of self-improvement behaviors with the imagination change score (ideal-self) is not significantly different from zero, *b* = `r round(params_lcs_imagi_ideal_frequ_hyp6 %>% filter(term=="d_imagi_1 ~ frequ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_imagi_ideal_frequ_hyp6 %>% filter(term=="d_imagi_1 ~ frequ") %>% pull(p.value), 3)`. 
+:::
+
 #### Hyp 6: Effects summary
+
+##### Summary: Current self
 
 Gather all relevant effects:
 ```{r}
@@ -14208,8 +15342,8 @@ kable(df_table_hyp6[1:10, ], digits = 3)
 ::: {.callout-note appearance="minimal"}
 Four moderator effects significantly differ from zero:  
 
-- changes in current-level agreeableness are moderated by the frequency of self-improvement behaviors  
-- changes in current-level conscientiousness are moderated by the frequency of self-improvement behaviors
+- changes in current-level extraversion are moderated by the trait-specific change goals
+- changes in current-level conscientiousness are moderated by the trait-specific change goals
 - changes in current-level openness are moderated by the trait-specific change goals    
 - changes in current-level openness are moderated by the frequency of self-improvement behaviors    
 :::
@@ -14223,11 +15357,10 @@ kable(df_table_hyp6[11:40, ], digits = 3)
 ```
 
 ::: {.callout-note appearance="minimal"}
-Looking at the facets, we find three moderator effects that significantly differ from zero:  
+Looking at the facets, we find three moderator effects that significantly differ from zero (at *p* < .05):  
 
-- Within agreeableness, we find the effect for the frequency of self-improvement behaviors from above only represented in the facet compassion.  
-- The effect for conscientiousness is represented in one of the three facets, productiveness.  
-- The effect seen above for openness is mirrored in the aesthetic score with both the change goal and the frequency of self-improvement behaviors.  
+- Within extraversion, we find a significant moderation effect of the change goal for the facet sociability.    
+- Within agreeableness, we find a significant moderation effect of the change goal in the facets respectfulness, organization, and productiveness (although partly in an unexpected direction).   
 :::
 
 Prepare data frame for plotting:
@@ -14324,6 +15457,240 @@ ggplot(df_table_hyp6_plot, aes(x = fct_rev(trait), y = estimate, color = include
   guides(color="none")
 ```
 
+##### Summary: Ideal self
+
+Run models for all facets with a template & loop:
+```{r}
+#| echo: true
+#| warning: false
+#| code-fold: true
+#| code-summary: "Show the code"
+#| output: false
+#| cache: true
+
+# create df for table:
+
+# main effects (change score)
+df_table_hyp6_ideal_main <- bind_rows(
+  #traits
+  params_lcs_extra_ideal_specif_hyp6 %>% filter(term=="d_extra_1 ~1 "),
+  params_lcs_extra_ideal_frequ_hyp6 %>% filter(term=="d_extra_1 ~1 "),
+  params_lcs_agree_ideal_specif_hyp6 %>% filter(term=="d_agree_1 ~1 "),
+  params_lcs_agree_ideal_frequ_hyp6 %>% filter(term=="d_agree_1 ~1 "),
+  params_lcs_consc_ideal_specif_hyp6 %>% filter(term=="d_consc_1 ~1 "),
+  params_lcs_consc_ideal_frequ_hyp6 %>% filter(term=="d_consc_1 ~1 "),
+  params_lcs_neuro_ideal_specif_hyp6 %>% filter(term=="d_neuro_1 ~1 "),
+  params_lcs_neuro_ideal_frequ_hyp6 %>% filter(term=="d_neuro_1 ~1 "),
+  params_lcs_openn_ideal_specif_hyp6 %>% filter(term=="d_openn_1 ~1 "),
+  params_lcs_openn_ideal_frequ_hyp6 %>% filter(term=="d_openn_1 ~1 "),
+  #facets
+  params_lcs_socia_ideal_specif_hyp6 %>% filter(term=="d_socia_1 ~1 "),
+  params_lcs_socia_ideal_frequ_hyp6 %>% filter(term=="d_socia_1 ~1 "),
+  params_lcs_asser_ideal_specif_hyp6 %>% filter(term=="d_asser_1 ~1 "),
+  params_lcs_asser_ideal_frequ_hyp6 %>% filter(term=="d_asser_1 ~1 "),
+  params_lcs_energ_ideal_specif_hyp6 %>% filter(term=="d_energ_1 ~1 "),
+  params_lcs_energ_ideal_frequ_hyp6 %>% filter(term=="d_energ_1 ~1 "),
+  params_lcs_compa_ideal_specif_hyp6 %>% filter(term=="d_compa_1 ~1 "),
+  params_lcs_compa_ideal_frequ_hyp6 %>% filter(term=="d_compa_1 ~1 "),
+  params_lcs_respe_ideal_specif_hyp6 %>% filter(term=="d_respe_1 ~1 "),
+  params_lcs_respe_ideal_frequ_hyp6 %>% filter(term=="d_respe_1 ~1 "),
+  params_lcs_trust_ideal_specif_hyp6 %>% filter(term=="d_trust_1 ~1 "),
+  params_lcs_trust_ideal_frequ_hyp6 %>% filter(term=="d_trust_1 ~1 "),
+  params_lcs_organ_ideal_specif_hyp6 %>% filter(term=="d_organ_1 ~1 "),
+  params_lcs_organ_ideal_frequ_hyp6 %>% filter(term=="d_organ_1 ~1 "),
+  params_lcs_produ_ideal_specif_hyp6 %>% filter(term=="d_produ_1 ~1 "),
+  params_lcs_produ_ideal_frequ_hyp6 %>% filter(term=="d_produ_1 ~1 "),
+  params_lcs_respo_ideal_specif_hyp6 %>% filter(term=="d_respo_1 ~1 "),
+  params_lcs_respo_ideal_frequ_hyp6 %>% filter(term=="d_respo_1 ~1 "),
+  params_lcs_anxie_ideal_specif_hyp6 %>% filter(term=="d_anxie_1 ~1 "),
+  params_lcs_anxie_ideal_frequ_hyp6 %>% filter(term=="d_anxie_1 ~1 "),
+  params_lcs_depre_ideal_specif_hyp6 %>% filter(term=="d_depre_1 ~1 "),
+  params_lcs_depre_ideal_frequ_hyp6 %>% filter(term=="d_depre_1 ~1 "),
+  params_lcs_volat_ideal_specif_hyp6 %>% filter(term=="d_volat_1 ~1 "),
+  params_lcs_volat_ideal_frequ_hyp6 %>% filter(term=="d_volat_1 ~1 "),
+  params_lcs_curio_ideal_specif_hyp6 %>% filter(term=="d_curio_1 ~1 "),
+  params_lcs_curio_ideal_frequ_hyp6 %>% filter(term=="d_curio_1 ~1 "),
+  params_lcs_aesth_ideal_specif_hyp6 %>% filter(term=="d_aesth_1 ~1 "),
+  params_lcs_aesth_ideal_frequ_hyp6 %>% filter(term=="d_aesth_1 ~1 "),
+  params_lcs_imagi_ideal_specif_hyp6 %>% filter(term=="d_imagi_1 ~1 "),
+  params_lcs_imagi_ideal_frequ_hyp6 %>% filter(term=="d_imagi_1 ~1 ")
+  ) %>% 
+  mutate(trait = rep(names(b5_vars), each=2),
+         moderator = rep(c("goals", "frequency"), 20)) %>% 
+  select(trait, moderator, est_main = estimate, std_main = std.all, p_main = p.value)
+
+# moderation effects
+df_table_hyp6_ideal_mod <- bind_rows(
+  #traits
+  params_lcs_extra_ideal_specif_hyp6 %>% filter(term=="d_extra_1 ~ goals"),
+  params_lcs_extra_ideal_frequ_hyp6 %>% filter(term=="d_extra_1 ~ frequ"),
+  params_lcs_agree_ideal_specif_hyp6 %>% filter(term=="d_agree_1 ~ goals"),
+  params_lcs_agree_ideal_frequ_hyp6 %>% filter(term=="d_agree_1 ~ frequ"),
+  params_lcs_consc_ideal_specif_hyp6 %>% filter(term=="d_consc_1 ~ goals"),
+  params_lcs_consc_ideal_frequ_hyp6 %>% filter(term=="d_consc_1 ~ frequ"),
+  params_lcs_neuro_ideal_specif_hyp6 %>% filter(term=="d_neuro_1 ~ goals"),
+  params_lcs_neuro_ideal_frequ_hyp6 %>% filter(term=="d_neuro_1 ~ frequ"),
+  params_lcs_openn_ideal_specif_hyp6 %>% filter(term=="d_openn_1 ~ goals"),
+  params_lcs_openn_ideal_frequ_hyp6 %>% filter(term=="d_openn_1 ~ frequ"),
+  #facets
+  params_lcs_socia_ideal_specif_hyp6 %>% filter(term=="d_socia_1 ~ sb07_01_t1"),
+  params_lcs_socia_ideal_frequ_hyp6 %>% filter(term=="d_socia_1 ~ frequ"),
+  params_lcs_asser_ideal_specif_hyp6 %>% filter(term=="d_asser_1 ~ sb07_02_t1"),
+  params_lcs_asser_ideal_frequ_hyp6 %>% filter(term=="d_asser_1 ~ frequ"),
+  params_lcs_energ_ideal_specif_hyp6 %>% filter(term=="d_energ_1 ~ sb07_03_t1"),
+  params_lcs_energ_ideal_frequ_hyp6 %>% filter(term=="d_energ_1 ~ frequ"),
+  params_lcs_compa_ideal_specif_hyp6 %>% filter(term=="d_compa_1 ~ sb07_04_t1"),
+  params_lcs_compa_ideal_frequ_hyp6 %>% filter(term=="d_compa_1 ~ frequ"),
+  params_lcs_respe_ideal_specif_hyp6 %>% filter(term=="d_respe_1 ~ sb07_05_t1"),
+  params_lcs_respe_ideal_frequ_hyp6 %>% filter(term=="d_respe_1 ~ frequ"),
+  params_lcs_trust_ideal_specif_hyp6 %>% filter(term=="d_trust_1 ~ sb07_06_t1"),
+  params_lcs_trust_ideal_frequ_hyp6 %>% filter(term=="d_trust_1 ~ frequ"),
+  params_lcs_organ_ideal_specif_hyp6 %>% filter(term=="d_organ_1 ~ sb07_07_t1"),
+  params_lcs_organ_ideal_frequ_hyp6 %>% filter(term=="d_organ_1 ~ frequ"),
+  params_lcs_produ_ideal_specif_hyp6 %>% filter(term=="d_produ_1 ~ sb07_08_t1"),
+  params_lcs_produ_ideal_frequ_hyp6 %>% filter(term=="d_produ_1 ~ frequ"),
+  params_lcs_respo_ideal_specif_hyp6 %>% filter(term=="d_respo_1 ~ sb07_09_t1"),
+  params_lcs_respo_ideal_frequ_hyp6 %>% filter(term=="d_respo_1 ~ frequ"),
+  params_lcs_anxie_ideal_specif_hyp6 %>% filter(term=="d_anxie_1 ~ sb07_10_t1"),
+  params_lcs_anxie_ideal_frequ_hyp6 %>% filter(term=="d_anxie_1 ~ frequ"),
+  params_lcs_depre_ideal_specif_hyp6 %>% filter(term=="d_depre_1 ~ sb07_11_t1"),
+  params_lcs_depre_ideal_frequ_hyp6 %>% filter(term=="d_depre_1 ~ frequ"),
+  params_lcs_volat_ideal_specif_hyp6 %>% filter(term=="d_volat_1 ~ sb07_12_t1"),
+  params_lcs_volat_ideal_frequ_hyp6 %>% filter(term=="d_volat_1 ~ frequ"),
+  params_lcs_curio_ideal_specif_hyp6 %>% filter(term=="d_curio_1 ~ sb07_13_t1"),
+  params_lcs_curio_ideal_frequ_hyp6 %>% filter(term=="d_curio_1 ~ frequ"),
+  params_lcs_aesth_ideal_specif_hyp6 %>% filter(term=="d_aesth_1 ~ sb07_14_t1"),
+  params_lcs_aesth_ideal_frequ_hyp6 %>% filter(term=="d_aesth_1 ~ frequ"),
+  params_lcs_imagi_ideal_specif_hyp6 %>% filter(term=="d_imagi_1 ~ sb07_15_t1"),
+  params_lcs_imagi_ideal_frequ_hyp6 %>% filter(term=="d_imagi_1 ~ frequ")
+  ) %>% 
+  mutate(trait = rep(names(b5_vars), each=2),
+         moderator = rep(c("goals", "frequency"), 20)) %>% 
+  select(trait, moderator, est_mod = estimate, std_mod = std.all, p_mod = p.value)
+
+# combine
+df_table_hyp6_ideal <- df_table_hyp6_ideal_main %>% left_join(df_table_hyp6_ideal_mod)
+```
+
+Results summary across the Big Five traits: trait-specific change goals (*goals*) and frequency of self-improvement behaviors (*frequency*) as moderators on the latent change score. *_main* refers to the main effects (change scores) and *_mod* to the moderation effects.  
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+
+kable(df_table_hyp6_ideal[1:10, ], digits = 3)
+```
+
+::: {.callout-note appearance="minimal"}
+No significant moderation effects at the domain level.  
+:::
+
+Results summary across the Big Five facets: trait-specific change goals (*goals*) and frequency of self-improvement behaviors (*frequency*) as moderators on the latent change score. *_main* refers to the main effects (change scores) and *_mod* to the moderation effects.  
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+kable(df_table_hyp6_ideal[11:40, ], digits = 3)
+```
+
+::: {.callout-note appearance="minimal"}
+No significant moderation effects at the facet level (at p < .001).  
+:::
+
+Prepare data frame for plotting:
+```{r}
+#| echo: true
+#| warning: false
+#| code-fold: true
+#| code-summary: "Show the code"
+#| output: false
+#| cache: true
+
+df_table_hyp6_plot_ideal <- bind_rows(
+  #traits
+  params_lcs_extra_ideal_specif_hyp6 %>% filter(term=="d_extra_1 ~ goals"),
+  params_lcs_extra_ideal_frequ_hyp6 %>% filter(term=="d_extra_1 ~ frequ"),
+  params_lcs_agree_ideal_specif_hyp6 %>% filter(term=="d_agree_1 ~ goals"),
+  params_lcs_agree_ideal_frequ_hyp6 %>% filter(term=="d_agree_1 ~ frequ"),
+  params_lcs_consc_ideal_specif_hyp6 %>% filter(term=="d_consc_1 ~ goals"),
+  params_lcs_consc_ideal_frequ_hyp6 %>% filter(term=="d_consc_1 ~ frequ"),
+  params_lcs_neuro_ideal_specif_hyp6 %>% filter(term=="d_neuro_1 ~ goals"),
+  params_lcs_neuro_ideal_frequ_hyp6 %>% filter(term=="d_neuro_1 ~ frequ"),
+  params_lcs_openn_ideal_specif_hyp6 %>% filter(term=="d_openn_1 ~ goals"),
+  params_lcs_openn_ideal_frequ_hyp6 %>% filter(term=="d_openn_1 ~ frequ"),
+  #facets
+  params_lcs_socia_ideal_specif_hyp6 %>% filter(term=="d_socia_1 ~ sb07_01_t1"),
+  params_lcs_socia_ideal_frequ_hyp6 %>% filter(term=="d_socia_1 ~ frequ"),
+  params_lcs_asser_ideal_specif_hyp6 %>% filter(term=="d_asser_1 ~ sb07_02_t1"),
+  params_lcs_asser_ideal_frequ_hyp6 %>% filter(term=="d_asser_1 ~ frequ"),
+  params_lcs_energ_ideal_specif_hyp6 %>% filter(term=="d_energ_1 ~ sb07_03_t1"),
+  params_lcs_energ_ideal_frequ_hyp6 %>% filter(term=="d_energ_1 ~ frequ"),
+  params_lcs_compa_ideal_specif_hyp6 %>% filter(term=="d_compa_1 ~ sb07_04_t1"),
+  params_lcs_compa_ideal_frequ_hyp6 %>% filter(term=="d_compa_1 ~ frequ"),
+  params_lcs_respe_ideal_specif_hyp6 %>% filter(term=="d_respe_1 ~ sb07_05_t1"),
+  params_lcs_respe_ideal_frequ_hyp6 %>% filter(term=="d_respe_1 ~ frequ"),
+  params_lcs_trust_ideal_specif_hyp6 %>% filter(term=="d_trust_1 ~ sb07_06_t1"),
+  params_lcs_trust_ideal_frequ_hyp6 %>% filter(term=="d_trust_1 ~ frequ"),
+  params_lcs_organ_ideal_specif_hyp6 %>% filter(term=="d_organ_1 ~ sb07_07_t1"),
+  params_lcs_organ_ideal_frequ_hyp6 %>% filter(term=="d_organ_1 ~ frequ"),
+  params_lcs_produ_ideal_specif_hyp6 %>% filter(term=="d_produ_1 ~ sb07_08_t1"),
+  params_lcs_produ_ideal_frequ_hyp6 %>% filter(term=="d_produ_1 ~ frequ"),
+  params_lcs_respo_ideal_specif_hyp6 %>% filter(term=="d_respo_1 ~ sb07_09_t1"),
+  params_lcs_respo_ideal_frequ_hyp6 %>% filter(term=="d_respo_1 ~ frequ"),
+  params_lcs_anxie_ideal_specif_hyp6 %>% filter(term=="d_anxie_1 ~ sb07_10_t1"),
+  params_lcs_anxie_ideal_frequ_hyp6 %>% filter(term=="d_anxie_1 ~ frequ"),
+  params_lcs_depre_ideal_specif_hyp6 %>% filter(term=="d_depre_1 ~ sb07_11_t1"),
+  params_lcs_depre_ideal_frequ_hyp6 %>% filter(term=="d_depre_1 ~ frequ"),
+  params_lcs_volat_ideal_specif_hyp6 %>% filter(term=="d_volat_1 ~ sb07_12_t1"),
+  params_lcs_volat_ideal_frequ_hyp6 %>% filter(term=="d_volat_1 ~ frequ"),
+  params_lcs_curio_ideal_specif_hyp6 %>% filter(term=="d_curio_1 ~ sb07_13_t1"),
+  params_lcs_curio_ideal_frequ_hyp6 %>% filter(term=="d_curio_1 ~ frequ"),
+  params_lcs_aesth_ideal_specif_hyp6 %>% filter(term=="d_aesth_1 ~ sb07_14_t1"),
+  params_lcs_aesth_ideal_frequ_hyp6 %>% filter(term=="d_aesth_1 ~ frequ"),
+  params_lcs_imagi_ideal_specif_hyp6 %>% filter(term=="d_imagi_1 ~ sb07_15_t1"),
+  params_lcs_imagi_ideal_frequ_hyp6 %>% filter(term=="d_imagi_1 ~ frequ")
+  ) %>% 
+  mutate(trait = rep(names(b5_vars), each=2),
+         moderator = rep(c("goals", "frequency"), 20)) %>% 
+  select(trait, moderator, estimate, conf.low, conf.high, std.all, statistic, p.value)
+
+df_table_hyp6_plot_ideal <- df_table_hyp6_plot_ideal %>% 
+  mutate(include_0 = ifelse(conf.low < 0 & conf.high > 0, "n.s.", "*")) %>% 
+  mutate(ref = factor("ideal", levels = c("ideal"), labels = c("ideal"))) %>% 
+  mutate(moderator = factor(moderator, levels = c("goals", "frequency"), labels = c("goals", "frequency"))) %>% 
+  mutate(trait = factor(trait, levels = names(b5_vars), labels = names(b5_vars)))
+```
+
+Plotting the effect size across all analyses (only showing the moderation effects):  
+
+- *ideal* = ideal-level personality  
+- *goals* = specific, facet-level change goal(s) as moderator  
+- *frequency* = frequency of self-improvement behavior as moderator  
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+#| code-fold: true
+#| code-summary: "Show the code"
+
+ggplot(df_table_hyp6_plot_ideal, aes(x = fct_rev(trait), y = estimate, color = include_0)) +
+  geom_hline(yintercept=0, linetype = 3) +
+  geom_point(size=3, position=position_dodge(0.4)) + 
+  geom_errorbar(aes(ymin = conf.low, ymax = conf.high, color = include_0), width=.2, position=position_dodge(0.4)) +
+  scale_color_manual(values = c("#A9A9A9", "#000000")) +   
+  facet_wrap( ~ ref + moderator, ncol = 2) +
+  theme_bw() +
+  scale_shape_manual(values=c(18)) + 
+  ylab("Effect Estimates (95% CI)") +
+  xlab("") +
+  theme(legend.title=element_blank()) +
+  theme(legend.text=element_text(size=12)) +
+  coord_flip() +
+  theme(strip.text.x = element_text(size = 12)) +
+  theme(axis.text.x=element_text(size=10, angle = 45, hjust = 1), axis.text.y=element_text(size=12)) + 
+  guides(color="none")
+```
+
 ### H7: Desire to change and frequency of self-acceptance behaviors as moderators of change in personality in self-acceptance group (H3 in paper) {#hyp7}
 
 *Desire to change and frequency of self-acceptance behaviors measured at the follow-up assessment will be positively related to change in ideal-self ratings in the self-acceptance group.* 
@@ -14350,8 +15717,10 @@ df_sbsa_wide_pers_sa_mod <- df_sbsa %>%
             sa07_06_t2, sa07_07_t2, sa07_08_t2, sa07_09_t2, sa07_10_t2, 
             sa07_11_t2, sa07_12_t2, sa07_13_t2, sa07_14_t2, sa07_15_t2, 
             sa04_01_t1, sa04_02_t1, sa04_03_t1)) # frequency of self-acceptance behaviors measured at T2
-
-# colnames(df_sbsa_wide_pers_sa_mod)
+# standardize goal variables (better interpretation for when they are in SEM as a single manifest variable, not so much a problem when they form a latent scale)
+df_sbsa_wide_pers_sa_mod <- df_sbsa_wide_pers_sa_mod %>% 
+  mutate_at(c(colnames(df_sbsa_wide_pers_sa_mod)[-1]), ~(scale(.) %>% as.vector)) 
+# colnames(df_sbsa_wide_pers_sa)
 
 group_assign <- df_sbsa %>% select(pid, rando) %>% unique()
 
@@ -14359,7 +15728,7 @@ df_sbsa_wide_pers_sa_mod <- df_sbsa_wide_pers %>% left_join(group_assign) %>% fi
   left_join(df_sbsa_wide_pers_sa_mod)
 ```
 
-#### Big Five traits
+#### Big Five traits (run models)
 
 Run models for all traits with a template & loop:
 ```{r}
@@ -14427,7 +15796,7 @@ ind_goal_3 ~ 1
 
 trait_facets_nrs <- list(a1 = c(1:3), b2 = c(4:6), c3 = c(7:9), d4 = c(10:12), e5 = c(13:15)) # matching facet nrs to traits 
 
-# loop across 5 traits
+# loop across 5 traits -> change in ideal self
 for (i in 1:5) {
   item_nrs = b5_vars[[i]][[1]]
   short_name = str_trunc(names(b5_vars)[i], 5, ellipsis = "")
@@ -14445,6 +15814,26 @@ for (i in 1:5) {
                                      str_sub(names(bfi_versions)[6], 6), "_specif_hyp7")), template_filled))
   eval(call("<-", as.name(paste0("fit_mi_lcs_", short_name, "_", 
                                      str_sub(names(bfi_versions)[6], 6), "_specif_hyp7")), trait_model_fit))
+}  
+
+# loop across 5 traits -> change in current self
+for (i in 1:5) {
+  item_nrs = b5_vars[[i]][[1]]
+  short_name = str_trunc(names(b5_vars)[i], 5, ellipsis = "")
+  # use BFI version combined pre&post ideal (6 = ideal)
+  # items = paste0(bfi_versions[[6]], item_nrs) # using parcels instead!
+  mod_names = paste0("sa07_", str_pad(trait_facets_nrs[[i]], 2, pad = "0"), "_t1")
+  template_filled <- str_replace_all(trait_template_mod_goal_accept, 
+                                       c("trait" = short_name,
+                                         "ind01" = paste0(short_name, "_curr_par1"), # current instead of ideal
+                                         "ind02" = paste0(short_name, "_curr_par2"), 
+                                         "ind03" = paste0(short_name, "_curr_par3"),
+                                         "ind_goal_1" = mod_names[1], "ind_goal_2" = mod_names[2], "ind_goal_3" = mod_names[3]))
+  trait_model_fit <- lavaan(template_filled, data=df_sbsa_wide_pers_sa_mod, estimator='mlr', fixed.x=FALSE, missing='fiml')
+  eval(call("<-", as.name(paste0("mi_lcs_", short_name, "_", 
+                                     str_sub(names(bfi_versions)[5], 6), "_specif_hyp7")), template_filled)) # current instead of ideal
+  eval(call("<-", as.name(paste0("fit_mi_lcs_", short_name, "_", 
+                                     str_sub(names(bfi_versions)[5], 6), "_specif_hyp7")), trait_model_fit))
 }  
 
 # 2nd, for frequency of self-acceptance behavior
@@ -14500,7 +15889,7 @@ sa04_02_t2 ~ 1
 sa04_03_t2 ~ 1
 '
 
-# loop across 5 traits
+# loop across 5 traits -> change in ideal self
 for (i in 1:5) {
   item_nrs = b5_vars[[i]][[1]]
   short_name = str_trunc(names(b5_vars)[i], 5, ellipsis = "")
@@ -14517,7 +15906,27 @@ for (i in 1:5) {
   eval(call("<-", as.name(paste0("fit_mi_lcs_", short_name, "_", 
                                      str_sub(names(bfi_versions)[6], 6), "_frequ_hyp7")), trait_model_fit))
 }  
+
+# loop across 5 traits -> change in current self
+for (i in 1:5) {
+  item_nrs = b5_vars[[i]][[1]]
+  short_name = str_trunc(names(b5_vars)[i], 5, ellipsis = "")
+  # use BFI version combined pre&post ideal
+  # items = paste0(bfi_versions[[6]], item_nrs) # using parcels instead!
+  template_filled <- str_replace_all(trait_template_mod_frequ_accept, 
+                                       c("trait" = short_name,
+                                         "ind01" = paste0(short_name, "_curr_par1"), # current instead of ideal
+                                         "ind02" = paste0(short_name, "_curr_par2"), 
+                                         "ind03" = paste0(short_name, "_curr_par3")))
+  trait_model_fit <- lavaan(template_filled, data=df_sbsa_wide_pers_sa_mod, estimator='mlr', fixed.x=FALSE, missing='fiml')
+  eval(call("<-", as.name(paste0("mi_lcs_", short_name, "_", 
+                                     str_sub(names(bfi_versions)[5], 6), "_frequ_hyp7")), template_filled)) # current instead of ideal
+  eval(call("<-", as.name(paste0("fit_mi_lcs_", short_name, "_", 
+                                     str_sub(names(bfi_versions)[5], 6), "_frequ_hyp7")), trait_model_fit))
+}  
 ```
+
+#### Big Five traits (ideal self)
 
 ##### Extraversion: specific, facet-level acceptance goals as moderator of change
 
@@ -14620,7 +16029,7 @@ kable(params_lcs_agree_ideal_frequ_hyp7, digits = 3)
 ```
 
 ::: {.callout-note appearance="minimal"}
-The frequency of self-acceptance behaviors significantly moderates changes in agreeableness (ideal-self), *b* = `r round(params_lcs_agree_ideal_frequ_hyp7 %>% filter(term=="d_agree_1 ~ frequ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_agree_ideal_frequ_hyp7 %>% filter(term=="d_agree_1 ~ frequ") %>% pull(p.value), 3)`. 
+The moderation effect of the frequency of self-acceptance behaviors with the agreeableness change score (ideal-self) is not significantly different from zero, *b* = `r round(params_lcs_agree_ideal_frequ_hyp7 %>% filter(term=="d_agree_1 ~ frequ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_agree_ideal_frequ_hyp7 %>% filter(term=="d_agree_1 ~ frequ") %>% pull(p.value), 3)`. 
 :::
 
 ##### Conscientiousness: specific, facet-level acceptance goals as moderator of change
@@ -14672,7 +16081,7 @@ kable(params_lcs_consc_ideal_frequ_hyp7, digits = 3)
 ```
 
 ::: {.callout-note appearance="minimal"}
-The frequency of self-acceptance behaviors significantly moderates changes in conscientiousness (ideal-self), *b* = `r round(params_lcs_consc_ideal_frequ_hyp7 %>% filter(term=="d_consc_1 ~ frequ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_consc_ideal_frequ_hyp7 %>% filter(term=="d_consc_1 ~ frequ") %>% pull(p.value), 3)`.  
+The moderation effect of the frequency of self-acceptance behaviors with the conscientiousness change score (ideal-self) is not significantly different from zero, *b* = `r round(params_lcs_consc_ideal_frequ_hyp7 %>% filter(term=="d_consc_1 ~ frequ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_consc_ideal_frequ_hyp7 %>% filter(term=="d_consc_1 ~ frequ") %>% pull(p.value), 3)`.  
 :::
 
 ##### Neuroticism: specific, facet-level acceptance goals as moderator of change
@@ -14779,7 +16188,269 @@ kable(params_lcs_openn_ideal_frequ_hyp7, digits = 3)
 The moderation effect of frequency of self-acceptance behaviors with the openness change score (ideal-self) is not significantly different from zero, *b* = `r round(params_lcs_openn_ideal_frequ_hyp7 %>% filter(term=="d_openn_1 ~ frequ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_openn_ideal_frequ_hyp7 %>% filter(term=="d_openn_1 ~ frequ") %>% pull(p.value), 3)`.
 :::
 
-#### Big Five facets
+#### Big Five traits (current self)
+
+##### Extraversion: specific, facet-level acceptance goals as moderator of change
+
+Results summary (*goals* = trait/facet specific acceptance goal):
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+
+# model fit
+kable(broom::glance(fit_mi_lcs_extra_curr_specif_hyp7) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+
+# parameters of interest
+params_lcs_extra_curr_specif_hyp7 <- broom::tidy(fit_mi_lcs_extra_curr_specif_hyp7, conf.int = TRUE, conf.level = 0.95) %>% 
+        select(term, estimate, conf.low, conf.high, std.all, statistic, p.value) %>% 
+        filter(term %in% c("extra_t2 ~ extra_t1", "d_extra_1 =~ extra_t2", "extra_t1 ~~ d_extra_1", # change parameters
+                           "d_extra_1 ~ goals", "goals ~~ goals", "extra_t1 ~ goals", # acceptance goals
+                           "d_extra_1 ~1 ", "extra_t1 ~1 ", "", # means
+                           "d_extra_1 ~~ d_extra_1"))
+kable(params_lcs_extra_curr_specif_hyp7, digits = 3) 
+```
+
+::: {.callout-note appearance="minimal"}
+Specific, facet-level acceptance goals significantly moderated changes in extraversion (current-self), *b* = `r round(params_lcs_extra_curr_specif_hyp7 %>% filter(term=="d_extra_1 ~ goals") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_extra_curr_specif_hyp7 %>% filter(term=="d_extra_1 ~ goals") %>% pull(p.value), 3)`. 
+:::
+
+##### Extraversion: frequency of self-acceptance behaviors as moderator of change
+
+Results summary (*frequ* = frequency of self improvement behavior):
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+
+# model fit
+kable(broom::glance(fit_mi_lcs_extra_curr_frequ_hyp7) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+
+# parameters of interest
+params_lcs_extra_curr_frequ_hyp7 <- broom::tidy(fit_mi_lcs_extra_curr_frequ_hyp7, conf.int = TRUE, conf.level = 0.95) %>% 
+        select(term, estimate, conf.low, conf.high, std.all, statistic, p.value) %>% 
+        filter(term %in% c("extra_t2 ~ extra_t1", "d_extra_1 =~ extra_t2", "extra_t1 ~~ d_extra_1", # change parameters
+                           "d_extra_1 ~ frequ", "frequ ~~ frequ", "extra_t1 ~ frequ", # frequency of self improvement
+                           "d_extra_1 ~1 ", "extra_t1 ~1 ", "", # means
+                           "d_extra_1 ~~ d_extra_1"))
+kable(params_lcs_extra_curr_frequ_hyp7, digits = 3) 
+```
+
+::: {.callout-note appearance="minimal"}
+The frequency of self-acceptance behaviors significantly moderated changes in extraversion (current-self), *b* = `r round(params_lcs_extra_curr_frequ_hyp7 %>% filter(term=="d_extra_1 ~ frequ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_extra_curr_frequ_hyp7 %>% filter(term=="d_extra_1 ~ frequ") %>% pull(p.value), 3)`. 
+:::
+
+##### Agreeableness: specific, facet-level acceptance goals as moderator of change
+
+Results summary (*goals* = trait/facet specific acceptance goal):
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+
+# model fit
+kable(broom::glance(fit_mi_lcs_agree_curr_specif_hyp7) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+
+# parameters of interest
+params_lcs_agree_curr_specif_hyp7 <- broom::tidy(fit_mi_lcs_agree_curr_specif_hyp7, conf.int = TRUE, conf.level = 0.95) %>% 
+        select(term, estimate, conf.low, conf.high, std.all, statistic, p.value) %>% 
+        filter(term %in% c("agree_t2 ~ agree_t1", "d_agree_1 =~ agree_t2", "agree_t1 ~~ d_agree_1", # change parameters
+                           "d_agree_1 ~ goals", "goals ~~ goals", "agree_t1 ~ goals", # acceptance goals
+                           "d_agree_1 ~1 ", "agree_t1 ~1 ", "", # means
+                           "d_agree_1 ~~ d_agree_1"))
+kable(params_lcs_agree_curr_specif_hyp7, digits = 3) 
+```
+
+::: {.callout-note appearance="minimal"}
+The moderation effect of specific, facet-level acceptance goals with the agreeableness change score (current-self) is not significantly different from zero, *b* = `r round(params_lcs_agree_curr_specif_hyp7 %>% filter(term=="d_agree_1 ~ goals") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_agree_curr_specif_hyp7 %>% filter(term=="d_agree_1 ~ goals") %>% pull(p.value), 3)`. 
+:::
+
+##### Agreeableness: frequency of self-acceptance behaviors as moderator of change
+
+Results summary (*frequ* = frequency of self improvement behavior):
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+
+# model fit
+kable(broom::glance(fit_mi_lcs_agree_curr_frequ_hyp7) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+
+# parameters of interest
+params_lcs_agree_curr_frequ_hyp7 <- broom::tidy(fit_mi_lcs_agree_curr_frequ_hyp7, conf.int = TRUE, conf.level = 0.95) %>% 
+        select(term, estimate, conf.low, conf.high, std.all, statistic, p.value) %>% 
+        filter(term %in% c("agree_t2 ~ agree_t1", "d_agree_1 =~ agree_t2", "agree_t1 ~~ d_agree_1", # change parameters
+                           "d_agree_1 ~ frequ", "frequ ~~ frequ", "agree_t1 ~ frequ", # frequency of self improvement
+                           "d_agree_1 ~1 ", "agree_t1 ~1 ", "", # means
+                           "d_agree_1 ~~ d_agree_1"))
+kable(params_lcs_agree_curr_frequ_hyp7, digits = 3) 
+```
+
+::: {.callout-note appearance="minimal"}
+The moderation effect of the frequency of self-acceptance behaviors with the agreeableness change score (current-self) is not significantly different from zero, *b* = `r round(params_lcs_agree_curr_frequ_hyp7 %>% filter(term=="d_agree_1 ~ frequ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_agree_curr_frequ_hyp7 %>% filter(term=="d_agree_1 ~ frequ") %>% pull(p.value), 3)`. 
+:::
+
+##### Conscientiousness: specific, facet-level acceptance goals as moderator of change
+
+Results summary (*goals* = trait/facet specific acceptance goal):
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+
+# model fit
+kable(broom::glance(fit_mi_lcs_consc_curr_specif_hyp7) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+
+# parameters of interest
+params_lcs_consc_curr_specif_hyp7 <- broom::tidy(fit_mi_lcs_consc_curr_specif_hyp7, conf.int = TRUE, conf.level = 0.95) %>% 
+        select(term, estimate, conf.low, conf.high, std.all, statistic, p.value) %>% 
+        filter(term %in% c("consc_t2 ~ consc_t1", "d_consc_1 =~ consc_t2", "consc_t1 ~~ d_consc_1", # change parameters
+                           "d_consc_1 ~ goals", "goals ~~ goals", "consc_t1 ~ goals", # acceptance goals
+                           "d_consc_1 ~1 ", "consc_t1 ~1 ", "", # means
+                           "d_consc_1 ~~ d_consc_1"))
+kable(params_lcs_consc_curr_specif_hyp7, digits = 3) 
+```
+
+::: {.callout-note appearance="minimal"}
+The moderation effect of specific, facet-level acceptance goals with the conscientiousness change score (current-self) is not significantly different from zero, *b* = `r round(params_lcs_consc_curr_specif_hyp7 %>% filter(term=="d_consc_1 ~ goals") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_consc_curr_specif_hyp7 %>% filter(term=="d_consc_1 ~ goals") %>% pull(p.value), 3)`. 
+:::
+
+##### Conscientiousness: frequency of self-acceptance behaviors as moderator of change
+
+Results summary (*frequ* = frequency of self improvement behavior):
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+
+# model fit
+kable(broom::glance(fit_mi_lcs_consc_curr_frequ_hyp7) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+
+# parameters of interest
+params_lcs_consc_curr_frequ_hyp7 <- broom::tidy(fit_mi_lcs_consc_curr_frequ_hyp7, conf.int = TRUE, conf.level = 0.95) %>% 
+        select(term, estimate, conf.low, conf.high, std.all, statistic, p.value) %>% 
+        filter(term %in% c("consc_t2 ~ consc_t1", "d_consc_1 =~ consc_t2", "consc_t1 ~~ d_consc_1", # change parameters
+                           "d_consc_1 ~ frequ", "frequ ~~ frequ", "consc_t1 ~ frequ", # frequency of self improvement
+                           "d_consc_1 ~1 ", "consc_t1 ~1 ", "", # means
+                           "d_consc_1 ~~ d_consc_1"))
+kable(params_lcs_consc_curr_frequ_hyp7, digits = 3) 
+```
+
+::: {.callout-note appearance="minimal"}
+The frequency of self-acceptance behaviors significantly moderates changes in conscientiousness (current-self), *b* = `r round(params_lcs_consc_curr_frequ_hyp7 %>% filter(term=="d_consc_1 ~ frequ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_consc_curr_frequ_hyp7 %>% filter(term=="d_consc_1 ~ frequ") %>% pull(p.value), 3)`.  
+:::
+
+##### Neuroticism: specific, facet-level acceptance goals as moderator of change
+
+Results summary (*goals* = trait/facet specific acceptance goal):
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+
+# model fit
+kable(broom::glance(fit_mi_lcs_neuro_curr_specif_hyp7) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+
+# parameters of interest
+params_lcs_neuro_curr_specif_hyp7 <- broom::tidy(fit_mi_lcs_neuro_curr_specif_hyp7, conf.int = TRUE, conf.level = 0.95) %>% 
+        select(term, estimate, conf.low, conf.high, std.all, statistic, p.value) %>% 
+        filter(term %in% c("neuro_t2 ~ neuro_t1", "d_neuro_1 =~ neuro_t2", "neuro_t1 ~~ d_neuro_1", # change parameters
+                           "d_neuro_1 ~ goals", "goals ~~ goals", "neuro_t1 ~ goals", # acceptance goals
+                           "d_neuro_1 ~1 ", "neuro_t1 ~1 ", "", # means
+                           "d_neuro_1 ~~ d_neuro_1"))
+kable(params_lcs_neuro_curr_specif_hyp7, digits = 3) 
+```
+
+::: {.callout-note appearance="minimal"}
+Specific, facet-level acceptance goals significantly moderated changes in neuroticism (current-self), *b* = `r round(params_lcs_neuro_curr_specif_hyp7 %>% filter(term=="d_neuro_1 ~ goals") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_neuro_curr_specif_hyp7 %>% filter(term=="d_neuro_1 ~ goals") %>% pull(p.value), 3)`. 
+:::
+
+##### Neuroticism: frequency of self-acceptance behaviors as moderator of change
+
+Results summary (*frequ* = frequency of self improvement behavior):
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+
+# model fit
+kable(broom::glance(fit_mi_lcs_neuro_curr_frequ_hyp7) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+
+# parameters of interest
+params_lcs_neuro_curr_frequ_hyp7 <- broom::tidy(fit_mi_lcs_neuro_curr_frequ_hyp7, conf.int = TRUE, conf.level = 0.95) %>% 
+        select(term, estimate, conf.low, conf.high, std.all, statistic, p.value) %>% 
+        filter(term %in% c("neuro_t2 ~ neuro_t1", "d_neuro_1 =~ neuro_t2", "neuro_t1 ~~ d_neuro_1", # change parameters
+                           "d_neuro_1 ~ frequ", "frequ ~~ frequ", "neuro_t1 ~ frequ", # frequency of self improvement
+                           "d_neuro_1 ~1 ", "neuro_t1 ~1 ", "", # means
+                           "d_neuro_1 ~~ d_neuro_1"))
+kable(params_lcs_neuro_curr_frequ_hyp7, digits = 3) 
+```
+
+::: {.callout-note appearance="minimal"}
+The frequency of self-acceptance behaviors significantly moderates changes in neuroticism (current-self), *b* = `r round(params_lcs_neuro_curr_frequ_hyp7 %>% filter(term=="d_neuro_1 ~ frequ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_neuro_curr_frequ_hyp7 %>% filter(term=="d_neuro_1 ~ frequ") %>% pull(p.value), 3)`. 
+:::
+
+##### Openness: specific, facet-level acceptance goals as moderator of change
+
+Results summary (*goals* = trait/facet specific acceptance goal):
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+
+# model fit
+kable(broom::glance(fit_mi_lcs_openn_curr_specif_hyp7) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+
+# parameters of interest
+params_lcs_openn_curr_specif_hyp7 <- broom::tidy(fit_mi_lcs_openn_curr_specif_hyp7, conf.int = TRUE, conf.level = 0.95) %>% 
+        select(term, estimate, conf.low, conf.high, std.all, statistic, p.value) %>% 
+        filter(term %in% c("openn_t2 ~ openn_t1", "d_openn_1 =~ openn_t2", "openn_t1 ~~ d_openn_1", # change parameters
+                           "d_openn_1 ~ goals", "goals ~~ goals", "openn_t1 ~ goals", # acceptance goals
+                           "d_openn_1 ~1 ", "openn_t1 ~1 ", "", # means
+                           "d_openn_1 ~~ d_openn_1"))
+kable(params_lcs_openn_curr_specif_hyp7, digits = 3) 
+```
+
+::: {.callout-note appearance="minimal"}
+Specific, facet-level acceptance goals significantly moderated changes in openness (current-self), *b* = `r round(params_lcs_openn_curr_specif_hyp7 %>% filter(term=="d_openn_1 ~ goals") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_openn_curr_specif_hyp7 %>% filter(term=="d_openn_1 ~ goals") %>% pull(p.value), 3)`.
+:::
+
+##### Openness: frequency of self-acceptance behaviors as moderator of change
+
+Results summary (*frequ* = frequency of self improvement behavior):
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+
+# model fit
+kable(broom::glance(fit_mi_lcs_openn_curr_frequ_hyp7) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+
+# parameters of interest
+params_lcs_openn_curr_frequ_hyp7 <- broom::tidy(fit_mi_lcs_openn_curr_frequ_hyp7, conf.int = TRUE, conf.level = 0.95) %>% 
+        select(term, estimate, conf.low, conf.high, std.all, statistic, p.value) %>% 
+        filter(term %in% c("openn_t2 ~ openn_t1", "d_openn_1 =~ openn_t2", "openn_t1 ~~ d_openn_1", # change parameters
+                           "d_openn_1 ~ frequ", "frequ ~~ frequ", "openn_t1 ~ frequ", # frequency of self improvement
+                           "d_openn_1 ~1 ", "openn_t1 ~1 ", "", # means
+                           "d_openn_1 ~~ d_openn_1"))
+kable(params_lcs_openn_curr_frequ_hyp7, digits = 3) 
+```
+
+::: {.callout-note appearance="minimal"}
+The frequency of self-acceptance behaviors significantly moderates changes in openness (current-self), *b* = `r round(params_lcs_openn_curr_frequ_hyp7 %>% filter(term=="d_openn_1 ~ frequ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_openn_curr_frequ_hyp7 %>% filter(term=="d_openn_1 ~ frequ") %>% pull(p.value), 3)`.
+:::
+
+#### Big Five facets (run models)
 
 Run models for all facets with a template & loop:
 ```{r}
@@ -14840,7 +16511,7 @@ ind_goal ~~ ind_goal
 ind_goal ~ 1
 '
 
-# loop across 15 facets
+# loop across 15 facets -> changes in ideal self
 for (i in 6:length(b5_vars)) {
   item_nrs = b5_vars[[i]][[1]]
   short_name = str_trunc(names(b5_vars)[i], 5, ellipsis = "")
@@ -14856,6 +16527,24 @@ for (i in 6:length(b5_vars)) {
                                      str_sub(names(bfi_versions)[6], 6), "_specif_hyp7")), template_filled))
   eval(call("<-", as.name(paste0("fit_mi_lcs_", short_name, "_", 
                                      str_sub(names(bfi_versions)[6], 6), "_specif_hyp7")), facet_model_fit))
+}  
+
+# loop across 15 facets -> changes in current self
+for (i in 6:length(b5_vars)) {
+  item_nrs = b5_vars[[i]][[1]]
+  short_name = str_trunc(names(b5_vars)[i], 5, ellipsis = "")
+  # use BFI version combined pre&post ideal
+  items = paste0(bfi_versions[[5]], item_nrs) # current instead of ideal!
+  mod_name = paste0("sa07_", str_pad(i-5, 2, pad = "0"), "_t1")
+  template_filled <- str_replace_all(facet_template_mod_goal_accept, 
+                                       c("facet" = short_name,
+                                         "ind1" = items[1], "ind2" = items[2], "ind3" = items[3], "ind4" = items[4],
+                                         "ind_goal" = mod_name))
+  facet_model_fit <- lavaan(template_filled, data=df_sbsa_wide_pers_sa_mod, estimator='mlr', fixed.x=FALSE, missing='fiml')
+  eval(call("<-", as.name(paste0("mi_lcs_", short_name, "_", 
+                                     str_sub(names(bfi_versions)[5], 6), "_specif_hyp7")), template_filled)) # current instead of ideal!
+  eval(call("<-", as.name(paste0("fit_mi_lcs_", short_name, "_", 
+                                     str_sub(names(bfi_versions)[5], 6), "_specif_hyp7")), facet_model_fit))
 }  
 
 # 2nd, for frequency of self-acceptance behavior
@@ -14916,7 +16605,7 @@ sa04_02_t2 ~ 1
 sa04_03_t2 ~ 1
 '
 
-# loop across 15 facets
+# loop across 15 facets -> changes in ideal self
 for (i in 6:length(b5_vars)) {
   item_nrs = b5_vars[[i]][[1]]
   short_name = str_trunc(names(b5_vars)[i], 5, ellipsis = "")
@@ -14931,8 +16620,25 @@ for (i in 6:length(b5_vars)) {
   eval(call("<-", as.name(paste0("fit_mi_lcs_", short_name, "_", 
                                      str_sub(names(bfi_versions)[6], 6), "_frequ_hyp7")), facet_model_fit))
 }  
+
+# loop across 15 facets -> changes in current self
+for (i in 6:length(b5_vars)) {
+  item_nrs = b5_vars[[i]][[1]]
+  short_name = str_trunc(names(b5_vars)[i], 5, ellipsis = "")
+  # use BFI version combined pre&post ideal
+  items = paste0(bfi_versions[[5]], item_nrs) # current instead of ideal!
+  template_filled <- str_replace_all(facet_template_mod_frequ_accept, 
+                                       c("facet" = short_name,
+                                         "ind1" = items[1], "ind2" = items[2], "ind3" = items[3], "ind4" = items[4]))
+  facet_model_fit <- lavaan(template_filled, data=df_sbsa_wide_pers_sa_mod, estimator='mlr', fixed.x=FALSE, missing='fiml')
+  eval(call("<-", as.name(paste0("mi_lcs_", short_name, "_", 
+                                     str_sub(names(bfi_versions)[5], 6), "_frequ_hyp7")), template_filled)) # current instead of ideal!
+  eval(call("<-", as.name(paste0("fit_mi_lcs_", short_name, "_", 
+                                     str_sub(names(bfi_versions)[5], 6), "_frequ_hyp7")), facet_model_fit))
+}  
 ```
 
+#### Big Five facets (ideal self)
 
 ##### Sociability - specific, facet-level acceptance goal as moderator of change
 
@@ -15035,7 +16741,8 @@ kable(params_lcs_asser_ideal_frequ_hyp7, digits = 3)
 ```
 
 ::: {.callout-note appearance="minimal"}
-The frequency of self-acceptance behaviors significantly moderates changes in assertiveness (ideal-self), *b* = `r round(params_lcs_asser_ideal_frequ_hyp7 %>% filter(term=="d_asser_1 ~ frequ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_asser_ideal_frequ_hyp7 %>% filter(term=="d_asser_1 ~ frequ") %>% pull(p.value), 3)`. 
+
+The moderation effect of the frequency of self-acceptance behaviors on the assertiveness change score (ideal-self) is not significantly different from zero, *b* = `r round(params_lcs_asser_ideal_frequ_hyp7 %>% filter(term=="d_asser_1 ~ frequ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_asser_ideal_frequ_hyp7 %>% filter(term=="d_asser_1 ~ frequ") %>% pull(p.value), 3)`. 
 :::
 
 ##### Energy - specific, facet-level acceptance goal as moderator of change
@@ -15191,7 +16898,7 @@ kable(params_lcs_respe_ideal_frequ_hyp7, digits = 3)
 ```
 
 ::: {.callout-note appearance="minimal"}
-The frequency of self-acceptance behaviors significantly moderates changes in respectfulness (ideal-self), *b* = `r round(params_lcs_respe_ideal_frequ_hyp7 %>% filter(term=="d_respe_1 ~ frequ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_respe_ideal_frequ_hyp7 %>% filter(term=="d_respe_1 ~ frequ") %>% pull(p.value), 3)`. 
+The moderation effect of the frequency of self-acceptance behaviors with the respectfulness change score (ideal-self) is not significantly different from zero, *b* = `r round(params_lcs_respe_ideal_frequ_hyp7 %>% filter(term=="d_respe_1 ~ frequ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_respe_ideal_frequ_hyp7 %>% filter(term=="d_respe_1 ~ frequ") %>% pull(p.value), 3)`. 
 :::
 
 ##### Trust - specific, facet-level acceptance goal as moderator of change
@@ -15295,7 +17002,7 @@ kable(params_lcs_organ_ideal_frequ_hyp7, digits = 3)
 ```
 
 ::: {.callout-note appearance="minimal"}
-The frequency of self-acceptance behaviors significantly moderates changes in organization (ideal-self), *b* = `r round(params_lcs_organ_ideal_frequ_hyp7 %>% filter(term=="d_organ_1 ~ frequ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_organ_ideal_frequ_hyp7 %>% filter(term=="d_organ_1 ~ frequ") %>% pull(p.value), 3)`. 
+The moderation effect of the frequency of self-acceptance behaviors with the organization change score (ideal-self) is not significantly different from zero, *b* = `r round(params_lcs_organ_ideal_frequ_hyp7 %>% filter(term=="d_organ_1 ~ frequ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_organ_ideal_frequ_hyp7 %>% filter(term=="d_organ_1 ~ frequ") %>% pull(p.value), 3)`. 
 :::
 
 ##### Productiveness - specific, facet-level acceptance goal as moderator of change
@@ -15347,7 +17054,7 @@ kable(params_lcs_produ_ideal_frequ_hyp7, digits = 3)
 ```
 
 ::: {.callout-note appearance="minimal"}
-The frequency of self-acceptance behaviors significantly moderates changes in productiveness (ideal-self), *b* = `r round(params_lcs_produ_ideal_frequ_hyp7 %>% filter(term=="d_produ_1 ~ frequ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_produ_ideal_frequ_hyp7 %>% filter(term=="d_produ_1 ~ frequ") %>% pull(p.value), 3)`. 
+The moderation effect of the frequency of self-acceptance behaviors with the productiveness change score (ideal-self) is not significantly different from zero, *b* = `r round(params_lcs_produ_ideal_frequ_hyp7 %>% filter(term=="d_produ_1 ~ frequ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_produ_ideal_frequ_hyp7 %>% filter(term=="d_produ_1 ~ frequ") %>% pull(p.value), 3)`. 
 :::
 
 ##### Responsibility - specific, facet-level acceptance goal as moderator of change
@@ -15555,7 +17262,7 @@ kable(params_lcs_volat_ideal_frequ_hyp7, digits = 3)
 ```
 
 ::: {.callout-note appearance="minimal"}
-The moderation effect of the frequency of self-acceptance behaviors with the volatility change score (ideal-self) is significantly different from zero, *b* = `r round(params_lcs_volat_ideal_frequ_hyp7 %>% filter(term=="d_volat_1 ~ frequ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_volat_ideal_frequ_hyp7 %>% filter(term=="d_volat_1 ~ frequ") %>% pull(p.value), 3)`. 
+The moderation effect of the frequency of self-acceptance behaviors with the volatility change score (ideal-self) is not significantly different from zero, *b* = `r round(params_lcs_volat_ideal_frequ_hyp7 %>% filter(term=="d_volat_1 ~ frequ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_volat_ideal_frequ_hyp7 %>% filter(term=="d_volat_1 ~ frequ") %>% pull(p.value), 3)`. 
 :::
 
 ##### Curiosity - specific, facet-level acceptance goal as moderator of change
@@ -15713,7 +17420,790 @@ kable(params_lcs_imagi_ideal_frequ_hyp7, digits = 3)
 The moderation effect of the frequency of self-acceptance behaviors with the imagination change score (ideal-self) is not significantly different from zero, *b* = `r round(params_lcs_imagi_ideal_frequ_hyp7 %>% filter(term=="d_imagi_1 ~ frequ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_imagi_ideal_frequ_hyp7 %>% filter(term=="d_imagi_1 ~ frequ") %>% pull(p.value), 3)`. 
 :::
 
+#### Big Five facets (current self)
+
+##### Sociability - specific, facet-level acceptance goal as moderator of change
+
+Results summary (*sa07_xx_t1* = trait/facet specific acceptance goal):
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+
+# model fit
+kable(broom::glance(fit_mi_lcs_socia_curr_specif_hyp7) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+
+# parameters of interest
+params_lcs_socia_curr_specif_hyp7 <- broom::tidy(fit_mi_lcs_socia_curr_specif_hyp7, conf.int = TRUE, conf.level = 0.95) %>% 
+  select(term, estimate, conf.low, conf.high, std.all, statistic, p.value) %>% 
+  filter(term %in% c("socia_t2 ~ socia_t1", "d_socia_1 =~ socia_t2", "socia_t1 ~~ d_socia_1", # change parameters
+                     "d_socia_1 ~ sa07_01_t1", "sa07_01_t1 ~~ sa07_01_t1", "d_socia_1 ~ sa07_01_t1", # acceptance goals
+                     "d_socia_1 ~1 ", "socia_t1 ~1 ", "", # means
+                     "d_socia_1 ~~ d_socia_1"))
+kable(params_lcs_socia_curr_specif_hyp7, digits = 3) 
+```
+
+::: {.callout-note appearance="minimal"}
+The facet-specific acceptance goal significantly moderates changes in sociability (current-self), *b* = `r round(params_lcs_socia_curr_specif_hyp7 %>% filter(term=="d_socia_1 ~ sa07_01_t1") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_socia_curr_specif_hyp7 %>% filter(term=="d_socia_1 ~ sa07_01_t1") %>% pull(p.value), 3)`. 
+:::
+
+##### Sociability - frequency of self-acceptance behaviors as moderator of change
+
+Results summary (*frequ* = frequency of self-acceptance behavior):
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+
+# model fit
+kable(broom::glance(fit_mi_lcs_socia_curr_frequ_hyp7) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+
+# parameters of interest
+params_lcs_socia_curr_frequ_hyp7 <- broom::tidy(fit_mi_lcs_socia_curr_frequ_hyp7, conf.int = TRUE, conf.level = 0.95) %>% 
+        select(term, estimate, conf.low, conf.high, std.all, statistic, p.value) %>% 
+        filter(term %in% c("socia_t2 ~ socia_t1", "d_socia_1 =~ socia_t2", "socia_t1 ~~ d_socia_1", # change parameters
+                           "d_socia_1 ~ frequ", "frequ ~~ frequ", "socia_t1 ~ frequ", # frequency of self improvement
+                           "d_socia_1 ~1 ", "socia_t1 ~1 ", "", # means
+                           "d_socia_1 ~~ d_socia_1"))
+kable(params_lcs_socia_curr_frequ_hyp7, digits = 3) 
+```
+
+::: {.callout-note appearance="minimal"}
+The frequency of self-acceptance behaviors significantly moderates changes in sociability (current-self), *b* = `r round(params_lcs_socia_curr_frequ_hyp7 %>% filter(term=="d_socia_1 ~ frequ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_socia_curr_frequ_hyp7 %>% filter(term=="d_socia_1 ~ frequ") %>% pull(p.value), 3)`. 
+:::
+
+##### Assertiveness - specific, facet-level acceptance goal as moderator of change
+
+Results summary (*sa07_xx_t1* = trait/facet specific acceptance goal):
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+
+# model fit
+kable(broom::glance(fit_mi_lcs_asser_curr_specif_hyp7) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+
+# parameters of interest
+params_lcs_asser_curr_specif_hyp7 <- broom::tidy(fit_mi_lcs_asser_curr_specif_hyp7, conf.int = TRUE, conf.level = 0.95) %>% 
+  select(term, estimate, conf.low, conf.high, std.all, statistic, p.value) %>% 
+  filter(term %in% c("asser_t2 ~ asser_t1", "d_asser_1 =~ asser_t2", "asser_t1 ~~ d_asser_1", # change parameters
+                     "d_asser_1 ~ sa07_02_t1", "sa07_02_t1 ~~ sa07_02_t1", "d_asser_1 ~ sa07_02_t1", # acceptance goals
+                     "d_asser_1 ~1 ", "asser_t1 ~1 ", "", # means
+                     "d_asser_1 ~~ d_asser_1"))
+kable(params_lcs_asser_curr_specif_hyp7, digits = 3) 
+```
+
+::: {.callout-note appearance="minimal"}
+The facet-specific acceptance goal significantly moderates changes in assertiveness (current-self), *b* = `r round(params_lcs_asser_curr_specif_hyp7 %>% filter(term=="d_asser_1 ~ sa07_02_t1") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_asser_curr_specif_hyp7 %>% filter(term=="d_asser_1 ~ sa07_02_t1") %>% pull(p.value), 3)`. 
+:::
+
+##### Assertiveness - frequency of self-acceptance behaviors as moderator of change
+
+Results summary (*frequ* = frequency of self-acceptance behavior):
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+
+# model fit
+kable(broom::glance(fit_mi_lcs_asser_curr_frequ_hyp7) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+
+# parameters of interest
+params_lcs_asser_curr_frequ_hyp7 <- broom::tidy(fit_mi_lcs_asser_curr_frequ_hyp7, conf.int = TRUE, conf.level = 0.95) %>% 
+        select(term, estimate, conf.low, conf.high, std.all, statistic, p.value) %>% 
+        filter(term %in% c("asser_t2 ~ asser_t1", "d_asser_1 =~ asser_t2", "asser_t1 ~~ d_asser_1", # change parameters
+                           "d_asser_1 ~ frequ", "frequ ~~ frequ", "asser_t1 ~ frequ", # frequency of self improvement
+                           "d_asser_1 ~1 ", "asser_t1 ~1 ", "", # means
+                           "d_asser_1 ~~ d_asser_1"))
+kable(params_lcs_asser_curr_frequ_hyp7, digits = 3) 
+```
+
+::: {.callout-note appearance="minimal"}
+The frequency of self-acceptance behaviors significantly moderates changes in assertiveness (current-self), *b* = `r round(params_lcs_asser_curr_frequ_hyp7 %>% filter(term=="d_asser_1 ~ frequ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_asser_curr_frequ_hyp7 %>% filter(term=="d_asser_1 ~ frequ") %>% pull(p.value), 3)`. 
+:::
+
+##### Energy - specific, facet-level acceptance goal as moderator of change
+
+Results summary (*sa07_xx_t1* = trait/facet specific acceptance goal):
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+
+# model fit
+kable(broom::glance(fit_mi_lcs_energ_curr_specif_hyp7) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+
+# parameters of interest
+params_lcs_energ_curr_specif_hyp7 <- broom::tidy(fit_mi_lcs_energ_curr_specif_hyp7, conf.int = TRUE, conf.level = 0.95) %>% 
+  select(term, estimate, conf.low, conf.high, std.all, statistic, p.value) %>% 
+  filter(term %in% c("energ_t2 ~ energ_t1", "d_energ_1 =~ energ_t2", "energ_t1 ~~ d_energ_1", # change parameters
+                     "d_energ_1 ~ sa07_03_t1", "sa07_03_t1 ~~ sa07_03_t1", "d_energ_1 ~ sa07_03_t1", # acceptance goals
+                     "d_energ_1 ~1 ", "energ_t1 ~1 ", "", # means
+                     "d_energ_1 ~~ d_energ_1"))
+kable(params_lcs_energ_curr_specif_hyp7, digits = 3) 
+```
+
+::: {.callout-note appearance="minimal"}
+The facet-specific acceptance goal significantly moderates changes in energy (current-self), *b* = `r round(params_lcs_energ_curr_specif_hyp7 %>% filter(term=="d_energ_1 ~ sa07_03_t1") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_energ_curr_specif_hyp7 %>% filter(term=="d_energ_1 ~ sa07_03_t1") %>% pull(p.value), 3)`. 
+:::
+
+##### Energy - frequency of self-acceptance behaviors as moderator of change
+
+Results summary (*frequ* = frequency of self-acceptance behavior):
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+
+# model fit
+kable(broom::glance(fit_mi_lcs_energ_curr_frequ_hyp7) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+
+# parameters of interest
+params_lcs_energ_curr_frequ_hyp7 <- broom::tidy(fit_mi_lcs_energ_curr_frequ_hyp7, conf.int = TRUE, conf.level = 0.95) %>% 
+        select(term, estimate, conf.low, conf.high, std.all, statistic, p.value) %>% 
+        filter(term %in% c("energ_t2 ~ energ_t1", "d_energ_1 =~ energ_t2", "energ_t1 ~~ d_energ_1", # change parameters
+                           "d_energ_1 ~ frequ", "frequ ~~ frequ", "energ_t1 ~ frequ", # frequency of self improvement
+                           "d_energ_1 ~1 ", "energ_t1 ~1 ", "", # means
+                           "d_energ_1 ~~ d_energ_1"))
+kable(params_lcs_energ_curr_frequ_hyp7, digits = 3) 
+```
+
+::: {.callout-note appearance="minimal"}
+The frequency of self-acceptance behaviors significantly moderates changes in energy (current-self), *b* = `r round(params_lcs_energ_curr_frequ_hyp7 %>% filter(term=="d_energ_1 ~ frequ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_energ_curr_frequ_hyp7 %>% filter(term=="d_energ_1 ~ frequ") %>% pull(p.value), 3)`. 
+:::
+
+##### Compassion - specific, facet-level acceptance goal as moderator of change
+
+Results summary (*sa07_xx_t1* = trait/facet specific acceptance goal):
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+
+# model fit
+kable(broom::glance(fit_mi_lcs_compa_curr_specif_hyp7) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+
+# parameters of interest
+params_lcs_compa_curr_specif_hyp7 <- broom::tidy(fit_mi_lcs_compa_curr_specif_hyp7, conf.int = TRUE, conf.level = 0.95) %>% 
+  select(term, estimate, conf.low, conf.high, std.all, statistic, p.value) %>% 
+  filter(term %in% c("compa_t2 ~ compa_t1", "d_compa_1 =~ compa_t2", "compa_t1 ~~ d_compa_1", # change parameters
+                     "d_compa_1 ~ sa07_04_t1", "sa07_04_t1 ~~ sa07_04_t1", "d_compa_1 ~ sa07_04_t1", # acceptance goals
+                     "d_compa_1 ~1 ", "compa_t1 ~1 ", "", # means
+                     "d_compa_1 ~~ d_compa_1"))
+kable(params_lcs_compa_curr_specif_hyp7, digits = 3) 
+```
+
+::: {.callout-note appearance="minimal"}
+The moderation effect of the facet-specific acceptance goal with the compassion change score (current-self) is not significantly different from zero, *b* = `r round(params_lcs_compa_curr_specif_hyp7 %>% filter(term=="d_compa_1 ~ sa07_04_t1") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_compa_curr_specif_hyp7 %>% filter(term=="d_compa_1 ~ sa07_04_t1") %>% pull(p.value), 3)`. 
+:::
+
+##### Compassion - frequency of self-acceptance behaviors as moderator of change
+
+Results summary (*frequ* = frequency of self-acceptance behavior):
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+
+# model fit
+kable(broom::glance(fit_mi_lcs_compa_curr_frequ_hyp7) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+
+# parameters of interest
+params_lcs_compa_curr_frequ_hyp7 <- broom::tidy(fit_mi_lcs_compa_curr_frequ_hyp7, conf.int = TRUE, conf.level = 0.95) %>% 
+        select(term, estimate, conf.low, conf.high, std.all, statistic, p.value) %>% 
+        filter(term %in% c("compa_t2 ~ compa_t1", "d_compa_1 =~ compa_t2", "compa_t1 ~~ d_compa_1", # change parameters
+                           "d_compa_1 ~ frequ", "frequ ~~ frequ", "compa_t1 ~ frequ", # frequency of self improvement
+                           "d_compa_1 ~1 ", "compa_t1 ~1 ", "", # means
+                           "d_compa_1 ~~ d_compa_1"))
+kable(params_lcs_compa_curr_frequ_hyp7, digits = 3) 
+```
+
+::: {.callout-note appearance="minimal"}
+The moderation effect of the frequency of self-acceptance behaviors with the compassion change score (current-self) is not significantly different from zero, *b* = `r round(params_lcs_compa_curr_frequ_hyp7 %>% filter(term=="d_compa_1 ~ frequ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_compa_curr_frequ_hyp7 %>% filter(term=="d_compa_1 ~ frequ") %>% pull(p.value), 3)`. 
+:::
+
+##### Respectfulness - specific, facet-level acceptance goal as moderator of change
+
+Results summary (*sa07_xx_t1* = trait/facet specific acceptance goal):
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+
+# model fit
+kable(broom::glance(fit_mi_lcs_respe_curr_specif_hyp7) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+
+# parameters of interest
+params_lcs_respe_curr_specif_hyp7 <- broom::tidy(fit_mi_lcs_respe_curr_specif_hyp7, conf.int = TRUE, conf.level = 0.95) %>% 
+  select(term, estimate, conf.low, conf.high, std.all, statistic, p.value) %>% 
+  filter(term %in% c("respe_t2 ~ respe_t1", "d_respe_1 =~ respe_t2", "respe_t1 ~~ d_respe_1", # change parameters
+                     "d_respe_1 ~ sa07_05_t1", "sa07_05_t1 ~~ sa07_05_t1", "d_respe_1 ~ sa07_05_t1", # acceptance goals
+                     "d_respe_1 ~1 ", "respe_t1 ~1 ", "", # means
+                     "d_respe_1 ~~ d_respe_1"))
+kable(params_lcs_respe_curr_specif_hyp7, digits = 3) 
+```
+
+::: {.callout-note appearance="minimal"}
+The facet-specific acceptance goal significantly moderates changes in respectfulness (current-self) between T1 and T2, *b* = `r round(params_lcs_respe_curr_specif_hyp7 %>% filter(term=="d_respe_1 ~ sa07_05_t1") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_respe_curr_specif_hyp7 %>% filter(term=="d_respe_1 ~ sa07_05_t1") %>% pull(p.value), 3)`. 
+:::
+
+##### Respectfulness - frequency of self-acceptance behaviors as moderator of change
+
+Results summary (*frequ* = frequency of self-acceptance behavior):
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+
+# model fit
+kable(broom::glance(fit_mi_lcs_respe_curr_frequ_hyp7) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+
+# parameters of interest
+params_lcs_respe_curr_frequ_hyp7 <- broom::tidy(fit_mi_lcs_respe_curr_frequ_hyp7, conf.int = TRUE, conf.level = 0.95) %>% 
+        select(term, estimate, conf.low, conf.high, std.all, statistic, p.value) %>% 
+        filter(term %in% c("respe_t2 ~ respe_t1", "d_respe_1 =~ respe_t2", "respe_t1 ~~ d_respe_1", # change parameters
+                           "d_respe_1 ~ frequ", "frequ ~~ frequ", "respe_t1 ~ frequ", # frequency of self improvement
+                           "d_respe_1 ~1 ", "respe_t1 ~1 ", "", # means
+                           "d_respe_1 ~~ d_respe_1"))
+kable(params_lcs_respe_curr_frequ_hyp7, digits = 3) 
+```
+
+::: {.callout-note appearance="minimal"}
+The moderation effect of the frequency of self-acceptance behaviors with the respectfulness change score (current-self) is not significantly different from zero, *b* = `r round(params_lcs_respe_curr_frequ_hyp7 %>% filter(term=="d_respe_1 ~ frequ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_respe_curr_frequ_hyp7 %>% filter(term=="d_respe_1 ~ frequ") %>% pull(p.value), 3)`. 
+:::
+
+##### Trust - specific, facet-level acceptance goal as moderator of change
+
+Results summary (*sa07_xx_t1* = trait/facet specific acceptance goal):
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+
+# model fit
+kable(broom::glance(fit_mi_lcs_trust_curr_specif_hyp7) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+
+# parameters of interest
+params_lcs_trust_curr_specif_hyp7 <- broom::tidy(fit_mi_lcs_trust_curr_specif_hyp7, conf.int = TRUE, conf.level = 0.95) %>% 
+  select(term, estimate, conf.low, conf.high, std.all, statistic, p.value) %>% 
+  filter(term %in% c("trust_t2 ~ trust_t1", "d_trust_1 =~ trust_t2", "trust_t1 ~~ d_trust_1", # change parameters
+                     "d_trust_1 ~ sa07_06_t1", "sa07_06_t1 ~~ sa07_06_t1", "d_trust_1 ~ sa07_06_t1", # acceptance goals
+                     "d_trust_1 ~1 ", "trust_t1 ~1 ", "", # means
+                     "d_trust_1 ~~ d_trust_1"))
+kable(params_lcs_trust_curr_specif_hyp7, digits = 3) 
+```
+
+::: {.callout-note appearance="minimal"}
+The moderation effect of the facet-specific acceptance goal with the trust change score (current-self) is not significantly different from zero (at *p* < .001), *b* = `r round(params_lcs_trust_curr_specif_hyp7 %>% filter(term=="d_trust_1 ~ sa07_06_t1") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_trust_curr_specif_hyp7 %>% filter(term=="d_trust_1 ~ sa07_06_t1") %>% pull(p.value), 3)`. 
+:::
+
+##### Trust - frequency of self-acceptance behaviors as moderator of change
+
+Results summary (*frequ* = frequency of self-acceptance behavior):
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+
+# model fit
+kable(broom::glance(fit_mi_lcs_trust_curr_frequ_hyp7) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+
+# parameters of interest
+params_lcs_trust_curr_frequ_hyp7 <- broom::tidy(fit_mi_lcs_trust_curr_frequ_hyp7, conf.int = TRUE, conf.level = 0.95) %>% 
+        select(term, estimate, conf.low, conf.high, std.all, statistic, p.value) %>% 
+        filter(term %in% c("trust_t2 ~ trust_t1", "d_trust_1 =~ trust_t2", "trust_t1 ~~ d_trust_1", # change parameters
+                           "d_trust_1 ~ frequ", "frequ ~~ frequ", "trust_t1 ~ frequ", # frequency of self improvement
+                           "d_trust_1 ~1 ", "trust_t1 ~1 ", "", # means
+                           "d_trust_1 ~~ d_trust_1"))
+kable(params_lcs_trust_curr_frequ_hyp7, digits = 3) 
+```
+
+::: {.callout-note appearance="minimal"}
+The frequency of self-acceptance behaviors significantly moderates changes in trust (current-self), *b* = `r round(params_lcs_trust_curr_frequ_hyp7 %>% filter(term=="d_trust_1 ~ frequ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_trust_curr_frequ_hyp7 %>% filter(term=="d_trust_1 ~ frequ") %>% pull(p.value), 3)`. 
+:::
+
+##### Organization - specific, facet-level acceptance goal as moderator of change
+
+Results summary (*sa07_xx_t1* = trait/facet specific acceptance goal):
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+
+# model fit
+kable(broom::glance(fit_mi_lcs_organ_curr_specif_hyp7) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+
+# parameters of interest
+params_lcs_organ_curr_specif_hyp7 <- broom::tidy(fit_mi_lcs_organ_curr_specif_hyp7, conf.int = TRUE, conf.level = 0.95) %>% 
+  select(term, estimate, conf.low, conf.high, std.all, statistic, p.value) %>% 
+  filter(term %in% c("organ_t2 ~ organ_t1", "d_organ_1 =~ organ_t2", "organ_t1 ~~ d_organ_1", # change parameters
+                     "d_organ_1 ~ sa07_07_t1", "sa07_07_t1 ~~ sa07_07_t1", "d_organ_1 ~ sa07_07_t1", # acceptance goals
+                     "d_organ_1 ~1 ", "organ_t1 ~1 ", "", # means
+                     "d_organ_1 ~~ d_organ_1"))
+kable(params_lcs_organ_curr_specif_hyp7, digits = 3) 
+```
+
+::: {.callout-note appearance="minimal"}
+The facet-specific acceptance goal significantly moderates changes in organization (current-self), *b* = `r round(params_lcs_organ_curr_specif_hyp7 %>% filter(term=="d_organ_1 ~ sa07_07_t1") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_organ_curr_specif_hyp7 %>% filter(term=="d_organ_1 ~ sa07_07_t1") %>% pull(p.value), 3)`. 
+:::
+
+##### Organization - frequency of self-acceptance behaviors as moderator of change
+
+Results summary (*frequ* = frequency of self-acceptance behavior):
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+
+# model fit
+kable(broom::glance(fit_mi_lcs_organ_curr_frequ_hyp7) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+
+# parameters of interest
+params_lcs_organ_curr_frequ_hyp7 <- broom::tidy(fit_mi_lcs_organ_curr_frequ_hyp7, conf.int = TRUE, conf.level = 0.95) %>% 
+        select(term, estimate, conf.low, conf.high, std.all, statistic, p.value) %>% 
+        filter(term %in% c("organ_t2 ~ organ_t1", "d_organ_1 =~ organ_t2", "organ_t1 ~~ d_organ_1", # change parameters
+                           "d_organ_1 ~ frequ", "frequ ~~ frequ", "organ_t1 ~ frequ", # frequency of self improvement
+                           "d_organ_1 ~1 ", "organ_t1 ~1 ", "", # means
+                           "d_organ_1 ~~ d_organ_1"))
+kable(params_lcs_organ_curr_frequ_hyp7, digits = 3) 
+```
+
+::: {.callout-note appearance="minimal"}
+The moderation effect of the frequency of self-acceptance behaviors with the organization change score (current-self) is not significantly different from zero, *b* = `r round(params_lcs_organ_curr_frequ_hyp7 %>% filter(term=="d_organ_1 ~ frequ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_organ_curr_frequ_hyp7 %>% filter(term=="d_organ_1 ~ frequ") %>% pull(p.value), 3)`. 
+:::
+
+##### Productiveness - specific, facet-level acceptance goal as moderator of change
+
+Results summary (*sa07_xx_t1* = trait/facet specific acceptance goal):
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+
+# model fit
+kable(broom::glance(fit_mi_lcs_produ_curr_specif_hyp7) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+
+# parameters of interest
+params_lcs_produ_curr_specif_hyp7 <- broom::tidy(fit_mi_lcs_produ_curr_specif_hyp7, conf.int = TRUE, conf.level = 0.95) %>% 
+  select(term, estimate, conf.low, conf.high, std.all, statistic, p.value) %>% 
+  filter(term %in% c("produ_t2 ~ produ_t1", "d_produ_1 =~ produ_t2", "produ_t1 ~~ d_produ_1", # change parameters
+                     "d_produ_1 ~ sa07_08_t1", "sa07_08_t1 ~~ sa07_08_t1", "d_produ_1 ~ sa07_08_t1", # acceptance goals
+                     "d_produ_1 ~1 ", "produ_t1 ~1 ", "", # means
+                     "d_produ_1 ~~ d_produ_1"))
+kable(params_lcs_produ_curr_specif_hyp7, digits = 3) 
+```
+
+::: {.callout-note appearance="minimal"}
+The moderation effect of the facet-specific acceptance goal with the productiveness change score (current-self) is not significantly different from zero, *b* = `r round(params_lcs_produ_curr_specif_hyp7 %>% filter(term=="d_produ_1 ~ sa07_08_t1") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_produ_curr_specif_hyp7 %>% filter(term=="d_produ_1 ~ sa07_08_t1") %>% pull(p.value), 3)`. 
+:::
+
+##### Productiveness - frequency of self-acceptance behaviors as moderator of change
+
+Results summary (*frequ* = frequency of self-acceptance behavior):
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+
+# model fit
+kable(broom::glance(fit_mi_lcs_produ_curr_frequ_hyp7) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+
+# parameters of interest
+params_lcs_produ_curr_frequ_hyp7 <- broom::tidy(fit_mi_lcs_produ_curr_frequ_hyp7, conf.int = TRUE, conf.level = 0.95) %>% 
+        select(term, estimate, conf.low, conf.high, std.all, statistic, p.value) %>% 
+        filter(term %in% c("produ_t2 ~ produ_t1", "d_produ_1 =~ produ_t2", "produ_t1 ~~ d_produ_1", # change parameters
+                           "d_produ_1 ~ frequ", "frequ ~~ frequ", "produ_t1 ~ frequ", # frequency of self improvement
+                           "d_produ_1 ~1 ", "produ_t1 ~1 ", "", # means
+                           "d_produ_1 ~~ d_produ_1"))
+kable(params_lcs_produ_curr_frequ_hyp7, digits = 3) 
+```
+
+::: {.callout-note appearance="minimal"}
+The frequency of self-acceptance behaviors significantly moderates changes in productiveness (current-self), *b* = `r round(params_lcs_produ_curr_frequ_hyp7 %>% filter(term=="d_produ_1 ~ frequ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_produ_curr_frequ_hyp7 %>% filter(term=="d_produ_1 ~ frequ") %>% pull(p.value), 3)`. 
+:::
+
+##### Responsibility - specific, facet-level acceptance goal as moderator of change
+
+Results summary (*sa07_xx_t1* = trait/facet specific acceptance goal):
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+
+# model fit
+kable(broom::glance(fit_mi_lcs_respo_curr_specif_hyp7) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+
+# parameters of interest
+params_lcs_respo_curr_specif_hyp7 <- broom::tidy(fit_mi_lcs_respo_curr_specif_hyp7, conf.int = TRUE, conf.level = 0.95) %>% 
+  select(term, estimate, conf.low, conf.high, std.all, statistic, p.value) %>% 
+  filter(term %in% c("respo_t2 ~ respo_t1", "d_respo_1 =~ respo_t2", "respo_t1 ~~ d_respo_1", # change parameters
+                     "d_respo_1 ~ sa07_09_t1", "sa07_09_t1 ~~ sa07_09_t1", "d_respo_1 ~ sa07_09_t1", # acceptance goals
+                     "d_respo_1 ~1 ", "respo_t1 ~1 ", "", # means
+                     "d_respo_1 ~~ d_respo_1"))
+kable(params_lcs_respo_curr_specif_hyp7, digits = 3) 
+```
+
+::: {.callout-note appearance="minimal"}
+The moderation effect of the facet-specific acceptance goal with the responsibility change score (current-self) is not significantly different from zero, *b* = `r round(params_lcs_respo_curr_specif_hyp7 %>% filter(term=="d_respo_1 ~ sa07_09_t1") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_respo_curr_specif_hyp7 %>% filter(term=="d_respo_1 ~ sa07_09_t1") %>% pull(p.value), 3)`. 
+:::
+
+##### Responsibility - frequency of self-acceptance behaviors as moderator of change
+
+Results summary (*frequ* = frequency of self-acceptance behavior):
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+
+# model fit
+kable(broom::glance(fit_mi_lcs_respo_curr_frequ_hyp7) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+
+# parameters of interest
+params_lcs_respo_curr_frequ_hyp7 <- broom::tidy(fit_mi_lcs_respo_curr_frequ_hyp7, conf.int = TRUE, conf.level = 0.95) %>% 
+        select(term, estimate, conf.low, conf.high, std.all, statistic, p.value) %>% 
+        filter(term %in% c("respo_t2 ~ respo_t1", "d_respo_1 =~ respo_t2", "respo_t1 ~~ d_respo_1", # change parameters
+                           "d_respo_1 ~ frequ", "frequ ~~ frequ", "respo_t1 ~ frequ", # frequency of self improvement
+                           "d_respo_1 ~1 ", "respo_t1 ~1 ", "", # means
+                           "d_respo_1 ~~ d_respo_1"))
+kable(params_lcs_respo_curr_frequ_hyp7, digits = 3) 
+```
+
+::: {.callout-note appearance="minimal"}
+The frequency of self-acceptance behaviors significantly moderates changes in responsibility (current-self), *b* = `r round(params_lcs_respo_curr_frequ_hyp7 %>% filter(term=="d_respo_1 ~ frequ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_respo_curr_frequ_hyp7 %>% filter(term=="d_respo_1 ~ frequ") %>% pull(p.value), 3)`. 
+:::
+
+##### Anxiety - specific, facet-level acceptance goal as moderator of change
+
+Results summary (*sa07_xx_t1* = trait/facet specific acceptance goal):
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+
+# model fit
+kable(broom::glance(fit_mi_lcs_anxie_curr_specif_hyp7) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+
+# parameters of interest
+params_lcs_anxie_curr_specif_hyp7 <- broom::tidy(fit_mi_lcs_anxie_curr_specif_hyp7, conf.int = TRUE, conf.level = 0.95) %>% 
+  select(term, estimate, conf.low, conf.high, std.all, statistic, p.value) %>% 
+  filter(term %in% c("anxie_t2 ~ anxie_t1", "d_anxie_1 =~ anxie_t2", "anxie_t1 ~~ d_anxie_1", # change parameters
+                     "d_anxie_1 ~ sa07_10_t1", "sa07_10_t1 ~~ sa07_10_t1", "d_anxie_1 ~ sa07_10_t1", # acceptance goals
+                     "d_anxie_1 ~1 ", "anxie_t1 ~1 ", "", # means
+                     "d_anxie_1 ~~ d_anxie_1"))
+kable(params_lcs_anxie_curr_specif_hyp7, digits = 3) 
+```
+
+::: {.callout-note appearance="minimal"}
+The facet-specific acceptance goal significantly moderates changes in anxiety (current-self), *b* = `r round(params_lcs_anxie_curr_specif_hyp7 %>% filter(term=="d_anxie_1 ~ sa07_10_t1") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_anxie_curr_specif_hyp7 %>% filter(term=="d_anxie_1 ~ sa07_10_t1") %>% pull(p.value), 3)`. 
+:::
+
+##### Anxiety - frequency of self-acceptance behaviors as moderator of change
+
+Results summary (*frequ* = frequency of self-acceptance behavior):
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+
+# model fit
+kable(broom::glance(fit_mi_lcs_anxie_curr_frequ_hyp7) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+
+# parameters of interest
+params_lcs_anxie_curr_frequ_hyp7 <- broom::tidy(fit_mi_lcs_anxie_curr_frequ_hyp7, conf.int = TRUE, conf.level = 0.95) %>% 
+        select(term, estimate, conf.low, conf.high, std.all, statistic, p.value) %>% 
+        filter(term %in% c("anxie_t2 ~ anxie_t1", "d_anxie_1 =~ anxie_t2", "anxie_t1 ~~ d_anxie_1", # change parameters
+                           "d_anxie_1 ~ frequ", "frequ ~~ frequ", "anxie_t1 ~ frequ", # frequency of self improvement
+                           "d_anxie_1 ~1 ", "anxie_t1 ~1 ", "", # means
+                           "d_anxie_1 ~~ d_anxie_1"))
+kable(params_lcs_anxie_curr_frequ_hyp7, digits = 3) 
+```
+
+::: {.callout-note appearance="minimal"}
+The frequency of self-acceptance behaviors significantly moderates changes in anxiety (current-self), *b* = `r round(params_lcs_anxie_curr_frequ_hyp7 %>% filter(term=="d_anxie_1 ~ frequ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_anxie_curr_frequ_hyp7 %>% filter(term=="d_anxie_1 ~ frequ") %>% pull(p.value), 3)`. 
+:::
+
+##### Depression - specific, facet-level acceptance goal as moderator of change
+
+Results summary (*sa07_xx_t1* = trait/facet specific acceptance goal):
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+
+# model fit
+kable(broom::glance(fit_mi_lcs_depre_curr_specif_hyp7) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+
+# parameters of interest
+params_lcs_depre_curr_specif_hyp7 <- broom::tidy(fit_mi_lcs_depre_curr_specif_hyp7, conf.int = TRUE, conf.level = 0.95) %>% 
+  select(term, estimate, conf.low, conf.high, std.all, statistic, p.value) %>% 
+  filter(term %in% c("depre_t2 ~ depre_t1", "d_depre_1 =~ depre_t2", "depre_t1 ~~ d_depre_1", # change parameters
+                     "d_depre_1 ~ sa07_11_t1", "sa07_11_t1 ~~ sa07_11_t1", "d_depre_1 ~ sa07_11_t1", # acceptance goals
+                     "d_depre_1 ~1 ", "depre_t1 ~1 ", "", # means
+                     "d_depre_1 ~~ d_depre_1"))
+kable(params_lcs_depre_curr_specif_hyp7, digits = 3) 
+```
+
+::: {.callout-note appearance="minimal"}
+The facet-specific acceptance goal significantly moderates changes in depression (current-self), *b* = `r round(params_lcs_depre_curr_specif_hyp7 %>% filter(term=="d_depre_1 ~ sa07_11_t1") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_depre_curr_specif_hyp7 %>% filter(term=="d_depre_1 ~ sa07_11_t1") %>% pull(p.value), 3)`. 
+:::
+
+##### Depression - frequency of self-acceptance behaviors as moderator of change
+
+Results summary (*frequ* = frequency of self-acceptance behavior):
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+
+# model fit
+kable(broom::glance(fit_mi_lcs_depre_curr_frequ_hyp7) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+
+# parameters of interest
+params_lcs_depre_curr_frequ_hyp7 <- broom::tidy(fit_mi_lcs_depre_curr_frequ_hyp7, conf.int = TRUE, conf.level = 0.95) %>% 
+        select(term, estimate, conf.low, conf.high, std.all, statistic, p.value) %>% 
+        filter(term %in% c("depre_t2 ~ depre_t1", "d_depre_1 =~ depre_t2", "depre_t1 ~~ d_depre_1", # change parameters
+                           "d_depre_1 ~ frequ", "frequ ~~ frequ", "depre_t1 ~ frequ", # frequency of self improvement
+                           "d_depre_1 ~1 ", "depre_t1 ~1 ", "", # means
+                           "d_depre_1 ~~ d_depre_1"))
+kable(params_lcs_depre_curr_frequ_hyp7, digits = 3) 
+```
+
+::: {.callout-note appearance="minimal"}
+The frequency of self-acceptance behaviors significantly moderates changes in depression (current-self), *b* = `r round(params_lcs_depre_curr_frequ_hyp7 %>% filter(term=="d_depre_1 ~ frequ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_depre_curr_frequ_hyp7 %>% filter(term=="d_depre_1 ~ frequ") %>% pull(p.value), 3)`. 
+:::
+
+##### Volatility - specific, facet-level acceptance goal as moderator of change
+
+Results summary (*sa07_xx_t1* = trait/facet specific acceptance goal):
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+
+# model fit
+kable(broom::glance(fit_mi_lcs_volat_curr_specif_hyp7) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+
+# parameters of interest
+params_lcs_volat_curr_specif_hyp7 <- broom::tidy(fit_mi_lcs_volat_curr_specif_hyp7, conf.int = TRUE, conf.level = 0.95) %>% 
+  select(term, estimate, conf.low, conf.high, std.all, statistic, p.value) %>% 
+  filter(term %in% c("volat_t2 ~ volat_t1", "d_volat_1 =~ volat_t2", "volat_t1 ~~ d_volat_1", # change parameters
+                     "d_volat_1 ~ sa07_12_t1", "sa07_12_t1 ~~ sa07_12_t1", "d_volat_1 ~ sa07_12_t1", # acceptance goals
+                     "d_volat_1 ~1 ", "volat_t1 ~1 ", "", # means
+                     "d_volat_1 ~~ d_volat_1"))
+kable(params_lcs_volat_curr_specif_hyp7, digits = 3) 
+```
+
+::: {.callout-note appearance="minimal"}
+The moderation effect of the facet-specific acceptance goal with the volatility change score (current-self) is not significantly different from zero, *b* = `r round(params_lcs_volat_curr_specif_hyp7 %>% filter(term=="d_volat_1 ~ sa07_12_t1") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_volat_curr_specif_hyp7 %>% filter(term=="d_volat_1 ~ sa07_12_t1") %>% pull(p.value), 3)`. 
+:::
+
+##### Volatility - frequency of self-acceptance behaviors as moderator of change
+
+Results summary (*frequ* = frequency of self-acceptance behavior):
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+
+# model fit
+kable(broom::glance(fit_mi_lcs_volat_curr_frequ_hyp7) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+
+# parameters of interest
+params_lcs_volat_curr_frequ_hyp7 <- broom::tidy(fit_mi_lcs_volat_curr_frequ_hyp7, conf.int = TRUE, conf.level = 0.95) %>% 
+        select(term, estimate, conf.low, conf.high, std.all, statistic, p.value) %>% 
+        filter(term %in% c("volat_t2 ~ volat_t1", "d_volat_1 =~ volat_t2", "volat_t1 ~~ d_volat_1", # change parameters
+                           "d_volat_1 ~ frequ", "frequ ~~ frequ", "volat_t1 ~ frequ", # frequency of self improvement
+                           "d_volat_1 ~1 ", "volat_t1 ~1 ", "", # means
+                           "d_volat_1 ~~ d_volat_1"))
+kable(params_lcs_volat_curr_frequ_hyp7, digits = 3) 
+```
+
+::: {.callout-note appearance="minimal"}
+The frequency of self-acceptance behaviors significantly moderates changes in volatility (current-self), *b* = `r round(params_lcs_volat_curr_frequ_hyp7 %>% filter(term=="d_volat_1 ~ frequ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_volat_curr_frequ_hyp7 %>% filter(term=="d_volat_1 ~ frequ") %>% pull(p.value), 3)`. 
+:::
+
+##### Curiosity - specific, facet-level acceptance goal as moderator of change
+
+Results summary (*sa07_xx_t1* = trait/facet specific acceptance goal):
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+
+# model fit
+kable(broom::glance(fit_mi_lcs_curio_curr_specif_hyp7) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+
+# parameters of interest
+params_lcs_curio_curr_specif_hyp7 <- broom::tidy(fit_mi_lcs_curio_curr_specif_hyp7, conf.int = TRUE, conf.level = 0.95) %>% 
+  select(term, estimate, conf.low, conf.high, std.all, statistic, p.value) %>% 
+  filter(term %in% c("curio_t2 ~ curio_t1", "d_curio_1 =~ curio_t2", "curio_t1 ~~ d_curio_1", # change parameters
+                     "d_curio_1 ~ sa07_13_t1", "sa07_13_t1 ~~ sa07_13_t1", "d_curio_1 ~ sa07_13_t1", # acceptance goals
+                     "d_curio_1 ~1 ", "curio_t1 ~1 ", "", # means
+                     "d_curio_1 ~~ d_curio_1"))
+kable(params_lcs_curio_curr_specif_hyp7, digits = 3) 
+```
+
+::: {.callout-note appearance="minimal"}
+The moderation effect of the facet-specific acceptance goal with the curiosity change score (current-self) is not significantly different from zero (at *p* < .001), *b* = `r round(params_lcs_curio_curr_specif_hyp7 %>% filter(term=="d_curio_1 ~ sa07_13_t1") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_curio_curr_specif_hyp7 %>% filter(term=="d_curio_1 ~ sa07_13_t1") %>% pull(p.value), 3)`. 
+:::
+
+##### Curiosity - frequency of self-acceptance behaviors as moderator of change
+
+Results summary (*frequ* = frequency of self-acceptance behavior):
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+
+# model fit
+kable(broom::glance(fit_mi_lcs_curio_curr_frequ_hyp7) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+
+# parameters of interest
+params_lcs_curio_curr_frequ_hyp7 <- broom::tidy(fit_mi_lcs_curio_curr_frequ_hyp7, conf.int = TRUE, conf.level = 0.95) %>% 
+        select(term, estimate, conf.low, conf.high, std.all, statistic, p.value) %>% 
+        filter(term %in% c("curio_t2 ~ curio_t1", "d_curio_1 =~ curio_t2", "curio_t1 ~~ d_curio_1", # change parameters
+                           "d_curio_1 ~ frequ", "frequ ~~ frequ", "curio_t1 ~ frequ", # frequency of self improvement
+                           "d_curio_1 ~1 ", "curio_t1 ~1 ", "", # means
+                           "d_curio_1 ~~ d_curio_1"))
+kable(params_lcs_curio_curr_frequ_hyp7, digits = 3) 
+```
+
+::: {.callout-note appearance="minimal"}
+The frequency of self-acceptance behaviors significantly moderates changes in curiosity (current-self), *b* = `r round(params_lcs_curio_curr_frequ_hyp7 %>% filter(term=="d_curio_1 ~ frequ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_curio_curr_frequ_hyp7 %>% filter(term=="d_curio_1 ~ frequ") %>% pull(p.value), 3)`. 
+:::
+
+##### Aesthetic - specific, facet-level acceptance goal as moderator of change
+
+Results summary (*sa07_xx_t1* = trait/facet specific acceptance goal):
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+
+# model fit
+kable(broom::glance(fit_mi_lcs_aesth_curr_specif_hyp7) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+
+# parameters of interest
+params_lcs_aesth_curr_specif_hyp7 <- broom::tidy(fit_mi_lcs_aesth_curr_specif_hyp7, conf.int = TRUE, conf.level = 0.95) %>% 
+  select(term, estimate, conf.low, conf.high, std.all, statistic, p.value) %>% 
+  filter(term %in% c("aesth_t2 ~ aesth_t1", "d_aesth_1 =~ aesth_t2", "aesth_t1 ~~ d_aesth_1", # change parameters
+                     "d_aesth_1 ~ sa07_14_t1", "sa07_14_t1 ~~ sa07_14_t1", "d_aesth_1 ~ sa07_14_t1", # acceptance goals
+                     "d_aesth_1 ~1 ", "aesth_t1 ~1 ", "", # means
+                     "d_aesth_1 ~~ d_aesth_1"))
+kable(params_lcs_aesth_curr_specif_hyp7, digits = 3) 
+```
+
+::: {.callout-note appearance="minimal"}
+The moderation effect of the facet-specific acceptance goal with the aesthetic change score (current-self) is not significantly different from zero, *b* = `r round(params_lcs_aesth_curr_specif_hyp7 %>% filter(term=="d_aesth_1 ~ sa07_14_t1") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_aesth_curr_specif_hyp7 %>% filter(term=="d_aesth_1 ~ sa07_14_t1") %>% pull(p.value), 3)`. 
+:::
+
+##### Aesthetic - frequency of self-acceptance behaviors as moderator of change
+
+Results summary (*frequ* = frequency of self-acceptance behavior):
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+# model fit
+kable(broom::glance(fit_mi_lcs_aesth_curr_frequ_hyp7) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+
+# parameters of interest
+params_lcs_aesth_curr_frequ_hyp7 <- broom::tidy(fit_mi_lcs_aesth_curr_frequ_hyp7, conf.int = TRUE, conf.level = 0.95) %>% 
+        select(term, estimate, conf.low, conf.high, std.all, statistic, p.value) %>% 
+        filter(term %in% c("aesth_t2 ~ aesth_t1", "d_aesth_1 =~ aesth_t2", "aesth_t1 ~~ d_aesth_1", # change parameters
+                           "d_aesth_1 ~ frequ", "frequ ~~ frequ", "aesth_t1 ~ frequ", # frequency of self improvement
+                           "d_aesth_1 ~1 ", "aesth_t1 ~1 ", "", # means
+                           "d_aesth_1 ~~ d_aesth_1"))
+kable(params_lcs_aesth_curr_frequ_hyp7, digits = 3) 
+```
+
+::: {.callout-note appearance="minimal"}
+The frequency of self-acceptance behaviors significantly moderates changes in aesthetic (current-self), *b* = `r round(params_lcs_aesth_curr_frequ_hyp7 %>% filter(term=="d_aesth_1 ~ frequ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_aesth_curr_frequ_hyp7 %>% filter(term=="d_aesth_1 ~ frequ") %>% pull(p.value), 3)`. 
+:::
+
+##### Imagination - specific, facet-level acceptance goal as moderator of change
+
+Results summary (*sa07_$$_t1* = trait/facet specific acceptance goal):
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+
+# model fit
+kable(broom::glance(fit_mi_lcs_imagi_curr_specif_hyp7) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+
+# parameters of interest
+params_lcs_imagi_curr_specif_hyp7 <- broom::tidy(fit_mi_lcs_imagi_curr_specif_hyp7, conf.int = TRUE, conf.level = 0.95) %>% 
+  select(term, estimate, conf.low, conf.high, std.all, statistic, p.value) %>% 
+  filter(term %in% c("imagi_t2 ~ imagi_t1", "d_imagi_1 =~ imagi_t2", "imagi_t1 ~~ d_imagi_1", # change parameters
+                     "d_imagi_1 ~ sa07_15_t1", "sa07_15_t1 ~~ sa07_15_t1", "d_imagi_1 ~ sa07_15_t1", # acceptance goals
+                     "d_imagi_1 ~1 ", "imagi_t1 ~1 ", "", # means
+                     "d_imagi_1 ~~ d_imagi_1"))
+kable(params_lcs_imagi_curr_specif_hyp7, digits = 3) 
+```
+
+::: {.callout-note appearance="minimal"}
+The moderation effect of the facet-specific acceptance goal with the imagination change score (current-self) is not significantly different from zero, *b* = `r round(params_lcs_imagi_curr_specif_hyp7 %>% filter(term=="d_imagi_1 ~ sa07_15_t1") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_imagi_curr_specif_hyp7 %>% filter(term=="d_imagi_1 ~ sa07_15_t1") %>% pull(p.value), 3)`. 
+:::
+
+##### Imagination - frequency of self-acceptance behaviors as moderator of change
+
+Results summary (*frequ* = frequency of self-acceptance behavior):
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+
+# model fit
+kable(broom::glance(fit_mi_lcs_imagi_curr_frequ_hyp7) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+
+# parameters of interest
+params_lcs_imagi_curr_frequ_hyp7 <- broom::tidy(fit_mi_lcs_imagi_curr_frequ_hyp7, conf.int = TRUE, conf.level = 0.95) %>% 
+        select(term, estimate, conf.low, conf.high, std.all, statistic, p.value) %>% 
+        filter(term %in% c("imagi_t2 ~ imagi_t1", "d_imagi_1 =~ imagi_t2", "imagi_t1 ~~ d_imagi_1", # change parameters
+                           "d_imagi_1 ~ frequ", "frequ ~~ frequ", "imagi_t1 ~ frequ", # frequency of self improvement
+                           "d_imagi_1 ~1 ", "imagi_t1 ~1 ", "", # means
+                           "d_imagi_1 ~~ d_imagi_1"))
+kable(params_lcs_imagi_curr_frequ_hyp7, digits = 3) 
+```
+
+::: {.callout-note appearance="minimal"}
+The frequency of self-acceptance behaviors significantly moderates changes in imagination (current-self), *b* = `r round(params_lcs_imagi_curr_frequ_hyp7 %>% filter(term=="d_imagi_1 ~ frequ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_imagi_curr_frequ_hyp7 %>% filter(term=="d_imagi_1 ~ frequ") %>% pull(p.value), 3)`. 
+:::
+
 #### Hyp 7: Effects summary
+
+##### Summary: Ideal self
 
 Run models for all facets with a template & loop:
 ```{r}
@@ -15837,10 +18327,7 @@ kable(df_table_hyp7[1:10, ], digits = 3)
 ```
 
 ::: {.callout-note appearance="minimal"}
-Two moderator effects that are significantly different from zero:  
-
-- The frequency of self-acceptance behaviors moderates changes in ideal-level agreeableness.  
-- Frequency of self-acceptance behaviors also moderates changes in ideal-level conscientiousness.  
+No significant main effects. No moderator effects for ideal-level trait dimensions that are significantly different from zero.  
 :::
 
 Results summary across the Big Five facets: trait-specific acceptance goals (*goals*) and frequency of self-acceptance behaviors (*frequency*) as moderators on the latent change score. *_main* refers to the main effects (change scores) and *_mod* to the moderation effects.  
@@ -15852,11 +18339,7 @@ kable(df_table_hyp7[11:40, ], digits = 3)
 ```
 
 ::: {.callout-note appearance="minimal"}
-Several moderator effects that are significantly different from zero:  
-
-- The frequency of self-acceptance behaviors moderates changes in ideal-level assertiveness.   
-- The effect for agreeableness (frequency of self-acceptance behaviors) is only represented within the respectfulness facet.  
-- The effect for conscientiousness (frequency of self-acceptance behaviors) is represented within the organization and productiveness facets.  
+No significant main effects (except for sociability in the frequency model). No moderator effects for ideal-level facets that are significantly different from zero.  
 :::
 
 Prepare data frame for plotting:
@@ -15936,6 +18419,239 @@ Plotting the effect size across all analyses:
 #| code-summary: "Show the code"
 
 ggplot(df_table_hyp7_plot, aes(x = fct_rev(trait), y = estimate, color = include_0)) +
+  geom_hline(yintercept=0, linetype = 3) +
+  geom_point(size=3, position=position_dodge(0.4)) + 
+  geom_errorbar(aes(ymin = conf.low, ymax = conf.high, color = include_0), width=.2, position=position_dodge(0.4)) +
+  scale_color_manual(values = c("#A9A9A9", "#000000")) +   
+  facet_wrap( ~ ref + moderator, ncol = 2) +
+  theme_bw() +
+  scale_shape_manual(values=c(18)) + 
+  ylab("Effect Estimates (95% CI)") +
+  xlab("") +
+  theme(legend.title=element_blank()) +
+  theme(legend.text=element_text(size=12)) +
+  coord_flip() +
+  theme(strip.text.x = element_text(size = 12)) +
+  theme(axis.text.x=element_text(size=10, angle = 45, hjust = 1), axis.text.y=element_text(size=12)) + 
+  guides(color="none")
+```
+
+##### Summary: Current self
+
+Collect all relevant effects:
+```{r}
+#| echo: true
+#| warning: false
+#| code-fold: true
+#| code-summary: "Show the code"
+#| output: false
+#| cache: true
+
+# create df for table:
+
+# main effects (change score)
+df_table_hyp7_curr_main <- bind_rows(
+  #traits
+  params_lcs_extra_curr_specif_hyp7 %>% filter(term=="d_extra_1 ~1 "),
+  params_lcs_extra_curr_frequ_hyp7 %>% filter(term=="d_extra_1 ~1 "),
+  params_lcs_agree_curr_specif_hyp7 %>% filter(term=="d_agree_1 ~1 "),
+  params_lcs_agree_curr_frequ_hyp7 %>% filter(term=="d_agree_1 ~1 "),
+  params_lcs_consc_curr_specif_hyp7 %>% filter(term=="d_consc_1 ~1 "),
+  params_lcs_consc_curr_frequ_hyp7 %>% filter(term=="d_consc_1 ~1 "),
+  params_lcs_neuro_curr_specif_hyp7 %>% filter(term=="d_neuro_1 ~1 "),
+  params_lcs_neuro_curr_frequ_hyp7 %>% filter(term=="d_neuro_1 ~1 "),
+  params_lcs_openn_curr_specif_hyp7 %>% filter(term=="d_openn_1 ~1 "),
+  params_lcs_openn_curr_frequ_hyp7 %>% filter(term=="d_openn_1 ~1 "),
+  #facets
+  params_lcs_socia_curr_specif_hyp7 %>% filter(term=="d_socia_1 ~1 "),
+  params_lcs_socia_curr_frequ_hyp7 %>% filter(term=="d_socia_1 ~1 "),
+  params_lcs_asser_curr_specif_hyp7 %>% filter(term=="d_asser_1 ~1 "),
+  params_lcs_asser_curr_frequ_hyp7 %>% filter(term=="d_asser_1 ~1 "),
+  params_lcs_energ_curr_specif_hyp7 %>% filter(term=="d_energ_1 ~1 "),
+  params_lcs_energ_curr_frequ_hyp7 %>% filter(term=="d_energ_1 ~1 "),
+  params_lcs_compa_curr_specif_hyp7 %>% filter(term=="d_compa_1 ~1 "),
+  params_lcs_compa_curr_frequ_hyp7 %>% filter(term=="d_compa_1 ~1 "),
+  params_lcs_respe_curr_specif_hyp7 %>% filter(term=="d_respe_1 ~1 "),
+  params_lcs_respe_curr_frequ_hyp7 %>% filter(term=="d_respe_1 ~1 "),
+  params_lcs_trust_curr_specif_hyp7 %>% filter(term=="d_trust_1 ~1 "),
+  params_lcs_trust_curr_frequ_hyp7 %>% filter(term=="d_trust_1 ~1 "),
+  params_lcs_organ_curr_specif_hyp7 %>% filter(term=="d_organ_1 ~1 "),
+  params_lcs_organ_curr_frequ_hyp7 %>% filter(term=="d_organ_1 ~1 "),
+  params_lcs_produ_curr_specif_hyp7 %>% filter(term=="d_produ_1 ~1 "),
+  params_lcs_produ_curr_frequ_hyp7 %>% filter(term=="d_produ_1 ~1 "),
+  params_lcs_respo_curr_specif_hyp7 %>% filter(term=="d_respo_1 ~1 "),
+  params_lcs_respo_curr_frequ_hyp7 %>% filter(term=="d_respo_1 ~1 "),
+  params_lcs_anxie_curr_specif_hyp7 %>% filter(term=="d_anxie_1 ~1 "),
+  params_lcs_anxie_curr_frequ_hyp7 %>% filter(term=="d_anxie_1 ~1 "),
+  params_lcs_depre_curr_specif_hyp7 %>% filter(term=="d_depre_1 ~1 "),
+  params_lcs_depre_curr_frequ_hyp7 %>% filter(term=="d_depre_1 ~1 "),
+  params_lcs_volat_curr_specif_hyp7 %>% filter(term=="d_volat_1 ~1 "),
+  params_lcs_volat_curr_frequ_hyp7 %>% filter(term=="d_volat_1 ~1 "),
+  params_lcs_curio_curr_specif_hyp7 %>% filter(term=="d_curio_1 ~1 "),
+  params_lcs_curio_curr_frequ_hyp7 %>% filter(term=="d_curio_1 ~1 "),
+  params_lcs_aesth_curr_specif_hyp7 %>% filter(term=="d_aesth_1 ~1 "),
+  params_lcs_aesth_curr_frequ_hyp7 %>% filter(term=="d_aesth_1 ~1 "),
+  params_lcs_imagi_curr_specif_hyp7 %>% filter(term=="d_imagi_1 ~1 "),
+  params_lcs_imagi_curr_frequ_hyp7 %>% filter(term=="d_imagi_1 ~1 ")
+  ) %>% 
+  mutate(trait = rep(names(b5_vars), each=2),
+         moderator = rep(c("goals", "frequency"), 20)) %>% 
+  select(trait, moderator, est_main = estimate, std_main = std.all, p_main = p.value)
+
+# moderation effects
+df_table_hyp7_curr_mod <- bind_rows(
+  #traits
+  params_lcs_extra_curr_specif_hyp7 %>% filter(term=="d_extra_1 ~ goals"),
+  params_lcs_extra_curr_frequ_hyp7 %>% filter(term=="d_extra_1 ~ frequ"),
+  params_lcs_agree_curr_specif_hyp7 %>% filter(term=="d_agree_1 ~ goals"),
+  params_lcs_agree_curr_frequ_hyp7 %>% filter(term=="d_agree_1 ~ frequ"),
+  params_lcs_consc_curr_specif_hyp7 %>% filter(term=="d_consc_1 ~ goals"),
+  params_lcs_consc_curr_frequ_hyp7 %>% filter(term=="d_consc_1 ~ frequ"),
+  params_lcs_neuro_curr_specif_hyp7 %>% filter(term=="d_neuro_1 ~ goals"),
+  params_lcs_neuro_curr_frequ_hyp7 %>% filter(term=="d_neuro_1 ~ frequ"),
+  params_lcs_openn_curr_specif_hyp7 %>% filter(term=="d_openn_1 ~ goals"),
+  params_lcs_openn_curr_frequ_hyp7 %>% filter(term=="d_openn_1 ~ frequ"),
+  #facets
+  params_lcs_socia_curr_specif_hyp7 %>% filter(term=="d_socia_1 ~ sa07_01_t1"),
+  params_lcs_socia_curr_frequ_hyp7 %>% filter(term=="d_socia_1 ~ frequ"),
+  params_lcs_asser_curr_specif_hyp7 %>% filter(term=="d_asser_1 ~ sa07_02_t1"),
+  params_lcs_asser_curr_frequ_hyp7 %>% filter(term=="d_asser_1 ~ frequ"),
+  params_lcs_energ_curr_specif_hyp7 %>% filter(term=="d_energ_1 ~ sa07_03_t1"),
+  params_lcs_energ_curr_frequ_hyp7 %>% filter(term=="d_energ_1 ~ frequ"),
+  params_lcs_compa_curr_specif_hyp7 %>% filter(term=="d_compa_1 ~ sa07_04_t1"),
+  params_lcs_compa_curr_frequ_hyp7 %>% filter(term=="d_compa_1 ~ frequ"),
+  params_lcs_respe_curr_specif_hyp7 %>% filter(term=="d_respe_1 ~ sa07_05_t1"),
+  params_lcs_respe_curr_frequ_hyp7 %>% filter(term=="d_respe_1 ~ frequ"),
+  params_lcs_trust_curr_specif_hyp7 %>% filter(term=="d_trust_1 ~ sa07_06_t1"),
+  params_lcs_trust_curr_frequ_hyp7 %>% filter(term=="d_trust_1 ~ frequ"),
+  params_lcs_organ_curr_specif_hyp7 %>% filter(term=="d_organ_1 ~ sa07_07_t1"),
+  params_lcs_organ_curr_frequ_hyp7 %>% filter(term=="d_organ_1 ~ frequ"),
+  params_lcs_produ_curr_specif_hyp7 %>% filter(term=="d_produ_1 ~ sa07_08_t1"),
+  params_lcs_produ_curr_frequ_hyp7 %>% filter(term=="d_produ_1 ~ frequ"),
+  params_lcs_respo_curr_specif_hyp7 %>% filter(term=="d_respo_1 ~ sa07_09_t1"),
+  params_lcs_respo_curr_frequ_hyp7 %>% filter(term=="d_respo_1 ~ frequ"),
+  params_lcs_anxie_curr_specif_hyp7 %>% filter(term=="d_anxie_1 ~ sa07_10_t1"),
+  params_lcs_anxie_curr_frequ_hyp7 %>% filter(term=="d_anxie_1 ~ frequ"),
+  params_lcs_depre_curr_specif_hyp7 %>% filter(term=="d_depre_1 ~ sa07_11_t1"),
+  params_lcs_depre_curr_frequ_hyp7 %>% filter(term=="d_depre_1 ~ frequ"),
+  params_lcs_volat_curr_specif_hyp7 %>% filter(term=="d_volat_1 ~ sa07_12_t1"),
+  params_lcs_volat_curr_frequ_hyp7 %>% filter(term=="d_volat_1 ~ frequ"),
+  params_lcs_curio_curr_specif_hyp7 %>% filter(term=="d_curio_1 ~ sa07_13_t1"),
+  params_lcs_curio_curr_frequ_hyp7 %>% filter(term=="d_curio_1 ~ frequ"),
+  params_lcs_aesth_curr_specif_hyp7 %>% filter(term=="d_aesth_1 ~ sa07_14_t1"),
+  params_lcs_aesth_curr_frequ_hyp7 %>% filter(term=="d_aesth_1 ~ frequ"),
+  params_lcs_imagi_curr_specif_hyp7 %>% filter(term=="d_imagi_1 ~ sa07_15_t1"),
+  params_lcs_imagi_curr_frequ_hyp7 %>% filter(term=="d_imagi_1 ~ frequ")
+  ) %>% 
+  mutate(trait = rep(names(b5_vars), each=2),
+         moderator = rep(c("goals", "frequency"), 20)) %>% 
+  select(trait, moderator, est_mod = estimate, std_mod = std.all, p_mod = p.value)
+
+# combine
+df_table_hyp7_curr <- df_table_hyp7_curr_main %>% left_join(df_table_hyp7_curr_mod)
+```
+
+Results summary across the Big Five traits: trait-specific acceptance goals (*goals*) and frequency of self-acceptance behaviors (*frequency*) as moderators on the latent change score. *_main* refers to the main effects (change scores) and *_mod* to the moderation effects.  
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+kable(df_table_hyp7_curr[1:10, ], digits = 3)
+```
+
+::: {.callout-note appearance="minimal"}
+Significant main effects throughout (latent change in current-self dimensions) in the self-acceptance group. 8 out of 10 significant moderation effects by either the facet-specific acceptance goals or the frequency of self-acceptance behaviors.  
+:::
+
+Results summary across the Big Five facets: trait-specific acceptance goals (*goals*) and frequency of self-acceptance behaviors (*frequency*) as moderators on the latent change score. *_main* refers to the main effects (change scores) and *_mod* to the moderation effects.  
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+kable(df_table_hyp7_curr[11:40, ], digits = 3)
+```
+
+::: {.callout-note appearance="minimal"}
+Significant main effects (latent change in current-self facets) in the self-acceptance group for many of the facets, although much more often in the frequency models (for the dimensions these were quite similar - not sure what is going on here). More than half of the current-self facets have a significant moderation effects by either the facet-specific acceptance goals or the frequency of self-acceptance behaviors.  
+:::
+
+Prepare data frame for plotting:
+```{r}
+#| echo: true
+#| warning: false
+#| code-fold: true
+#| code-summary: "Show the code"
+#| output: false
+#| cache: true
+
+df_table_hyp7_plot_curr <- bind_rows(
+  #traits
+  params_lcs_extra_curr_specif_hyp7 %>% filter(term=="d_extra_1 ~ goals"),
+  params_lcs_extra_curr_frequ_hyp7 %>% filter(term=="d_extra_1 ~ frequ"),
+  params_lcs_agree_curr_specif_hyp7 %>% filter(term=="d_agree_1 ~ goals"),
+  params_lcs_agree_curr_frequ_hyp7 %>% filter(term=="d_agree_1 ~ frequ"),
+  params_lcs_consc_curr_specif_hyp7 %>% filter(term=="d_consc_1 ~ goals"),
+  params_lcs_consc_curr_frequ_hyp7 %>% filter(term=="d_consc_1 ~ frequ"),
+  params_lcs_neuro_curr_specif_hyp7 %>% filter(term=="d_neuro_1 ~ goals"),
+  params_lcs_neuro_curr_frequ_hyp7 %>% filter(term=="d_neuro_1 ~ frequ"),
+  params_lcs_openn_curr_specif_hyp7 %>% filter(term=="d_openn_1 ~ goals"),
+  params_lcs_openn_curr_frequ_hyp7 %>% filter(term=="d_openn_1 ~ frequ"),
+  #facets
+  params_lcs_socia_curr_specif_hyp7 %>% filter(term=="d_socia_1 ~ sa07_01_t1"),
+  params_lcs_socia_curr_frequ_hyp7 %>% filter(term=="d_socia_1 ~ frequ"),
+  params_lcs_asser_curr_specif_hyp7 %>% filter(term=="d_asser_1 ~ sa07_02_t1"),
+  params_lcs_asser_curr_frequ_hyp7 %>% filter(term=="d_asser_1 ~ frequ"),
+  params_lcs_energ_curr_specif_hyp7 %>% filter(term=="d_energ_1 ~ sa07_03_t1"),
+  params_lcs_energ_curr_frequ_hyp7 %>% filter(term=="d_energ_1 ~ frequ"),
+  params_lcs_compa_curr_specif_hyp7 %>% filter(term=="d_compa_1 ~ sa07_04_t1"),
+  params_lcs_compa_curr_frequ_hyp7 %>% filter(term=="d_compa_1 ~ frequ"),
+  params_lcs_respe_curr_specif_hyp7 %>% filter(term=="d_respe_1 ~ sa07_05_t1"),
+  params_lcs_respe_curr_frequ_hyp7 %>% filter(term=="d_respe_1 ~ frequ"),
+  params_lcs_trust_curr_specif_hyp7 %>% filter(term=="d_trust_1 ~ sa07_06_t1"),
+  params_lcs_trust_curr_frequ_hyp7 %>% filter(term=="d_trust_1 ~ frequ"),
+  params_lcs_organ_curr_specif_hyp7 %>% filter(term=="d_organ_1 ~ sa07_07_t1"),
+  params_lcs_organ_curr_frequ_hyp7 %>% filter(term=="d_organ_1 ~ frequ"),
+  params_lcs_produ_curr_specif_hyp7 %>% filter(term=="d_produ_1 ~ sa07_08_t1"),
+  params_lcs_produ_curr_frequ_hyp7 %>% filter(term=="d_produ_1 ~ frequ"),
+  params_lcs_respo_curr_specif_hyp7 %>% filter(term=="d_respo_1 ~ sa07_09_t1"),
+  params_lcs_respo_curr_frequ_hyp7 %>% filter(term=="d_respo_1 ~ frequ"),
+  params_lcs_anxie_curr_specif_hyp7 %>% filter(term=="d_anxie_1 ~ sa07_10_t1"),
+  params_lcs_anxie_curr_frequ_hyp7 %>% filter(term=="d_anxie_1 ~ frequ"),
+  params_lcs_depre_curr_specif_hyp7 %>% filter(term=="d_depre_1 ~ sa07_11_t1"),
+  params_lcs_depre_curr_frequ_hyp7 %>% filter(term=="d_depre_1 ~ frequ"),
+  params_lcs_volat_curr_specif_hyp7 %>% filter(term=="d_volat_1 ~ sa07_12_t1"),
+  params_lcs_volat_curr_frequ_hyp7 %>% filter(term=="d_volat_1 ~ frequ"),
+  params_lcs_curio_curr_specif_hyp7 %>% filter(term=="d_curio_1 ~ sa07_13_t1"),
+  params_lcs_curio_curr_frequ_hyp7 %>% filter(term=="d_curio_1 ~ frequ"),
+  params_lcs_aesth_curr_specif_hyp7 %>% filter(term=="d_aesth_1 ~ sa07_14_t1"),
+  params_lcs_aesth_curr_frequ_hyp7 %>% filter(term=="d_aesth_1 ~ frequ"),
+  params_lcs_imagi_curr_specif_hyp7 %>% filter(term=="d_imagi_1 ~ sa07_15_t1"),
+  params_lcs_imagi_curr_frequ_hyp7 %>% filter(term=="d_imagi_1 ~ frequ")
+  ) %>% 
+  mutate(trait = rep(names(b5_vars), each=2),
+         moderator = rep(c("goals", "frequency"), 20)) %>% 
+  select(trait, moderator, estimate, conf.low, conf.high, std.all, statistic, p.value)
+
+df_table_hyp7_plot_curr <- df_table_hyp7_plot_curr %>% 
+  mutate(include_0 = ifelse(conf.low < 0 & conf.high > 0, "n.s.", "*")) %>% 
+  mutate(ref = factor("current", levels = c("current"), labels = c("current"))) %>% 
+  mutate(moderator = factor(moderator, levels = c("goals", "frequency"), labels = c("goals", "frequency"))) %>% 
+  mutate(trait = factor(trait, levels = names(b5_vars), labels = names(b5_vars)))
+```
+
+Plotting the effect size across all analyses:  
+
+- *current* = current-level personality  
+- *goals* = specific, facet-level acceptance goal(s) as moderator  
+- *frequency* = frequency of self-acceptance behavior as moderator  
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+#| code-fold: true
+#| code-summary: "Show the code"
+
+ggplot(df_table_hyp7_plot_curr, aes(x = fct_rev(trait), y = estimate, color = include_0)) +
   geom_hline(yintercept=0, linetype = 3) +
   geom_point(size=3, position=position_dodge(0.4)) + 
   geom_errorbar(aes(ymin = conf.low, ymax = conf.high, color = include_0), width=.2, position=position_dodge(0.4)) +
@@ -16635,7 +19351,7 @@ kable(broom::tidy(lcs_concept_group_strong, conf.int = TRUE, conf.level = 0.95) 
 ```
 
 ::: {.callout-note appearance="minimal"}
-Slightly more positive change in self-concept clarity in the Self-Acceptance group but no substantial differences according to the LRTs.
+Slightly more positive change in self-concept clarity in the self-improvement group but no substantial differences according to the LRTs.
 :::
 
 ```{r}
@@ -17022,7 +19738,7 @@ lavTestLRT(fit_lcs_openn_main_config_current, fit_lcs_openn_main_weak_current, f
 # labelled parameter as "d_int_a" & "d_int_b" (a = Self-Acceptance group, b = Self-Improvement group)
 params_main_lcs_openn_current <- broom::tidy(fit_lcs_openn_main_weak_current, conf.int = TRUE, conf.level = 0.95) %>% 
         select(term, label, estimate, std.all, statistic, p.value) %>% 
-        filter(term %in% c("d_openn_1 ~1 ")) %>% mutate(sig_diff = "*")
+        filter(term %in% c("d_openn_1 ~1 ")) %>% mutate(sig_diff = " ")
 kable(params_main_lcs_openn_current, digits = 3) 
 
 # constrained to be equal in the strong measurement invariance model:
@@ -17050,7 +19766,7 @@ lavTestLRT(fit_lcs_extra_main_config_ideal, fit_lcs_extra_main_weak_ideal, fit_l
 # labelled parameter as "d_int_a" & "d_int_b" (a = Self-Acceptance group, b = Self-Improvement group)
 params_main_lcs_extra_ideal <- broom::tidy(fit_lcs_extra_main_weak_ideal, conf.int = TRUE, conf.level = 0.95) %>% 
         select(term, label, estimate, std.all, statistic, p.value) %>% 
-        filter(term %in% c("d_extra_1 ~1 ")) %>% mutate(sig_diff = "**")
+        filter(term %in% c("d_extra_1 ~1 ")) %>% mutate(sig_diff = " ")
 kable(params_main_lcs_extra_ideal, digits = 3) 
 
 # constrained to be equal in the strong measurement invariance model:
@@ -17225,6 +19941,9 @@ df_sbsa_wide_pers_sb_ppd <- df_sbsa %>%
               names_sep = "_t",
               values_from = c(starts_with(c("sb01")))) %>% 
   select(-c(sb01_01_t2, sb01_02_t2))
+# standardize personal project variables (better interpretation for when they are in SEM as a single manifest variable, not so much a problem when they form a latent scale)
+df_sbsa_wide_pers_sb_ppd <- df_sbsa_wide_pers_sb_ppd %>% 
+  mutate_at(c(colnames(df_sbsa_wide_pers_sb_ppd)[-1]), ~(scale(.) %>% as.vector)) 
 # colnames(df_sbsa_wide_pers_sb_ppd)
 
 group_assign <- df_sbsa %>% select(pid, rando) %>% unique()
@@ -18017,9 +20736,10 @@ kable(df_table_ppd_improve[1:5, ], digits = 3)
 ```
 
 ::: {.callout-note appearance="minimal"}
-Only one moderator effect significantly differs from zero:  
+Two moderator effects significantly differs from zero:  
 
 - changes in current-level extraversion are moderated by the personal project dimensions  
+- changes in current-level neuroticism are moderated by the personal project dimensions  
 :::
 
 Results summary across the Big Five facets: personal project dimensions (*ppd*) as moderators on the latent change score
@@ -18031,8 +20751,9 @@ kable(df_table_ppd_improve[6:20, ], digits = 3)
 ```
 
 ::: {.callout-note appearance="minimal"}
-Two significant moderation effects of personal project dimensions on the facet-level:  
-- Changes in current-level assertiveness and responsibility are moderated by personal project dimensions.  
+Four significant moderation effects of personal project dimensions on the facet-level:  
+- for extraversion the moderation effects by the personal project dimensions ar also reflected in the facets sociability and assertiveness (current-level)  
+- for neuroticism the moderation effects by the personal project dimensions ar also reflected in the facets anxiety and depression (current-level)  
 :::
 
 #### Personal project dimensions as moderators of change in personality in self-acceptance group
@@ -18053,7 +20774,9 @@ df_sbsa_wide_pers_sa_ppd <- df_sbsa %>%
               names_sep = "_t",
               values_from = c(starts_with(c("sa01")))) %>% 
   select(-c(sa01_01_t2, sa01_02_t2)) 
-
+# standardize personal project variables (better interpretation for when they are in SEM as a single manifest variable, not so much a problem when they form a latent scale)
+df_sbsa_wide_pers_sa_ppd <- df_sbsa_wide_pers_sa_ppd %>% 
+  mutate_at(c(colnames(df_sbsa_wide_pers_sa_ppd)[-1]), ~(scale(.) %>% as.vector)) 
 # colnames(df_sbsa_wide_pers_sa_ppd)
 
 group_assign <- df_sbsa %>% select(pid, rando) %>% unique()
@@ -18063,7 +20786,6 @@ df_sbsa_wide_pers_sa_ppd <- df_sbsa_wide_pers %>% left_join(group_assign) %>% fi
 
 # need to form a mean score because some models did not converge when using the latent factor of PPD (but high correlation between the two items)
 df_sbsa_wide_pers_sa_ppd <- df_sbsa_wide_pers_sa_ppd %>% mutate(ppd = rowMeans(across(c(sa01_01_t1, sa01_02_t1)), na.rm=T))
-
 ```
 
 ##### Big Five traits
@@ -19008,6 +21730,162 @@ kable(df_manip_check_ideal_unlist %>%
 ::: {.callout-note appearance="minimal"}
 No significant *group* effects (higher trait level in self-improvement group at baseline; except for imagination facet) and also no significant differences in the changes over time in ideal-self trait levels (*timeXgroup*; except for imagination and anxiety facets). No significant changes over time in ideal-self trait levels (*time*) for most domains/facets (independent of intervention group membership) with the exception of sociability.
 :::
+
+#### Descriptive plots: mean-level changes
+
+Prepare data frame for plotting:
+```{r}
+#| echo: true
+#| warning: false
+#| code-fold: true
+#| code-summary: "Show the code"
+#| output: false
+#| cache: true
+
+df_manip_check_forplot <- df_sbsa %>% 
+  mutate(time_d = time - 1) %>% 
+  select(pid, time_d, rando, contains("_comb_"), -c(na_comb_curr, na_comb_ideal)) %>% 
+  pivot_longer(-c(pid, time_d, rando), 
+               cols_vary = "slowest",
+               names_to = c("trait", "reference"),
+               names_pattern = "(.*)_(.*)",
+               values_to = "score") %>% 
+  mutate(trait = gsub("_comb", "", trait),
+         reference = ifelse(reference=="curr", "current", reference)) %>% 
+  left_join(tibble(long = str_to_title(names(b5_vars)), trait = str_trunc(names(b5_vars), 5, ellipsis = ""))) %>% 
+  select(-trait, trait = long, time = time_d) %>% 
+  filter(!is.na(score)) %>% 
+  group_by(trait, reference, rando, time) %>% 
+  summarise(n = n(), m_trait = mean(score), sd_trait = sd(score)) %>% 
+  ungroup() %>% 
+  mutate(Group = factor(rando, levels = c("Self-Improvement", "Self-Acceptance"), labels = c("Self-Improvement", "Self-Acceptance")),
+         Time = factor(time+1),
+         Trait = factor(trait, 
+                        levels = str_to_title(names(b5_vars))[c(1,6:8, 2,9:11, 3,12:14, 4,15:17, 5,18:20)], # group facets with each trait
+                        labels = str_to_title(names(b5_vars))[c(1,6:8, 2,9:11, 3,12:14, 4,15:17, 5,18:20)]),
+         Reference = factor(reference, levels = c("current", "ideal"), labels = c("Current Self", "Ideal Self")),
+         lwr95 = m_trait - qnorm(0.975)*sd_trait/sqrt(n),
+         upr95 = m_trait + qnorm(0.975)*sd_trait/sqrt(n)) %>% 
+  select(-c(time, rando, trait, reference)) %>% 
+  group_by(Trait) %>% 
+  mutate(level = mean(m_trait)) %>% 
+  ungroup()
+```
+
+Plotting mean-level changes on a descriptive level: Big Five dimensions and facets  
+```{r}
+#| echo: true
+#| fig-width: 8
+#| fig-height: 9.5
+#| code-fold: true
+#| code-summary: "Show the code"
+
+ggplot(df_manip_check_forplot, 
+       aes(y = m_trait, x = Time, shape = Group, color = Reference)) + 
+  geom_point(position = position_dodge(0.3)) +
+  scale_shape_manual(values=c(17, 19)) + 
+  geom_errorbar(aes(ymin = lwr95, ymax = upr95), width=.3, position=position_dodge(0.3)) +
+  ylab("Mean Trait Level (95% CI)") + 
+  facet_wrap( ~ Trait, ncol = 4) +
+  theme_bw() +
+  theme(panel.grid.minor = element_blank(),
+        strip.background=element_rect(fill="grey93"))
+```
+
+Plotting mean-level changes on a descriptive level: Extraversion
+```{r}
+#| echo: true
+#| fig-width: 5
+#| fig-height: 3.5
+#| code-fold: true
+#| code-summary: "Show the code"
+
+ggplot(df_manip_check_forplot %>% filter(Trait=="Extraversion"), 
+       aes(y = m_trait, x = Time, shape = Group, color = Reference)) + 
+  geom_point(position = position_dodge(0.3)) +
+  scale_shape_manual(values=c(17, 19)) + 
+  geom_errorbar(aes(ymin = lwr95, ymax = upr95), width=.3, position=position_dodge(0.3)) +
+  ylab("Mean Trait Level (95% CI)") + 
+  theme_bw() +
+  theme(panel.grid.minor = element_blank(),
+        strip.background=element_rect(fill="grey93"))
+```
+
+Plotting mean-level changes on a descriptive level: Agreeableness
+```{r}
+#| echo: true
+#| fig-width: 5
+#| fig-height: 3.5
+#| code-fold: true
+#| code-summary: "Show the code"
+
+ggplot(df_manip_check_forplot %>% filter(Trait=="Agreeableness"), 
+       aes(y = m_trait, x = Time, shape = Group, color = Reference)) + 
+  geom_point(position = position_dodge(0.3)) +
+  scale_shape_manual(values=c(17, 19)) + 
+  geom_errorbar(aes(ymin = lwr95, ymax = upr95), width=.3, position=position_dodge(0.3)) +
+  ylab("Mean Trait Level (95% CI)") + 
+  theme_bw() +
+  theme(panel.grid.minor = element_blank(),
+        strip.background=element_rect(fill="grey93"))
+```
+
+Plotting mean-level changes on a descriptive level: Conscientiousness
+```{r}
+#| echo: true
+#| fig-width: 5
+#| fig-height: 3.5
+#| code-fold: true
+#| code-summary: "Show the code"
+
+ggplot(df_manip_check_forplot %>% filter(Trait=="Conscientiousness"), 
+       aes(y = m_trait, x = Time, shape = Group, color = Reference)) + 
+  geom_point(position = position_dodge(0.3)) +
+  scale_shape_manual(values=c(17, 19)) + 
+  geom_errorbar(aes(ymin = lwr95, ymax = upr95), width=.3, position=position_dodge(0.3)) +
+  ylab("Mean Trait Level (95% CI)") + 
+  theme_bw() +
+  theme(panel.grid.minor = element_blank(),
+        strip.background=element_rect(fill="grey93"))
+```
+
+Plotting mean-level changes on a descriptive level: Neuroticism
+```{r}
+#| echo: true
+#| fig-width: 5
+#| fig-height: 3.5
+#| code-fold: true
+#| code-summary: "Show the code"
+
+ggplot(df_manip_check_forplot %>% filter(Trait=="Neuroticism"), 
+       aes(y = m_trait, x = Time, shape = Group, color = Reference)) + 
+  geom_point(position = position_dodge(0.3)) +
+  scale_shape_manual(values=c(17, 19)) + 
+  geom_errorbar(aes(ymin = lwr95, ymax = upr95), width=.3, position=position_dodge(0.3)) +
+  ylab("Mean Trait Level (95% CI)") + 
+  theme_bw() +
+  theme(panel.grid.minor = element_blank(),
+        strip.background=element_rect(fill="grey93"))
+```
+
+Plotting mean-level changes on a descriptive level: Openness
+```{r}
+#| echo: true
+#| fig-width: 5
+#| fig-height: 3.5
+#| code-fold: true
+#| code-summary: "Show the code"
+
+ggplot(df_manip_check_forplot %>% filter(Trait=="Openness"), 
+       aes(y = m_trait, x = Time, shape = Group, color = Reference)) + 
+  geom_point(position = position_dodge(0.3)) +
+  scale_shape_manual(values=c(17, 19)) + 
+  geom_errorbar(aes(ymin = lwr95, ymax = upr95), width=.3, position=position_dodge(0.3)) +
+  ylab("Mean Trait Level (95% CI)") + 
+  theme_bw() +
+  theme(panel.grid.minor = element_blank(),
+        strip.background=element_rect(fill="grey93"))
+```
 
 ### Word cloud of change descriptions (e)
 
