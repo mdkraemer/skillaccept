@@ -1116,6 +1116,24 @@ df_sbsa_wide_pers <- df_sbsa_wide_pers %>%
     mutate_all(~ifelse(is.nan(.), NA, .))
 ```
 
+### Recode all reverse-keyed items
+
+This is only relevant for the facet-level models. All trait-level models rely on the parcels created above. However, the facet-level models pick the first item as the anchor indicator which is sometimes reverse-keyed for the latent factor. For analyses below I want to use just positively keyed variables (for neuroticism facets higher values should indicate higher neuroticism). 
+
+```{r}
+#| echo: true
+#| warning: false
+
+# save all relevant variable names
+names_rev_scored <- df_sbsa_wide_pers %>% select(ends_with("_r")) %>% colnames()
+names_rev_scored_orig <- gsub("_r", "", names_rev_scored) # variable names without the "_r" -> these are the original variables
+
+# drop original variables
+df_sbsa_wide_pers <- df_sbsa_wide_pers %>% select(-all_of(names_rev_scored_orig))
+# recreate original variable names -> these are the recoded variables now!
+df_sbsa_wide_pers <- df_sbsa_wide_pers %>% rename_with(~ gsub("_r", "", .x))
+```
+
 ------------------------------------------------------------------------
 
 ## Measurement invariance
@@ -4968,8 +4986,7 @@ ggplot(profile_df_plot) +
   geom_boxplot() + 
   geom_violin(fill = NA) +
   facet_wrap(vars(itemfacet2)) +
-  labs(x = "Measurement Occasion", y = "Profile correlation", 
-       title = "H3: Distance between ideal- and current-self") + 
+  labs(x = "Measurement Occasion", y = "Profile correlation") + # title = "Distance between ideal- and current-self"
   theme_bw()
 ```
 
@@ -19641,6 +19658,10 @@ kable(params_main_lcs_extra_current, digits = 3)
 kable(broom::tidy(fit_lcs_extra_main_strong_current, conf.int = TRUE, conf.level = 0.95) %>% 
         select(term, label, estimate, std.all, statistic, p.value) %>% 
         filter(term %in% c("d_extra_1 ~1 ")), digits = 3) 
+
+# model fit
+kable(broom::glance(fit_lcs_extra_main_weak_current) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
 ```
 
 ::: {.callout-note appearance="minimal"}
@@ -19667,6 +19688,10 @@ kable(params_main_lcs_agree_current, digits = 3)
 kable(broom::tidy(fit_lcs_agree_main_strong_current, conf.int = TRUE, conf.level = 0.95) %>% 
         select(term, label, estimate, std.all, statistic, p.value) %>% 
         filter(term %in% c("d_agree_1 ~1 ")), digits = 3) 
+
+# model fit
+kable(broom::glance(fit_lcs_agree_main_weak_current) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
 ```
 
 ::: {.callout-note appearance="minimal"}
@@ -19693,13 +19718,17 @@ kable(params_main_lcs_consc_current, digits = 3)
 kable(broom::tidy(fit_lcs_consc_main_strong_current, conf.int = TRUE, conf.level = 0.95) %>% 
         select(term, label, estimate, std.all, statistic, p.value) %>% 
         filter(term %in% c("d_consc_1 ~1 ")), digits = 3) 
+
+# model fit
+kable(broom::glance(fit_lcs_consc_main_weak_current) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
 ```
 
 ::: {.callout-note appearance="minimal"}
 Similar change in conscientiousness in both groups (increase is slightly larger in self-improvement group). No significant differences according to the LRTs.
 :::
 
-neuroticism (current self): results  
+Neuroticism (current self): results  
 ```{r}
 #| echo: true
 #| warning: false
@@ -19719,6 +19748,10 @@ kable(params_main_lcs_neuro_current, digits = 3)
 kable(broom::tidy(fit_lcs_neuro_main_strong_current, conf.int = TRUE, conf.level = 0.95) %>% 
         select(term, label, estimate, std.all, statistic, p.value) %>% 
         filter(term %in% c("d_neuro_1 ~1 ")), digits = 3) 
+
+# model fit
+kable(broom::glance(fit_lcs_neuro_main_weak_current) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
 ```
 
 ::: {.callout-note appearance="minimal"}
@@ -19745,6 +19778,10 @@ kable(params_main_lcs_openn_current, digits = 3)
 kable(broom::tidy(fit_lcs_openn_main_strong_current, conf.int = TRUE, conf.level = 0.95) %>% 
         select(term, label, estimate, std.all, statistic, p.value) %>% 
         filter(term %in% c("d_openn_1 ~1 ")), digits = 3) 
+
+# model fit
+kable(broom::glance(fit_lcs_openn_main_weak_current) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
 ```
 
 ::: {.callout-note appearance="minimal"}
@@ -19773,6 +19810,10 @@ kable(params_main_lcs_extra_ideal, digits = 3)
 kable(broom::tidy(fit_lcs_extra_main_strong_ideal, conf.int = TRUE, conf.level = 0.95) %>% 
         select(term, label, estimate, std.all, statistic, p.value) %>% 
         filter(term %in% c("d_extra_1 ~1 ")), digits = 3) 
+
+# model fit
+kable(broom::glance(fit_lcs_extra_main_weak_ideal) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
 ```
 
 ::: {.callout-note appearance="minimal"}
@@ -19799,6 +19840,10 @@ kable(params_main_lcs_agree_ideal, digits = 3)
 kable(broom::tidy(fit_lcs_agree_main_strong_ideal, conf.int = TRUE, conf.level = 0.95) %>% 
         select(term, label, estimate, std.all, statistic, p.value) %>% 
         filter(term %in% c("d_agree_1 ~1 ")), digits = 3) 
+
+# model fit
+kable(broom::glance(fit_lcs_agree_main_weak_ideal) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
 ```
 
 ::: {.callout-note appearance="minimal"}
@@ -19825,13 +19870,17 @@ kable(params_main_lcs_consc_ideal, digits = 3)
 kable(broom::tidy(fit_lcs_consc_main_strong_ideal, conf.int = TRUE, conf.level = 0.95) %>% 
         select(term, label, estimate, std.all, statistic, p.value) %>% 
         filter(term %in% c("d_consc_1 ~1 ")), digits = 3) 
+
+# model fit
+kable(broom::glance(fit_lcs_consc_main_weak_ideal) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
 ```
 
 ::: {.callout-note appearance="minimal"}
 Similar change in conscientiousness in both groups (increase is slightly larger in self-improvement group). No significant differences according to the LRTs.
 :::
 
-neuroticism (ideal self): results  
+Neuroticism (ideal self): results  
 ```{r}
 #| echo: true
 #| warning: false
@@ -19851,6 +19900,10 @@ kable(params_main_lcs_neuro_ideal, digits = 3)
 kable(broom::tidy(fit_lcs_neuro_main_strong_ideal, conf.int = TRUE, conf.level = 0.95) %>% 
         select(term, label, estimate, std.all, statistic, p.value) %>% 
         filter(term %in% c("d_neuro_1 ~1 ")), digits = 3) 
+
+# model fit
+kable(broom::glance(fit_lcs_neuro_main_weak_ideal) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
 ```
 
 ::: {.callout-note appearance="minimal"}
@@ -19877,6 +19930,10 @@ kable(params_main_lcs_openn_ideal, digits = 3)
 kable(broom::tidy(fit_lcs_openn_main_strong_ideal, conf.int = TRUE, conf.level = 0.95) %>% 
         select(term, label, estimate, std.all, statistic, p.value) %>% 
         filter(term %in% c("d_openn_1 ~1 ")), digits = 3) 
+
+# model fit
+kable(broom::glance(fit_lcs_openn_main_weak_ideal) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
 ```
 
 ::: {.callout-note appearance="minimal"}
@@ -19890,16 +19947,16 @@ Similar change in ideal-self openness in both groups (increase is slightly large
 #| warning: false
 
 params_main_summary <- bind_rows(
-  params_main_lcs_extra_current %>% mutate(trait = names(b5_vars)[1], self = "current") %>% select(trait, self, group = label, estimate, p.value, sig_diff),
-  params_main_lcs_extra_ideal %>% mutate(trait = names(b5_vars)[1], self = "ideal") %>% select(trait, self, group = label, estimate, p.value, sig_diff),
-  params_main_lcs_agree_current %>% mutate(trait = names(b5_vars)[2], self = "current") %>% select(trait, self, group = label, estimate, p.value, sig_diff),
-  params_main_lcs_agree_ideal %>% mutate(trait = names(b5_vars)[2], self = "ideal") %>% select(trait, self, group = label, estimate, p.value, sig_diff),
-  params_main_lcs_consc_current %>% mutate(trait = names(b5_vars)[3], self = "current") %>% select(trait, self, group = label, estimate, p.value, sig_diff),
-  params_main_lcs_consc_ideal %>% mutate(trait = names(b5_vars)[3], self = "ideal") %>% select(trait, self, group = label, estimate, p.value, sig_diff),
-  params_main_lcs_neuro_current %>% mutate(trait = names(b5_vars)[4], self = "current") %>% select(trait, self, group = label, estimate, p.value, sig_diff),
-  params_main_lcs_neuro_ideal %>% mutate(trait = names(b5_vars)[4], self = "ideal") %>% select(trait, self, group = label, estimate, p.value, sig_diff),
-  params_main_lcs_openn_current %>% mutate(trait = names(b5_vars)[5], self = "current") %>% select(trait, self, group = label, estimate, p.value, sig_diff),
-  params_main_lcs_openn_ideal %>% mutate(trait = names(b5_vars)[5], self = "ideal") %>% select(trait, self, group = label, estimate, p.value, sig_diff)
+  params_main_lcs_extra_current %>% mutate(trait = names(b5_vars)[1], self = "current") %>% select(trait, self, group = label, beta = std.all, p.value, sig_diff),
+  params_main_lcs_extra_ideal %>% mutate(trait = names(b5_vars)[1], self = "ideal") %>% select(trait, self, group = label, beta = std.all, p.value, sig_diff),
+  params_main_lcs_agree_current %>% mutate(trait = names(b5_vars)[2], self = "current") %>% select(trait, self, group = label, beta = std.all, p.value, sig_diff),
+  params_main_lcs_agree_ideal %>% mutate(trait = names(b5_vars)[2], self = "ideal") %>% select(trait, self, group = label, beta = std.all, p.value, sig_diff),
+  params_main_lcs_consc_current %>% mutate(trait = names(b5_vars)[3], self = "current") %>% select(trait, self, group = label, beta = std.all, p.value, sig_diff),
+  params_main_lcs_consc_ideal %>% mutate(trait = names(b5_vars)[3], self = "ideal") %>% select(trait, self, group = label, beta = std.all, p.value, sig_diff),
+  params_main_lcs_neuro_current %>% mutate(trait = names(b5_vars)[4], self = "current") %>% select(trait, self, group = label, beta = std.all, p.value, sig_diff),
+  params_main_lcs_neuro_ideal %>% mutate(trait = names(b5_vars)[4], self = "ideal") %>% select(trait, self, group = label, beta = std.all, p.value, sig_diff),
+  params_main_lcs_openn_current %>% mutate(trait = names(b5_vars)[5], self = "current") %>% select(trait, self, group = label, beta = std.all, p.value, sig_diff),
+  params_main_lcs_openn_ideal %>% mutate(trait = names(b5_vars)[5], self = "ideal") %>% select(trait, self, group = label, beta = std.all, p.value, sig_diff)
 ) %>% mutate(group = ifelse(group=="d_int_a", "accept", "improve"))
 
 kable(params_main_summary, digits = 3)
@@ -21637,7 +21694,7 @@ ggplot(df_table_ppd_plot, aes(x = fct_rev(trait), y = estimate, color = include_
 
 ### Traits that were selected as change goals (c)
 
-We will explore c) whether there are stronger rates of change/acceptance on traits that were selected as change goals than those that were not. 
+We will explore c) whether there are stronger rates of change/acceptance on traits that were selected as change goals (in the 5 free-form adjectives) than those that were not. 
 
 *TBD!*
 
@@ -21733,6 +21790,8 @@ No significant *group* effects (higher trait level in self-improvement group at 
 
 #### Descriptive plots: mean-level changes
 
+##### Personality
+
 Prepare data frame for plotting:
 ```{r}
 #| echo: true
@@ -21766,10 +21825,7 @@ df_manip_check_forplot <- df_sbsa %>%
          Reference = factor(reference, levels = c("current", "ideal"), labels = c("Current Self", "Ideal Self")),
          lwr95 = m_trait - qnorm(0.975)*sd_trait/sqrt(n),
          upr95 = m_trait + qnorm(0.975)*sd_trait/sqrt(n)) %>% 
-  select(-c(time, rando, trait, reference)) %>% 
-  group_by(Trait) %>% 
-  mutate(level = mean(m_trait)) %>% 
-  ungroup()
+  select(-c(time, rando, trait, reference))
 ```
 
 Plotting mean-level changes on a descriptive level: Big Five dimensions and facets  
@@ -21887,6 +21943,60 @@ ggplot(df_manip_check_forplot %>% filter(Trait=="Openness"),
         strip.background=element_rect(fill="grey93"))
 ```
 
+##### Well-Being
+
+Prepare data frame for plotting:
+```{r}
+#| echo: true
+#| warning: false
+#| code-fold: true
+#| code-summary: "Show the code"
+#| output: false
+#| cache: true
+
+df_manip_check_wb_forplot <- df_sbsa %>% 
+  mutate(time_d = time - 1) %>% 
+  select(pid, time_d, rando, swls, meaning, selfes, concept) %>% 
+  pivot_longer(-c(pid, time_d, rando), 
+               cols_vary = "slowest",
+               names_to = c("trait"),
+               values_to = "score") %>% 
+  mutate(trait = case_when(trait=="swls" ~ "Life Satisfaction", trait=="meaning" ~ "Meaning in Life", 
+                           trait=="selfes" ~ "Self-Esteem", trait=="concept" ~ "Self-Concept Clarity")) %>% 
+  filter(!is.na(score)) %>% 
+  group_by(trait, rando, time_d) %>% 
+  summarise(n = n(), m_trait = mean(score), sd_trait = sd(score)) %>% 
+  ungroup() %>% 
+  mutate(Group = factor(rando, levels = c("Self-Improvement", "Self-Acceptance"), labels = c("Self-Improvement", "Self-Acceptance")),
+         Time = factor(time_d+1),
+         Trait = factor(trait, 
+                        levels = c("Life Satisfaction", "Meaning in Life", "Self-Esteem", "Self-Concept Clarity"), # group facets with each trait
+                        labels = c("Life Satisfaction", "Meaning in Life", "Self-Esteem", "Self-Concept Clarity")),
+         lwr95 = m_trait - qnorm(0.975)*sd_trait/sqrt(n),
+         upr95 = m_trait + qnorm(0.975)*sd_trait/sqrt(n)) %>% 
+  select(-c(time_d, rando, trait))
+```
+
+Plotting mean-level changes on a descriptive level: all four well-being aspects
+```{r}
+#| echo: true
+#| fig-width: 6.5
+#| fig-height: 6.5
+#| code-fold: true
+#| code-summary: "Show the code"
+
+ggplot(df_manip_check_wb_forplot, 
+       aes(y = m_trait, x = Time, shape = Group)) + 
+  geom_point(position = position_dodge(0.3)) +
+  scale_shape_manual(values=c(17, 19)) + 
+  geom_errorbar(aes(ymin = lwr95, ymax = upr95), width=.3, position=position_dodge(0.3)) +
+  ylab("Mean Well-Being Level (95% CI)") + 
+  facet_wrap( ~ Trait, ncol = 2) +
+  theme_bw() +
+  theme(panel.grid.minor = element_blank(),
+        strip.background=element_rect(fill="grey93"))
+```
+
 ### Word cloud of change descriptions (e)
 
 Generate word clouds based on the content from the free-form change descriptions written after the intervention at T2.
@@ -21989,6 +22099,1188 @@ Lastly, delete free-form text variables again from data set
 df_sbsa <- df_sbsa %>% select(-c(sb14_01, sa13_01))
 base::save(df_sbsa, file = "data/df_sbsa.rda")
 ```
+
+### Age as moderator of trait change (f)
+
+Does age moderate the extent to which participants in the intervention changed over time?  
+
+#### Descriptives: Age & change goals
+
+Some descriptives first:  
+
+```{r}
+#| echo: true
+#| warning: false
+summary(df_sbsa$age)
+```
+
+Correlation age & general improvement goal  
+```{r}
+#| echo: true
+#| warning: false
+cor.test(df_sbsa$age, df_sbsa$sb06_01)
+```
+
+::: {.callout-note appearance="minimal"}
+Significant negative correlation.
+:::
+
+Frequency of self-improvement behaviors  
+- (1) I thought about the ways I would like to change  
+- (2) I sought out environments that would help me be the kind of person I want to be  
+- (3) I practiced new habits to achieve my change goals  
+```{r}
+#| echo: true
+#| warning: false
+#| code-fold: true
+#| code-summary: "Show the code"
+#| cache: true
+kable(
+bind_rows(
+  tidy(cor.test(df_sbsa$age, df_sbsa$sb04_01)) %>% mutate(item = "sb04_01"),
+  tidy(cor.test(df_sbsa$age, df_sbsa$sb04_02)) %>% mutate(item = "sb04_02"),
+  tidy(cor.test(df_sbsa$age, df_sbsa$sb04_03)) %>% mutate(item = "sb04_03")
+) %>% select(item, estimate, conf.low, conf.high, p.value)
+  , digits = 3)
+```
+
+Facet-level improvement goals  
+```{r}
+#| echo: true
+#| warning: false
+#| code-fold: true
+#| code-summary: "Show the code"
+#| cache: true
+kable(
+bind_rows(
+  tidy(cor.test(df_sbsa$age, df_sbsa$sb07_01)) %>% mutate(facet = names(b5_vars)[5 + 1]),
+  tidy(cor.test(df_sbsa$age, df_sbsa$sb07_02)) %>% mutate(facet = names(b5_vars)[5 + 2]),
+  tidy(cor.test(df_sbsa$age, df_sbsa$sb07_03)) %>% mutate(facet = names(b5_vars)[5 + 3]),
+  tidy(cor.test(df_sbsa$age, df_sbsa$sb07_04)) %>% mutate(facet = names(b5_vars)[5 + 4]),
+  tidy(cor.test(df_sbsa$age, df_sbsa$sb07_05)) %>% mutate(facet = names(b5_vars)[5 + 5]),
+  tidy(cor.test(df_sbsa$age, df_sbsa$sb07_06)) %>% mutate(facet = names(b5_vars)[5 + 6]),
+  tidy(cor.test(df_sbsa$age, df_sbsa$sb07_07)) %>% mutate(facet = names(b5_vars)[5 + 7]),
+  tidy(cor.test(df_sbsa$age, df_sbsa$sb07_08)) %>% mutate(facet = names(b5_vars)[5 + 8]),
+  tidy(cor.test(df_sbsa$age, df_sbsa$sb07_09)) %>% mutate(facet = names(b5_vars)[5 + 9]),
+  tidy(cor.test(df_sbsa$age, df_sbsa$sb07_10)) %>% mutate(facet = names(b5_vars)[5 + 10]),
+  tidy(cor.test(df_sbsa$age, df_sbsa$sb07_11)) %>% mutate(facet = names(b5_vars)[5 + 11]),
+  tidy(cor.test(df_sbsa$age, df_sbsa$sb07_12)) %>% mutate(facet = names(b5_vars)[5 + 12]),
+  tidy(cor.test(df_sbsa$age, df_sbsa$sb07_13)) %>% mutate(facet = names(b5_vars)[5 + 13]),
+  tidy(cor.test(df_sbsa$age, df_sbsa$sb07_14)) %>% mutate(facet = names(b5_vars)[5 + 14]),
+  tidy(cor.test(df_sbsa$age, df_sbsa$sb07_15)) %>% mutate(facet = names(b5_vars)[5 + 15])
+) %>% select(facet, estimate, conf.low, conf.high, p.value)
+  , digits = 3)
+```
+
+::: {.callout-note appearance="minimal"}
+Negative correlations for conscientiousness facets.
+:::
+
+Correlation age & general acceptance goal  
+```{r}
+#| echo: true
+#| warning: false
+cor.test(df_sbsa$age, df_sbsa$sa06_01)
+```
+
+::: {.callout-note appearance="minimal"}
+Significant negative correlation.
+:::
+
+Frequency of self-acceptance behaviors  
+- (1) I thought about how I could be less judgmental and more self-affirming  
+- (2) I sought out environments that would help me accept who I am  
+- (3) I practiced new self-acceptance habits to affirm who I am  
+```{r}
+#| echo: true
+#| warning: false
+#| code-fold: true
+#| code-summary: "Show the code"
+#| cache: true
+kable(
+bind_rows(
+  tidy(cor.test(df_sbsa$age, df_sbsa$sa04_01)) %>% mutate(item = "sa04_01"),
+  tidy(cor.test(df_sbsa$age, df_sbsa$sa04_02)) %>% mutate(item = "sa04_02"),
+  tidy(cor.test(df_sbsa$age, df_sbsa$sa04_03)) %>% mutate(item = "sa04_03")
+) %>% select(item, estimate, conf.low, conf.high, p.value)
+  , digits = 3)
+```
+
+Facet-level acceptance goals  
+```{r}
+#| echo: true
+#| warning: false
+#| code-fold: true
+#| code-summary: "Show the code"
+#| cache: true
+kable(
+bind_rows(
+  tidy(cor.test(df_sbsa$age, df_sbsa$sa07_01)) %>% mutate(facet = names(b5_vars)[5 + 1]),
+  tidy(cor.test(df_sbsa$age, df_sbsa$sa07_02)) %>% mutate(facet = names(b5_vars)[5 + 2]),
+  tidy(cor.test(df_sbsa$age, df_sbsa$sa07_03)) %>% mutate(facet = names(b5_vars)[5 + 3]),
+  tidy(cor.test(df_sbsa$age, df_sbsa$sa07_04)) %>% mutate(facet = names(b5_vars)[5 + 4]),
+  tidy(cor.test(df_sbsa$age, df_sbsa$sa07_05)) %>% mutate(facet = names(b5_vars)[5 + 5]),
+  tidy(cor.test(df_sbsa$age, df_sbsa$sa07_06)) %>% mutate(facet = names(b5_vars)[5 + 6]),
+  tidy(cor.test(df_sbsa$age, df_sbsa$sa07_07)) %>% mutate(facet = names(b5_vars)[5 + 7]),
+  tidy(cor.test(df_sbsa$age, df_sbsa$sa07_08)) %>% mutate(facet = names(b5_vars)[5 + 8]),
+  tidy(cor.test(df_sbsa$age, df_sbsa$sa07_09)) %>% mutate(facet = names(b5_vars)[5 + 9]),
+  tidy(cor.test(df_sbsa$age, df_sbsa$sa07_10)) %>% mutate(facet = names(b5_vars)[5 + 10]),
+  tidy(cor.test(df_sbsa$age, df_sbsa$sa07_11)) %>% mutate(facet = names(b5_vars)[5 + 11]),
+  tidy(cor.test(df_sbsa$age, df_sbsa$sa07_12)) %>% mutate(facet = names(b5_vars)[5 + 12]),
+  tidy(cor.test(df_sbsa$age, df_sbsa$sa07_13)) %>% mutate(facet = names(b5_vars)[5 + 13]),
+  tidy(cor.test(df_sbsa$age, df_sbsa$sa07_14)) %>% mutate(facet = names(b5_vars)[5 + 14]),
+  tidy(cor.test(df_sbsa$age, df_sbsa$sa07_15)) %>% mutate(facet = names(b5_vars)[5 + 15])
+) %>% select(facet, estimate, conf.low, conf.high, p.value)
+  , digits = 3)
+```
+
+::: {.callout-note appearance="minimal"}
+Negative correlations for conscientiousness facets.
+:::
+
+Correlation age & profile similarity (facet-level)   
+```{r}
+#| echo: true
+#| warning: false
+cor.test(df_sbsa$age, df_sbsa$profile_corr_facet_z)
+```
+
+Correlation age & profile similarity (item-level)   
+```{r}
+#| echo: true
+#| warning: false
+cor.test(df_sbsa$age, df_sbsa$profile_corr_item_z)
+```
+
+::: {.callout-note appearance="minimal"}
+Significantly higher similarity between current- and ideal-self with older age.
+:::
+
+#### Moderation analysis: linear age
+
+Reshape and split data set by intervention group:
+```{r}
+#| echo: true
+#| warning: false
+#| code-fold: true
+#| code-summary: "Show the code"
+#| output: false
+
+df_sbsa_wide_pers_mod_age <- df_sbsa %>% 
+  arrange(pid, time) %>% 
+  mutate(age_z = (age - mean(age, na.rm=T)) / sd(age, na.rm=T)) %>% 
+  group_by(pid) %>% slice_head(n=1) %>% ungroup() %>% 
+  select(pid, age_z)
+
+df_sbsa_wide_pers_mod_age <- df_sbsa_wide_pers %>% left_join(group_assign) %>% 
+  left_join(df_sbsa_wide_pers_mod_age)
+```
+
+##### Run models 
+
+Adapt latent change score model from above (adding moderation by age) and add grouping factor in estimation (adding vectorized equality constraints to the model step by step):  
+
+```{r}
+#| echo: true
+#| warning: false
+#| code-fold: true
+#| code-summary: "Show the code"
+#| output: false
+#| cache: true
+
+# create templates:
+
+# configural invariance
+trait_template_age_config <- '
+trait_t1 =~ 1*ind01_t1 +  c("lamb2a", "lamb2b")*ind02_t1 + c("lamb3a", "lamb3b")*ind03_t1 # This specifies the measurement model for trait_t1 
+trait_t2 =~ 1*ind01_t2 +  c("lamb2a", "lamb2b")*ind02_t2 + c("lamb3a", "lamb3b")*ind03_t2 # This specifies the measurement model for trait_t2 with the equality constrained factor loadings
+
+trait_t2 ~ 1*trait_t1     # This parameter regresses trait_t2 perfectly on trait_t1
+d_trait_1 =~ 1*trait_t2   # This defines the latent change score factor as measured perfectly by scores on trait_t2
+trait_t2 ~ 0*1            # This line constrains the intercept of trait_t2 to 0
+trait_t2 ~~ 0*trait_t2    # This fixes the variance of trait_t2 to 0
+
+d_trait_1 ~ c("d_int_a", "d_int_b")*1              # This estimates the intercept of the change score 
+trait_t1 ~ c("b5_int_a", "b5_int_b")*1               # This estimates the intercept of trait_t1 
+d_trait_1 ~~ c("d_var_a", "d_var_b")*d_trait_1     # This estimates the variance of the change scores 
+trait_t1 ~~ c("b5_var_a", "b5_var_b")*trait_t1         # This estimates the variance of trait_t1 
+d_trait_1 ~~ c("fb_a", "fb_b")* trait_t1   # This estimates the self-feedback parameter, as a covariance! -> therefore, the interpretation of the change score
+trait_t1 ~ c("main_a", "main_b")*age_z           # This estimates the moderation effect on personality at T1
+d_trait_1 ~ c("mod_a", "mod_b")*age_z          # This estimates the moderation effect on the change score
+
+age_z ~ 0*1            # This fixes the intercept of the moderator to 0
+age_z ~~ c("varmod_a", "varmod_b")*age_z         # This estimates the variance of the moderator
+
+ind01_t1 ~~ c("cov1a", "cov1b")*ind01_t2   # This allows residual covariance on indicator X1 across T1 and T2
+ind02_t1 ~~ c("cov2a", "cov2b")*ind02_t2   # This allows residual covariance on indicator X2 across T1 and T2
+ind03_t1 ~~ c("cov3a", "cov3b")*ind03_t2   # This allows residual covariance on indicator X3 across T1 and T2
+
+ind01_t1 ~~ c("res1a", "res1b")*ind01_t1   # This allows residual variance on indicator X1 at T1 
+ind02_t1 ~~ c("res2a", "res2b")*ind02_t1   # This allows residual variance on indicator X2 at T1
+ind03_t1 ~~ c("res3a", "res3b")*ind03_t1   # This allows residual variance on indicator X3 at T1
+
+ind01_t2 ~~ c("res1a", "res1b")*ind01_t2  # This allows residual variance on indicator X1 at T2 
+ind02_t2 ~~ c("res2a", "res2b")*ind02_t2  # This allows residual variance on indicator X2 at T2 
+ind03_t2 ~~ c("res3a", "res3b")*ind03_t2  # This allows residual variance on indicator X3 at T2
+
+ind01_t1 ~ 0*1      # This constrains the intercept of X1 to 0 at T1
+ind02_t1 ~ c("m2a", "m2b")*1     # This estimates the intercept of X2 at T1
+ind03_t1 ~ c("m3a", "m3b")*1     # This estimates the intercept of X3 at T1
+
+ind01_t2 ~ 0*1      # This constrains the intercept of X1 to 0 at T2
+ind02_t2 ~ c("m2a", "m2b")*1     # This estimates the intercept of X2 at T2
+ind03_t2 ~ c("m3a", "m3b")*1     # This estimates the intercept of X3 at T2
+'
+
+# weak invariance
+trait_template_age_weak <- '
+trait_t1 =~ 1*ind01_t1 +  c("lamb2", "lamb2")*ind02_t1 + c("lamb3", "lamb3")*ind03_t1 # This specifies the measurement model for trait_t1 
+trait_t2 =~ 1*ind01_t2 +  c("lamb2", "lamb2")*ind02_t2 + c("lamb3", "lamb3")*ind03_t2 # This specifies the measurement model for trait_t2 with the equality constrained factor loadings
+
+trait_t2 ~ 1*trait_t1     # This parameter regresses trait_t2 perfectly on trait_t1
+d_trait_1 =~ 1*trait_t2   # This defines the latent change score factor as measured perfectly by scores on trait_t2
+trait_t2 ~ 0*1            # This line constrains the intercept of trait_t2 to 0
+trait_t2 ~~ 0*trait_t2    # This fixes the variance of trait_t2 to 0
+
+d_trait_1 ~ c("d_int_a", "d_int_b")*1              # This estimates the intercept of the change score 
+trait_t1 ~ c("b5_int_a", "b5_int_b")*1               # This estimates the intercept of trait_t1 
+d_trait_1 ~~ c("d_var_a", "d_var_b")*d_trait_1     # This estimates the variance of the change scores 
+trait_t1 ~~ c("b5_var_a", "b5_var_b")*trait_t1         # This estimates the variance of trait_t1 
+d_trait_1 ~~ c("fb_a", "fb_b")* trait_t1   # This estimates the self-feedback parameter, as a covariance! -> therefore, the interpretation of the change score
+trait_t1 ~ c("main_a", "main_b")*age_z           # This estimates the moderation effect on personality at T1
+d_trait_1 ~ c("mod_a", "mod_b")*age_z          # This estimates the moderation effect on the change score
+
+age_z ~ 0*1            # This fixes the intercept of the moderator to 0
+age_z ~~ c("varmod_a", "varmod_b")*age_z         # This estimates the variance of the moderator
+
+ind01_t1 ~~ c("cov1a", "cov1b")*ind01_t2   # This allows residual covariance on indicator X1 across T1 and T2
+ind02_t1 ~~ c("cov2a", "cov2b")*ind02_t2   # This allows residual covariance on indicator X2 across T1 and T2
+ind03_t1 ~~ c("cov3a", "cov3b")*ind03_t2   # This allows residual covariance on indicator X3 across T1 and T2
+
+ind01_t1 ~~ c("res1a", "res1b")*ind01_t1   # This allows residual variance on indicator X1 at T1 
+ind02_t1 ~~ c("res2a", "res2b")*ind02_t1   # This allows residual variance on indicator X2 at T1
+ind03_t1 ~~ c("res3a", "res3b")*ind03_t1   # This allows residual variance on indicator X3 at T1
+
+ind01_t2 ~~ c("res1a", "res1b")*ind01_t2  # This allows residual variance on indicator X1 at T2 
+ind02_t2 ~~ c("res2a", "res2b")*ind02_t2  # This allows residual variance on indicator X2 at T2 
+ind03_t2 ~~ c("res3a", "res3b")*ind03_t2  # This allows residual variance on indicator X3 at T2
+
+ind01_t1 ~ 0*1      # This constrains the intercept of X1 to 0 at T1
+ind02_t1 ~ c("m2a", "m2b")*1     # This estimates the intercept of X2 at T1
+ind03_t1 ~ c("m3a", "m3b")*1     # This estimates the intercept of X3 at T1
+
+ind01_t2 ~ 0*1      # This constrains the intercept of X1 to 0 at T2
+ind02_t2 ~ c("m2a", "m2b")*1     # This estimates the intercept of X2 at T2
+ind03_t2 ~ c("m3a", "m3b")*1     # This estimates the intercept of X3 at T2
+'
+
+# strong invariance
+trait_template_age_strong <- '
+trait_t1 =~ 1*ind01_t1 +  c("lamb2", "lamb2")*ind02_t1 + c("lamb3", "lamb3")*ind03_t1 # This specifies the measurement model for trait_t1 
+trait_t2 =~ 1*ind01_t2 +  c("lamb2", "lamb2")*ind02_t2 + c("lamb3", "lamb3")*ind03_t2 # This specifies the measurement model for trait_t2 with the equality constrained factor loadings
+
+trait_t2 ~ 1*trait_t1     # This parameter regresses trait_t2 perfectly on trait_t1
+d_trait_1 =~ 1*trait_t2   # This defines the latent change score factor as measured perfectly by scores on trait_t2
+trait_t2 ~ 0*1            # This line constrains the intercept of trait_t2 to 0
+trait_t2 ~~ 0*trait_t2    # This fixes the variance of trait_t2 to 0
+
+d_trait_1 ~ c("d_int", "d_int")*1              # This estimates the intercept of the change score 
+trait_t1 ~ c("b5_int", "b5_int")*1               # This estimates the intercept of trait_t1 
+d_trait_1 ~~ c("d_var_a", "d_var_b")*d_trait_1     # This estimates the variance of the change scores 
+trait_t1 ~~ c("b5_var_a", "b5_var_b")*trait_t1         # This estimates the variance of trait_t1 
+d_trait_1 ~~ c("fb_a", "fb_b")* trait_t1   # This estimates the self-feedback parameter, as a covariance! -> therefore, the interpretation of the change score
+trait_t1 ~ c("main", "main")*age_z         # This estimates the moderation effect on personality at T1
+d_trait_1 ~ c("mod", "mod")*age_z          # This estimates the moderation effect on the change score
+
+age_z ~ 0*1            # This fixes the intercept of the moderator to 0
+age_z ~~ c("varmod_a", "varmod_b")*age_z         # This estimates the variance of the moderator
+
+ind01_t1 ~~ c("cov1a", "cov1b")*ind01_t2   # This allows residual covariance on indicator X1 across T1 and T2
+ind02_t1 ~~ c("cov2a", "cov2b")*ind02_t2   # This allows residual covariance on indicator X2 across T1 and T2
+ind03_t1 ~~ c("cov3a", "cov3b")*ind03_t2   # This allows residual covariance on indicator X3 across T1 and T2
+
+ind01_t1 ~~ c("res1a", "res1b")*ind01_t1   # This allows residual variance on indicator X1 at T1 
+ind02_t1 ~~ c("res2a", "res2b")*ind02_t1   # This allows residual variance on indicator X2 at T1
+ind03_t1 ~~ c("res3a", "res3b")*ind03_t1   # This allows residual variance on indicator X3 at T1
+
+ind01_t2 ~~ c("res1a", "res1b")*ind01_t2  # This allows residual variance on indicator X1 at T2 
+ind02_t2 ~~ c("res2a", "res2b")*ind02_t2  # This allows residual variance on indicator X2 at T2 
+ind03_t2 ~~ c("res3a", "res3b")*ind03_t2  # This allows residual variance on indicator X3 at T2
+
+ind01_t1 ~ 0*1      # This constrains the intercept of X1 to 0 at T1
+ind02_t1 ~ c("m2", "m2")*1     # This estimates the intercept of X2 at T1
+ind03_t1 ~ c("m3", "m3")*1     # This estimates the intercept of X3 at T1
+
+ind01_t2 ~ 0*1      # This constrains the intercept of X1 to 0 at T2
+ind02_t2 ~ c("m2", "m2")*1     # This estimates the intercept of X2 at T2
+ind03_t2 ~ c("m3", "m3")*1     # This estimates the intercept of X3 at T2
+'
+
+# strict invariance -> not really needed for this analysis
+
+# loop across 5 traits
+for (i in 1:5) {
+  item_nrs = b5_vars[[i]][[1]]
+  short_name = str_trunc(names(b5_vars)[i], 5, ellipsis = "")
+  # configural - current
+  template_filled_config_current <- str_replace_all(trait_template_age_config, 
+                                       c("trait" = short_name,
+                                         "ind01" = paste0(short_name, "_curr_par1"), 
+                                         "ind02" = paste0(short_name, "_curr_par2"), 
+                                         "ind03" = paste0(short_name, "_curr_par3")))
+  trait_age_fit_config_current <- lavaan(template_filled_config_current, 
+                                          data = df_sbsa_wide_pers_mod_age, 
+                                          estimator='mlr', fixed.x=FALSE, missing='fiml', group = "rando")
+  eval(call("<-", as.name(paste0("lcs_", short_name, "_age_config_current")), template_filled_config_current))
+  eval(call("<-", as.name(paste0("fit_lcs_", short_name, "_age_config_current")), trait_age_fit_config_current))
+  # configural - ideal
+  template_filled_config_ideal <- str_replace_all(trait_template_age_config, 
+                                       c("trait" = short_name,
+                                         "ind01" = paste0(short_name, "_ideal_par1"), 
+                                         "ind02" = paste0(short_name, "_ideal_par2"), 
+                                         "ind03" = paste0(short_name, "_ideal_par3")))
+  trait_age_fit_config_ideal <- lavaan(template_filled_config_ideal, 
+                                        data = df_sbsa_wide_pers_mod_age, 
+                                        estimator='mlr', fixed.x=FALSE, missing='fiml', group = "rando")
+  eval(call("<-", as.name(paste0("lcs_", short_name, "_age_config_ideal")), template_filled_config_ideal))
+  eval(call("<-", as.name(paste0("fit_lcs_", short_name, "_age_config_ideal")), trait_age_fit_config_ideal))
+  # weak - current
+  template_filled_weak_current <- str_replace_all(trait_template_age_weak, 
+                                       c("trait" = short_name,
+                                         "ind01" = paste0(short_name, "_curr_par1"), 
+                                         "ind02" = paste0(short_name, "_curr_par2"), 
+                                         "ind03" = paste0(short_name, "_curr_par3")))
+  trait_age_fit_weak_current <- lavaan(template_filled_weak_current, 
+                                          data = df_sbsa_wide_pers_mod_age, 
+                                          estimator='mlr', fixed.x=FALSE, missing='fiml', group = "rando", group.equal = "loadings")
+  eval(call("<-", as.name(paste0("lcs_", short_name, "_age_weak_current")), template_filled_weak_current))
+  eval(call("<-", as.name(paste0("fit_lcs_", short_name, "_age_weak_current")), trait_age_fit_weak_current))
+  # weak - ideal
+  template_filled_weak_ideal <- str_replace_all(trait_template_age_weak, 
+                                       c("trait" = short_name,
+                                         "ind01" = paste0(short_name, "_ideal_par1"), 
+                                         "ind02" = paste0(short_name, "_ideal_par2"), 
+                                         "ind03" = paste0(short_name, "_ideal_par3")))
+  trait_age_fit_weak_ideal <- lavaan(template_filled_weak_ideal, 
+                                        data = df_sbsa_wide_pers_mod_age, 
+                                        estimator='mlr', fixed.x=FALSE, missing='fiml', group = "rando", group.equal = "loadings")
+  eval(call("<-", as.name(paste0("lcs_", short_name, "_age_weak_ideal")), template_filled_weak_ideal))
+  eval(call("<-", as.name(paste0("fit_lcs_", short_name, "_age_weak_ideal")), trait_age_fit_weak_ideal))
+  # strong - current
+  template_filled_strong_current <- str_replace_all(trait_template_age_strong, 
+                                       c("trait" = short_name,
+                                         "ind01" = paste0(short_name, "_curr_par1"), 
+                                         "ind02" = paste0(short_name, "_curr_par2"), 
+                                         "ind03" = paste0(short_name, "_curr_par3")))
+  trait_age_fit_strong_current <- lavaan(template_filled_strong_current, 
+                                          data = df_sbsa_wide_pers_mod_age, 
+                                          estimator='mlr', fixed.x=FALSE, missing='fiml', group = "rando", group.equal = c("intercepts", "loadings"))
+  eval(call("<-", as.name(paste0("lcs_", short_name, "_age_strong_current")), template_filled_strong_current))
+  eval(call("<-", as.name(paste0("fit_lcs_", short_name, "_age_strong_current")), trait_age_fit_strong_current))
+  # strong - ideal
+  template_filled_strong_ideal <- str_replace_all(trait_template_age_strong, 
+                                       c("trait" = short_name,
+                                         "ind01" = paste0(short_name, "_ideal_par1"), 
+                                         "ind02" = paste0(short_name, "_ideal_par2"), 
+                                         "ind03" = paste0(short_name, "_ideal_par3")))
+  trait_age_fit_strong_ideal <- lavaan(template_filled_strong_ideal, 
+                                        data = df_sbsa_wide_pers_mod_age, 
+                                        estimator='mlr', fixed.x=FALSE, missing='fiml', group = "rando", group.equal = c("intercepts", "loadings"))
+  eval(call("<-", as.name(paste0("lcs_", short_name, "_age_strong_ideal")), template_filled_strong_ideal))
+  eval(call("<-", as.name(paste0("fit_lcs_", short_name, "_age_strong_ideal")), trait_age_fit_strong_ideal))
+}
+```
+
+##### Current self personality traits
+
+Extraversion (current self): results  
+```{r}
+#| echo: true
+#| warning: false
+
+# model comparison tests for measurement invariance
+lavTestLRT(fit_lcs_extra_age_config_current, fit_lcs_extra_age_weak_current, fit_lcs_extra_age_strong_current)
+
+# show model with varying latent change parameters 
+# -> change parameter is "d_extra_1 ~1"
+# -> main effect of age on T1 trait is "extra_t1 ~ age_z"
+# -> moderation effect of age on change parameter is "d_extra_1 ~ age_z"
+# labelled parameter as "d_int_a" & "d_int_b" (a = Self-Acceptance group, b = Self-Improvement group)
+params_age_lcs_extra_current <- broom::tidy(fit_lcs_extra_age_weak_current, conf.int = TRUE, conf.level = 0.95) %>% 
+        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        filter(term %in% c("d_extra_1 ~1 ", "extra_t1 ~ age_z", "d_extra_1 ~ age_z")) %>% arrange(label)
+kable(params_age_lcs_extra_current, digits = 3) 
+
+# constrained to be equal in the strong measurement invariance model:
+kable(broom::tidy(fit_lcs_extra_age_strong_current, conf.int = TRUE, conf.level = 0.95) %>% 
+        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        filter(term %in% c("d_extra_1 ~1 ", "extra_t1 ~ age_z", "d_extra_1 ~ age_z")) %>% arrange(label), digits = 3) 
+
+# model fit
+kable(broom::glance(fit_lcs_extra_age_weak_current) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+```
+
+::: {.callout-note appearance="minimal"}
+No significant moderation by age for extraversion (similar in both groups). No significant differences according to the LRTs.
+:::
+
+Agreeableness (current self): results  
+```{r}
+#| echo: true
+#| warning: false
+
+# model comparison tests for measurement invariance
+lavTestLRT(fit_lcs_agree_age_config_current, fit_lcs_agree_age_weak_current, fit_lcs_agree_age_strong_current)
+
+# show model with varying latent change parameters 
+# -> change parameter is "d_agree_1 ~1"
+# -> main effect of age on T1 trait is "agree_t1 ~ age_z"
+# -> moderation effect of age on change parameter is "d_agree_1 ~ age_z"
+# labelled parameter as "d_int_a" & "d_int_b" (a = Self-Acceptance group, b = Self-Improvement group)
+params_age_lcs_agree_current <- broom::tidy(fit_lcs_agree_age_weak_current, conf.int = TRUE, conf.level = 0.95) %>% 
+        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        filter(term %in% c("d_agree_1 ~1 ", "agree_t1 ~ age_z", "d_agree_1 ~ age_z")) %>% arrange(label)
+kable(params_age_lcs_agree_current, digits = 3) 
+
+# constrained to be equal in the strong measurement invariance model:
+kable(broom::tidy(fit_lcs_agree_age_strong_current, conf.int = TRUE, conf.level = 0.95) %>% 
+        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        filter(term %in% c("d_agree_1 ~1 ", "agree_t1 ~ age_z", "d_agree_1 ~ age_z")) %>% arrange(label), digits = 3) 
+
+# model fit
+kable(broom::glance(fit_lcs_agree_age_strong_current) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+```
+
+::: {.callout-note appearance="minimal"}
+No significant moderation by age for agreeableness (similar in both groups). However, slight "main effect" of age on agreeableness at T1 that differs somewhat between groups -> significant differences according to LRTs (at *p* < .05).
+:::
+
+Conscientiousness (current self): results  
+```{r}
+#| echo: true
+#| warning: false
+
+# model comparison tests for measurement invariance
+lavTestLRT(fit_lcs_consc_age_config_current, fit_lcs_consc_age_weak_current, fit_lcs_consc_age_strong_current)
+
+# show model with varying latent change parameters 
+# -> change parameter is "d_consc_1 ~1"
+# -> main effect of age on T1 trait is "consc_t1 ~ age_z"
+# -> moderation effect of age on change parameter is "d_consc_1 ~ age_z"
+# labelled parameter as "d_int_a" & "d_int_b" (a = Self-Acceptance group, b = Self-Improvement group)
+params_age_lcs_consc_current <- broom::tidy(fit_lcs_consc_age_weak_current, conf.int = TRUE, conf.level = 0.95) %>% 
+        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        filter(term %in% c("d_consc_1 ~1 ", "consc_t1 ~ age_z", "d_consc_1 ~ age_z")) %>% arrange(label)
+kable(params_age_lcs_consc_current, digits = 3) 
+
+# constrained to be equal in the strong measurement invariance model:
+kable(broom::tidy(fit_lcs_consc_age_strong_current, conf.int = TRUE, conf.level = 0.95) %>% 
+        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        filter(term %in% c("d_consc_1 ~1 ", "consc_t1 ~ age_z", "d_consc_1 ~ age_z")) %>% arrange(label), digits = 3) 
+
+# model fit
+kable(broom::glance(fit_lcs_consc_age_weak_current) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+```
+
+::: {.callout-note appearance="minimal"}
+No significant moderation by age for conscientiousness (similar in both groups). Main effect of age on conscientiousness at T1. No significant differences according to the LRTs.
+:::
+
+Neuroticism (current self): results  
+```{r}
+#| echo: true
+#| warning: false
+
+# model comparison tests for measurement invariance
+lavTestLRT(fit_lcs_neuro_age_config_current, fit_lcs_neuro_age_weak_current, fit_lcs_neuro_age_strong_current)
+
+# show model with varying latent change parameters 
+# -> change parameter is "d_neuro_1 ~1"
+# -> main effect of age on T1 trait is "neuro_t1 ~ age_z"
+# -> moderation effect of age on change parameter is "d_neuro_1 ~ age_z"
+# labelled parameter as "d_int_a" & "d_int_b" (a = Self-Acceptance group, b = Self-Improvement group)
+params_age_lcs_neuro_current <- broom::tidy(fit_lcs_neuro_age_weak_current, conf.int = TRUE, conf.level = 0.95) %>% 
+        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        filter(term %in% c("d_neuro_1 ~1 ", "neuro_t1 ~ age_z", "d_neuro_1 ~ age_z")) %>% arrange(label)
+kable(params_age_lcs_neuro_current, digits = 3) 
+
+# constrained to be equal in the strong measurement invariance model:
+kable(broom::tidy(fit_lcs_neuro_age_strong_current, conf.int = TRUE, conf.level = 0.95) %>% 
+        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        filter(term %in% c("d_neuro_1 ~1 ", "neuro_t1 ~ age_z", "d_neuro_1 ~ age_z")) %>% arrange(label), digits = 3) 
+
+# model fit
+kable(broom::glance(fit_lcs_neuro_age_weak_current) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+```
+
+::: {.callout-note appearance="minimal"}
+Very slight (but significant at *p* < .05) moderation by age for neuroticism in the self-improvement group only. However, no significant differences according to the LRTs.
+:::
+
+Openness (current self): results  
+```{r}
+#| echo: true
+#| warning: false
+
+# model comparison tests for measurement invariance
+lavTestLRT(fit_lcs_openn_age_config_current, fit_lcs_openn_age_weak_current, fit_lcs_openn_age_strong_current)
+
+# show model with varying latent change parameters 
+# -> change parameter is "d_openn_1 ~1"
+# -> main effect of age on T1 trait is "openn_t1 ~ age_z"
+# -> moderation effect of age on change parameter is "d_openn_1 ~ age_z"
+# labelled parameter as "d_int_a" & "d_int_b" (a = Self-Acceptance group, b = Self-Improvement group)
+params_age_lcs_openn_current <- broom::tidy(fit_lcs_openn_age_weak_current, conf.int = TRUE, conf.level = 0.95) %>% 
+        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        filter(term %in% c("d_openn_1 ~1 ", "openn_t1 ~ age_z", "d_openn_1 ~ age_z")) %>% arrange(label)
+kable(params_age_lcs_openn_current, digits = 3) 
+
+# constrained to be equal in the strong measurement invariance model:
+kable(broom::tidy(fit_lcs_openn_age_strong_current, conf.int = TRUE, conf.level = 0.95) %>% 
+        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        filter(term %in% c("d_openn_1 ~1 ", "openn_t1 ~ age_z", "d_openn_1 ~ age_z")) %>% arrange(label), digits = 3) 
+
+# model fit
+kable(broom::glance(fit_lcs_openn_age_weak_current) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+```
+
+::: {.callout-note appearance="minimal"}
+No significant moderation by age for current-self openness (similar in both groups). No significant differences according to the LRTs.
+:::
+
+##### Ideal self personality traits
+
+Extraversion (ideal self): results  
+```{r}
+#| echo: true
+#| warning: false
+
+# model comparison tests for measurement invariance
+lavTestLRT(fit_lcs_extra_age_config_ideal, fit_lcs_extra_age_weak_ideal, fit_lcs_extra_age_strong_ideal)
+
+# show model with varying latent change parameters 
+# -> change parameter is "d_extra_1 ~1"
+# -> main effect of age on T1 trait is "extra_t1 ~ age_z"
+# -> moderation effect of age on change parameter is "d_extra_1 ~ age_z"
+# labelled parameter as "d_int_a" & "d_int_b" (a = Self-Acceptance group, b = Self-Improvement group)
+params_age_lcs_extra_ideal <- broom::tidy(fit_lcs_extra_age_weak_ideal, conf.int = TRUE, conf.level = 0.95) %>% 
+        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        filter(term %in% c("d_extra_1 ~1 ", "extra_t1 ~ age_z", "d_extra_1 ~ age_z")) %>% arrange(label)
+kable(params_age_lcs_extra_ideal, digits = 3) 
+
+# constrained to be equal in the strong measurement invariance model:
+kable(broom::tidy(fit_lcs_extra_age_strong_ideal, conf.int = TRUE, conf.level = 0.95) %>% 
+        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        filter(term %in% c("d_extra_1 ~1 ", "extra_t1 ~ age_z", "d_extra_1 ~ age_z")) %>% arrange(label), digits = 3) 
+
+# model fit
+kable(broom::glance(fit_lcs_extra_age_weak_ideal) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+```
+
+::: {.callout-note appearance="minimal"}
+No significant moderation by age for ideal-self extraversion (similar in both groups). No significant differences according to the LRTs. Slight evidence for main effect of age on ideal-self extraversion at T1. 
+:::
+
+Agreeableness (ideal self): results  
+```{r}
+#| echo: true
+#| warning: false
+
+# model comparison tests for measurement invariance
+lavTestLRT(fit_lcs_agree_age_config_ideal, fit_lcs_agree_age_weak_ideal, fit_lcs_agree_age_strong_ideal)
+
+# show model with varying latent change parameters 
+# -> change parameter is "d_agree_1 ~1"
+# -> main effect of age on T1 trait is "agree_t1 ~ age_z"
+# -> moderation effect of age on change parameter is "d_agree_1 ~ age_z"
+# labelled parameter as "d_int_a" & "d_int_b" (a = Self-Acceptance group, b = Self-Improvement group)
+params_age_lcs_agree_ideal <- broom::tidy(fit_lcs_agree_age_weak_ideal, conf.int = TRUE, conf.level = 0.95) %>% 
+        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        filter(term %in% c("d_agree_1 ~1 ", "agree_t1 ~ age_z", "d_agree_1 ~ age_z")) %>% arrange(label)
+kable(params_age_lcs_agree_ideal, digits = 3) 
+
+# constrained to be equal in the strong measurement invariance model:
+kable(broom::tidy(fit_lcs_agree_age_strong_ideal, conf.int = TRUE, conf.level = 0.95) %>% 
+        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        filter(term %in% c("d_agree_1 ~1 ", "agree_t1 ~ age_z", "d_agree_1 ~ age_z")) %>% arrange(label), digits = 3) 
+
+# model fit
+kable(broom::glance(fit_lcs_agree_age_strong_ideal) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+```
+
+::: {.callout-note appearance="minimal"}
+No significant moderation by age for ideal-self agreeableness (similar in both groups). Significant differences according to the LRTs, but probably only because of the main effect on agreeableness at T1 which was only significant in the self-improvement group.  
+:::
+
+Conscientiousness (ideal self): results  
+```{r}
+#| echo: true
+#| warning: false
+
+# model comparison tests for measurement invariance
+lavTestLRT(fit_lcs_consc_age_config_ideal, fit_lcs_consc_age_weak_ideal, fit_lcs_consc_age_strong_ideal)
+
+# show model with varying latent change parameters 
+# -> change parameter is "d_consc_1 ~1"
+# -> main effect of age on T1 trait is "consc_t1 ~ age_z"
+# -> moderation effect of age on change parameter is "d_consc_1 ~ age_z"
+# labelled parameter as "d_int_a" & "d_int_b" (a = Self-Acceptance group, b = Self-Improvement group)
+params_age_lcs_consc_ideal <- broom::tidy(fit_lcs_consc_age_weak_ideal, conf.int = TRUE, conf.level = 0.95) %>% 
+        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        filter(term %in% c("d_consc_1 ~1 ", "consc_t1 ~ age_z", "d_consc_1 ~ age_z")) %>% arrange(label)
+kable(params_age_lcs_consc_ideal, digits = 3) 
+
+# constrained to be equal in the strong measurement invariance model:
+kable(broom::tidy(fit_lcs_consc_age_strong_ideal, conf.int = TRUE, conf.level = 0.95) %>% 
+        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        filter(term %in% c("d_consc_1 ~1 ", "consc_t1 ~ age_z", "d_consc_1 ~ age_z")) %>% arrange(label), digits = 3) 
+
+# model fit
+kable(broom::glance(fit_lcs_consc_age_weak_ideal) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+```
+
+::: {.callout-note appearance="minimal"}
+No significant moderation by age for ideal-self conscientiousness (similar in both groups). No significant differences according to the LRTs. 
+:::
+
+Neuroticism (ideal self): results  
+```{r}
+#| echo: true
+#| warning: false
+
+# model comparison tests for measurement invariance
+lavTestLRT(fit_lcs_neuro_age_config_ideal, fit_lcs_neuro_age_weak_ideal, fit_lcs_neuro_age_strong_ideal)
+
+# show model with varying latent change parameters 
+# -> change parameter is "d_neuro_1 ~1"
+# -> main effect of age on T1 trait is "neuro_t1 ~ age_z"
+# -> moderation effect of age on change parameter is "d_neuro_1 ~ age_z"
+# labelled parameter as "d_int_a" & "d_int_b" (a = Self-Acceptance group, b = Self-Improvement group)
+params_age_lcs_neuro_ideal <- broom::tidy(fit_lcs_neuro_age_weak_ideal, conf.int = TRUE, conf.level = 0.95) %>% 
+        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        filter(term %in% c("d_neuro_1 ~1 ", "neuro_t1 ~ age_z", "d_neuro_1 ~ age_z")) %>% arrange(label)
+kable(params_age_lcs_neuro_ideal, digits = 3) 
+
+# constrained to be equal in the strong measurement invariance model:
+kable(broom::tidy(fit_lcs_neuro_age_strong_ideal, conf.int = TRUE, conf.level = 0.95) %>% 
+        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        filter(term %in% c("d_neuro_1 ~1 ", "neuro_t1 ~ age_z", "d_neuro_1 ~ age_z")) %>% arrange(label), digits = 3) 
+
+# model fit
+kable(broom::glance(fit_lcs_neuro_age_weak_ideal) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+```
+
+::: {.callout-note appearance="minimal"}
+No significant moderation by age for ideal-self neuroticism (similar in both groups). No significant differences according to the LRTs.
+:::
+
+Openness (ideal self): results  
+```{r}
+#| echo: true
+#| warning: false
+
+# model comparison tests for measurement invariance
+lavTestLRT(fit_lcs_openn_age_config_ideal, fit_lcs_openn_age_weak_ideal, fit_lcs_openn_age_strong_ideal)
+
+# show model with varying latent change parameters 
+# -> change parameter is "d_openn_1 ~1"
+# -> main effect of age on T1 trait is "openn_t1 ~ age_z"
+# -> moderation effect of age on change parameter is "d_openn_1 ~ age_z"
+# labelled parameter as "d_int_a" & "d_int_b" (a = Self-Acceptance group, b = Self-Improvement group)
+params_age_lcs_openn_ideal <- broom::tidy(fit_lcs_openn_age_weak_ideal, conf.int = TRUE, conf.level = 0.95) %>% 
+        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        filter(term %in% c("d_openn_1 ~1 ", "openn_t1 ~ age_z", "d_openn_1 ~ age_z")) %>% arrange(label)
+kable(params_age_lcs_openn_ideal, digits = 3) 
+
+# constrained to be equal in the strong measurement invariance model:
+kable(broom::tidy(fit_lcs_openn_age_strong_ideal, conf.int = TRUE, conf.level = 0.95) %>% 
+        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        filter(term %in% c("d_openn_1 ~1 ", "openn_t1 ~ age_z", "d_openn_1 ~ age_z")) %>% arrange(label), digits = 3) 
+
+# model fit
+kable(broom::glance(fit_lcs_openn_age_weak_ideal) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+```
+
+::: {.callout-note appearance="minimal"}
+No significant moderation by age for ideal-self openness (similar in both groups). No significant differences according to the LRTs.
+:::
+
+##### Summary of latent main and moderation effects of linear age
+
+```{r}
+#| echo: true
+#| warning: false
+#| code-fold: true
+#| code-summary: "Show the code"
+#| cache: true
+
+params_age_summary <- bind_rows(
+  params_age_lcs_extra_current %>% mutate(trait = names(b5_vars)[1], self = "current") %>% filter(str_detect(label, "m")==T) %>% select(trait, self, group = label, beta = std.all, p.value),
+  params_age_lcs_extra_ideal %>% mutate(trait = names(b5_vars)[1], self = "ideal") %>% filter(str_detect(label, "m")==T) %>% select(trait, self, group = label, beta = std.all, p.value),
+  params_age_lcs_agree_current %>% mutate(trait = names(b5_vars)[2], self = "current") %>% filter(str_detect(label, "m")==T) %>% select(trait, self, group = label, beta = std.all, p.value),
+  params_age_lcs_agree_ideal %>% mutate(trait = names(b5_vars)[2], self = "ideal") %>% filter(str_detect(label, "m")==T) %>% select(trait, self, group = label, beta = std.all, p.value),
+  params_age_lcs_consc_current %>% mutate(trait = names(b5_vars)[3], self = "current") %>% filter(str_detect(label, "m")==T) %>% select(trait, self, group = label, beta = std.all, p.value),
+  params_age_lcs_consc_ideal %>% mutate(trait = names(b5_vars)[3], self = "ideal") %>% filter(str_detect(label, "m")==T) %>% select(trait, self, group = label, beta = std.all, p.value),
+  params_age_lcs_neuro_current %>% mutate(trait = names(b5_vars)[4], self = "current") %>% filter(str_detect(label, "m")==T) %>% select(trait, self, group = label, beta = std.all, p.value),
+  params_age_lcs_neuro_ideal %>% mutate(trait = names(b5_vars)[4], self = "ideal") %>% filter(str_detect(label, "m")==T) %>% select(trait, self, group = label, beta = std.all, p.value),
+  params_age_lcs_openn_current %>% mutate(trait = names(b5_vars)[5], self = "current") %>% filter(str_detect(label, "m")==T) %>% select(trait, self, group = label, beta = std.all, p.value),
+  params_age_lcs_openn_ideal %>% mutate(trait = names(b5_vars)[5], self = "ideal") %>% filter(str_detect(label, "m")==T) %>% select(trait, self, group = label, beta = std.all, p.value)
+) 
+
+kable(params_age_summary, digits = 3)
+```
+
+::: {.callout-note appearance="minimal"}
+No moderation, and very few main effects of age (at T1) in either intervention group.
+:::
+
+#### Moderation analysis: age group split
+
+Now that we saw that the two intervention groups did not really differ in terms of linear moderation effects, let's see whether perhaps across the whole sample we can find differences in two age groups (-> in multigroup SEM of latent change score).
+
+Split age by age 30: roughly the sample mean and consistent with findings by Miller on age differences
+```{r}
+#| echo: true
+#| warning: false
+
+df_sbsa_wide_pers_mod_age_split <- df_sbsa %>% 
+  arrange(pid, time) %>% 
+  mutate(age_d = ifelse(age <= 30, "young", "old")) %>% 
+  group_by(pid) %>% slice_head(n=1) %>% ungroup() %>% 
+  select(pid, age_d)
+
+df_sbsa_wide_pers_mod_age_split <- df_sbsa_wide_pers %>% left_join(group_assign) %>% 
+  left_join(df_sbsa_wide_pers_mod_age_split) %>% 
+  filter(!is.na(age_d))
+```
+
+##### Run models 
+
+```{r}
+#| echo: true
+#| warning: false
+#| code-fold: true
+#| code-summary: "Show the code"
+#| output: false
+#| cache: true
+
+# create templates: we can use the same templates as above just with different group composition (split by age_d variable)
+
+# loop across 5 traits
+for (i in 1:5) {
+  item_nrs = b5_vars[[i]][[1]]
+  short_name = str_trunc(names(b5_vars)[i], 5, ellipsis = "")
+  # configural - current
+  template_filled_config_current <- str_replace_all(trait_template_main_config, 
+                                       c("trait" = short_name,
+                                         "ind01" = paste0(short_name, "_curr_par1"), 
+                                         "ind02" = paste0(short_name, "_curr_par2"), 
+                                         "ind03" = paste0(short_name, "_curr_par3")))
+  trait_agesplit_fit_config_current <- lavaan(template_filled_config_current, 
+                                          data = df_sbsa_wide_pers_mod_age_split, 
+                                          estimator='mlr', fixed.x=FALSE, missing='fiml', group = "age_d")
+  eval(call("<-", as.name(paste0("lcs_", short_name, "_agesplit_config_current")), template_filled_config_current))
+  eval(call("<-", as.name(paste0("fit_lcs_", short_name, "_agesplit_config_current")), trait_agesplit_fit_config_current))
+  # configural - ideal
+  template_filled_config_ideal <- str_replace_all(trait_template_main_config, 
+                                       c("trait" = short_name,
+                                         "ind01" = paste0(short_name, "_ideal_par1"), 
+                                         "ind02" = paste0(short_name, "_ideal_par2"), 
+                                         "ind03" = paste0(short_name, "_ideal_par3")))
+  trait_agesplit_fit_config_ideal <- lavaan(template_filled_config_ideal, 
+                                        data = df_sbsa_wide_pers_mod_age_split, 
+                                        estimator='mlr', fixed.x=FALSE, missing='fiml', group = "age_d")
+  eval(call("<-", as.name(paste0("lcs_", short_name, "_agesplit_config_ideal")), template_filled_config_ideal))
+  eval(call("<-", as.name(paste0("fit_lcs_", short_name, "_agesplit_config_ideal")), trait_agesplit_fit_config_ideal))
+  # weak - current
+  template_filled_weak_current <- str_replace_all(trait_template_main_weak, 
+                                       c("trait" = short_name,
+                                         "ind01" = paste0(short_name, "_curr_par1"), 
+                                         "ind02" = paste0(short_name, "_curr_par2"), 
+                                         "ind03" = paste0(short_name, "_curr_par3")))
+  trait_agesplit_fit_weak_current <- lavaan(template_filled_weak_current, 
+                                          data = df_sbsa_wide_pers_mod_age_split, 
+                                          estimator='mlr', fixed.x=FALSE, missing='fiml', group = "age_d", group.equal = "loadings")
+  eval(call("<-", as.name(paste0("lcs_", short_name, "_agesplit_weak_current")), template_filled_weak_current))
+  eval(call("<-", as.name(paste0("fit_lcs_", short_name, "_agesplit_weak_current")), trait_agesplit_fit_weak_current))
+  # weak - ideal
+  template_filled_weak_ideal <- str_replace_all(trait_template_main_weak, 
+                                       c("trait" = short_name,
+                                         "ind01" = paste0(short_name, "_ideal_par1"), 
+                                         "ind02" = paste0(short_name, "_ideal_par2"), 
+                                         "ind03" = paste0(short_name, "_ideal_par3")))
+  trait_agesplit_fit_weak_ideal <- lavaan(template_filled_weak_ideal, 
+                                        data = df_sbsa_wide_pers_mod_age_split, 
+                                        estimator='mlr', fixed.x=FALSE, missing='fiml', group = "age_d", group.equal = "loadings")
+  eval(call("<-", as.name(paste0("lcs_", short_name, "_agesplit_weak_ideal")), template_filled_weak_ideal))
+  eval(call("<-", as.name(paste0("fit_lcs_", short_name, "_agesplit_weak_ideal")), trait_agesplit_fit_weak_ideal))
+  # strong - current
+  template_filled_strong_current <- str_replace_all(trait_template_main_strong, 
+                                       c("trait" = short_name,
+                                         "ind01" = paste0(short_name, "_curr_par1"), 
+                                         "ind02" = paste0(short_name, "_curr_par2"), 
+                                         "ind03" = paste0(short_name, "_curr_par3")))
+  trait_agesplit_fit_strong_current <- lavaan(template_filled_strong_current, 
+                                          data = df_sbsa_wide_pers_mod_age_split, 
+                                          estimator='mlr', fixed.x=FALSE, missing='fiml', group = "age_d", group.equal = c("intercepts", "loadings"))
+  eval(call("<-", as.name(paste0("lcs_", short_name, "_agesplit_strong_current")), template_filled_strong_current))
+  eval(call("<-", as.name(paste0("fit_lcs_", short_name, "_agesplit_strong_current")), trait_agesplit_fit_strong_current))
+  # strong - ideal
+  template_filled_strong_ideal <- str_replace_all(trait_template_main_strong, 
+                                       c("trait" = short_name,
+                                         "ind01" = paste0(short_name, "_ideal_par1"), 
+                                         "ind02" = paste0(short_name, "_ideal_par2"), 
+                                         "ind03" = paste0(short_name, "_ideal_par3")))
+  trait_agesplit_fit_strong_ideal <- lavaan(template_filled_strong_ideal, 
+                                        data = df_sbsa_wide_pers_mod_age_split, 
+                                        estimator='mlr', fixed.x=FALSE, missing='fiml', group = "age_d", group.equal = c("intercepts", "loadings"))
+  eval(call("<-", as.name(paste0("lcs_", short_name, "_agesplit_strong_ideal")), template_filled_strong_ideal))
+  eval(call("<-", as.name(paste0("fit_lcs_", short_name, "_agesplit_strong_ideal")), trait_agesplit_fit_strong_ideal))
+}
+```
+
+##### Current self personality traits
+
+Extraversion (current self): results  
+```{r}
+#| echo: true
+#| warning: false
+
+# model comparison tests for measurement invariance
+lavTestLRT(fit_lcs_extra_agesplit_config_current, fit_lcs_extra_agesplit_weak_current, fit_lcs_extra_agesplit_strong_current)
+
+# show model with varying latent change parameters 
+# -> key parameter is "d_extra_1 ~1"
+# labelled parameter as "d_int_a" & "d_int_b" (a = old, b = young)
+params_agesplit_lcs_extra_current <- broom::tidy(fit_lcs_extra_agesplit_weak_current, conf.int = TRUE, conf.level = 0.95) %>% 
+        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        filter(term %in% c("d_extra_1 ~1 "))
+kable(params_agesplit_lcs_extra_current, digits = 3) 
+
+# constrained to be equal in the strong measurement invariance model:
+kable(broom::tidy(fit_lcs_extra_agesplit_strong_current, conf.int = TRUE, conf.level = 0.95) %>% 
+        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        filter(term %in% c("d_extra_1 ~1 ")), digits = 3) 
+
+# model fit
+kable(broom::glance(fit_lcs_extra_agesplit_weak_current) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+```
+
+::: {.callout-note appearance="minimal"}
+Very similar change in extraversion in both groups. No significant differences according to the LRTs.
+:::
+
+Agreeableness (current self): results  
+```{r}
+#| echo: true
+#| warning: false
+
+# model comparison tests for measurement invariance
+lavTestLRT(fit_lcs_agree_agesplit_config_current, fit_lcs_agree_agesplit_weak_current, fit_lcs_agree_agesplit_strong_current)
+
+# show model with varying latent change parameters 
+# -> key parameter is "d_agree_1 ~1"
+# labelled parameter as "d_int_a" & "d_int_b" (a = old, b = young)
+params_agesplit_lcs_agree_current <- broom::tidy(fit_lcs_agree_agesplit_weak_current, conf.int = TRUE, conf.level = 0.95) %>% 
+        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        filter(term %in% c("d_agree_1 ~1 "))
+kable(params_agesplit_lcs_agree_current, digits = 3) 
+
+# constrained to be equal in the strong measurement invariance model:
+kable(broom::tidy(fit_lcs_agree_agesplit_strong_current, conf.int = TRUE, conf.level = 0.95) %>% 
+        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        filter(term %in% c("d_agree_1 ~1 ")), digits = 3) 
+
+# model fit
+kable(broom::glance(fit_lcs_agree_agesplit_weak_current) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+```
+
+::: {.callout-note appearance="minimal"}
+Quite similar change in agreeableness in both groups (increase is slightly larger in older participants). No significant differences according to the LRTs.
+:::
+
+Conscientiousness (current self): results  
+```{r}
+#| echo: true
+#| warning: false
+
+# model comparison tests for measurement invariance
+lavTestLRT(fit_lcs_consc_agesplit_config_current, fit_lcs_consc_agesplit_weak_current, fit_lcs_consc_agesplit_strong_current)
+
+# show model with varying latent change parameters 
+# -> key parameter is "d_consc_1 ~1"
+# labelled parameter as "d_int_a" & "d_int_b" (a = old, b = young)
+params_agesplit_lcs_consc_current <- broom::tidy(fit_lcs_consc_agesplit_weak_current, conf.int = TRUE, conf.level = 0.95) %>% 
+        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        filter(term %in% c("d_consc_1 ~1 "))
+kable(params_agesplit_lcs_consc_current, digits = 3) 
+
+# constrained to be equal in the strong measurement invariance model:
+kable(broom::tidy(fit_lcs_consc_agesplit_strong_current, conf.int = TRUE, conf.level = 0.95) %>% 
+        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        filter(term %in% c("d_consc_1 ~1 ")), digits = 3) 
+
+# model fit
+kable(broom::glance(fit_lcs_consc_agesplit_weak_current) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+```
+
+::: {.callout-note appearance="minimal"}
+Very similar change in conscientiousness in both groups. No significant differences according to the LRTs.
+:::
+
+Neuroticism (current self): results  
+```{r}
+#| echo: true
+#| warning: false
+
+# model comparison tests for measurement invariance
+lavTestLRT(fit_lcs_neuro_agesplit_config_current, fit_lcs_neuro_agesplit_weak_current, fit_lcs_neuro_agesplit_strong_current)
+
+# show model with varying latent change parameters 
+# -> key parameter is "d_neuro_1 ~1"
+# labelled parameter as "d_int_a" & "d_int_b" (a = old, b = young)
+params_agesplit_lcs_neuro_current <- broom::tidy(fit_lcs_neuro_agesplit_weak_current, conf.int = TRUE, conf.level = 0.95) %>% 
+        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        filter(term %in% c("d_neuro_1 ~1 "))
+kable(params_agesplit_lcs_neuro_current, digits = 3) 
+
+# constrained to be equal in the strong measurement invariance model:
+kable(broom::tidy(fit_lcs_neuro_agesplit_strong_current, conf.int = TRUE, conf.level = 0.95) %>% 
+        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        filter(term %in% c("d_neuro_1 ~1 ")), digits = 3) 
+
+# model fit
+kable(broom::glance(fit_lcs_neuro_agesplit_weak_current) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+```
+
+::: {.callout-note appearance="minimal"}
+Very similar change in neuroticism in both groups. No significant differences according to the LRTs.
+:::
+
+Openness (current self): results  
+```{r}
+#| echo: true
+#| warning: false
+
+# model comparison tests for measurement invariance
+lavTestLRT(fit_lcs_openn_agesplit_config_current, fit_lcs_openn_agesplit_weak_current, fit_lcs_openn_agesplit_strong_current)
+
+# show model with varying latent change parameters 
+# -> key parameter is "d_openn_1 ~1"
+# labelled parameter as "d_int_a" & "d_int_b" (a = old, b = young)
+params_agesplit_lcs_openn_current <- broom::tidy(fit_lcs_openn_agesplit_weak_current, conf.int = TRUE, conf.level = 0.95) %>% 
+        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        filter(term %in% c("d_openn_1 ~1 "))
+kable(params_agesplit_lcs_openn_current, digits = 3) 
+
+# constrained to be equal in the strong measurement invariance model:
+kable(broom::tidy(fit_lcs_openn_agesplit_strong_current, conf.int = TRUE, conf.level = 0.95) %>% 
+        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        filter(term %in% c("d_openn_1 ~1 ")), digits = 3) 
+
+# model fit
+kable(broom::glance(fit_lcs_openn_agesplit_weak_current) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+```
+
+::: {.callout-note appearance="minimal"}
+Very similar change in openness in both groups. However, still significant differences according to the LRTs (at *p* < .05). Probably because of other parameters than the latent change score.
+:::
+
+##### Ideal self personality traits
+
+Extraversion (ideal self): results  
+```{r}
+#| echo: true
+#| warning: false
+
+# model comparison tests for measurement invariance
+lavTestLRT(fit_lcs_extra_agesplit_config_ideal, fit_lcs_extra_agesplit_weak_ideal, fit_lcs_extra_agesplit_strong_ideal)
+
+# show model with varying latent change parameters 
+# -> key parameter is "d_extra_1 ~1"
+# labelled parameter as "d_int_a" & "d_int_b" (a = old, b = young)
+params_agesplit_lcs_extra_ideal <- broom::tidy(fit_lcs_extra_agesplit_weak_ideal, conf.int = TRUE, conf.level = 0.95) %>% 
+        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        filter(term %in% c("d_extra_1 ~1 "))
+kable(params_agesplit_lcs_extra_ideal, digits = 3) 
+
+# constrained to be equal in the strong measurement invariance model:
+kable(broom::tidy(fit_lcs_extra_agesplit_strong_ideal, conf.int = TRUE, conf.level = 0.95) %>% 
+        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        filter(term %in% c("d_extra_1 ~1 ")), digits = 3) 
+
+# model fit
+kable(broom::glance(fit_lcs_extra_agesplit_weak_ideal) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+```
+
+::: {.callout-note appearance="minimal"}
+Very similar change in ideal-self extraversion in both groups. No significant differences according to the LRTs.
+:::
+
+Agreeableness (ideal self): results  
+```{r}
+#| echo: true
+#| warning: false
+
+# model comparison tests for measurement invariance
+lavTestLRT(fit_lcs_agree_agesplit_config_ideal, fit_lcs_agree_agesplit_weak_ideal, fit_lcs_agree_agesplit_strong_ideal)
+
+# show model with varying latent change parameters 
+# -> key parameter is "d_agree_1 ~1"
+# labelled parameter as "d_int_a" & "d_int_b" (a = old, b = young)
+params_agesplit_lcs_agree_ideal <- broom::tidy(fit_lcs_agree_agesplit_weak_ideal, conf.int = TRUE, conf.level = 0.95) %>% 
+        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        filter(term %in% c("d_agree_1 ~1 "))
+kable(params_agesplit_lcs_agree_ideal, digits = 3) 
+
+# constrained to be equal in the strong measurement invariance model:
+kable(broom::tidy(fit_lcs_agree_agesplit_strong_ideal, conf.int = TRUE, conf.level = 0.95) %>% 
+        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        filter(term %in% c("d_agree_1 ~1 ")), digits = 3) 
+
+# model fit
+kable(broom::glance(fit_lcs_agree_agesplit_weak_ideal) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+```
+
+::: {.callout-note appearance="minimal"}
+Very similar change in ideal-self agreeableness in both groups. No significant differences according to the LRTs.
+:::
+
+Conscientiousness (ideal self): results  
+```{r}
+#| echo: true
+#| warning: false
+
+# model comparison tests for measurement invariance
+lavTestLRT(fit_lcs_consc_agesplit_config_ideal, fit_lcs_consc_agesplit_weak_ideal, fit_lcs_consc_agesplit_strong_ideal)
+
+# show model with varying latent change parameters 
+# -> key parameter is "d_consc_1 ~1"
+# labelled parameter as "d_int_a" & "d_int_b" (a = old, b = young)
+params_agesplit_lcs_consc_ideal <- broom::tidy(fit_lcs_consc_agesplit_weak_ideal, conf.int = TRUE, conf.level = 0.95) %>% 
+        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        filter(term %in% c("d_consc_1 ~1 "))
+kable(params_agesplit_lcs_consc_ideal, digits = 3) 
+
+# constrained to be equal in the strong measurement invariance model:
+kable(broom::tidy(fit_lcs_consc_agesplit_strong_ideal, conf.int = TRUE, conf.level = 0.95) %>% 
+        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        filter(term %in% c("d_consc_1 ~1 ")), digits = 3) 
+
+# model fit
+kable(broom::glance(fit_lcs_consc_agesplit_weak_ideal) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+```
+
+::: {.callout-note appearance="minimal"}
+Very similar change in ideal-self conscientiousness in both groups. No significant differences according to the LRTs.
+:::
+
+Neuroticism (ideal self): results  
+```{r}
+#| echo: true
+#| warning: false
+
+# model comparison tests for measurement invariance
+lavTestLRT(fit_lcs_neuro_agesplit_config_ideal, fit_lcs_neuro_agesplit_weak_ideal, fit_lcs_neuro_agesplit_strong_ideal)
+
+# show model with varying latent change parameters 
+# -> key parameter is "d_neuro_1 ~1"
+# labelled parameter as "d_int_a" & "d_int_b" (a = old, b = young)
+params_agesplit_lcs_neuro_ideal <- broom::tidy(fit_lcs_neuro_agesplit_weak_ideal, conf.int = TRUE, conf.level = 0.95) %>% 
+        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        filter(term %in% c("d_neuro_1 ~1 "))
+kable(params_agesplit_lcs_neuro_ideal, digits = 3) 
+
+# constrained to be equal in the strong measurement invariance model:
+kable(broom::tidy(fit_lcs_neuro_agesplit_strong_ideal, conf.int = TRUE, conf.level = 0.95) %>% 
+        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        filter(term %in% c("d_neuro_1 ~1 ")), digits = 3) 
+
+# model fit
+kable(broom::glance(fit_lcs_neuro_agesplit_weak_ideal) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+```
+
+::: {.callout-note appearance="minimal"}
+Very similar change in ideal-self neuroticism in both groups. No significant differences according to the LRTs.
+:::
+
+Openness (ideal self): results  
+```{r}
+#| echo: true
+#| warning: false
+
+# model comparison tests for measurement invariance
+lavTestLRT(fit_lcs_openn_agesplit_config_ideal, fit_lcs_openn_agesplit_weak_ideal, fit_lcs_openn_agesplit_strong_ideal)
+
+# show model with varying latent change parameters 
+# -> key parameter is "d_openn_1 ~1"
+# labelled parameter as "d_int_a" & "d_int_b" (a = old, b = young)
+params_agesplit_lcs_openn_ideal <- broom::tidy(fit_lcs_openn_agesplit_weak_ideal, conf.int = TRUE, conf.level = 0.95) %>% 
+        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        filter(term %in% c("d_openn_1 ~1 "))
+kable(params_agesplit_lcs_openn_ideal, digits = 3) 
+
+# constrained to be equal in the strong measurement invariance model:
+kable(broom::tidy(fit_lcs_openn_agesplit_strong_ideal, conf.int = TRUE, conf.level = 0.95) %>% 
+        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        filter(term %in% c("d_openn_1 ~1 ")), digits = 3) 
+
+# model fit
+kable(broom::glance(fit_lcs_openn_agesplit_weak_ideal) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+```
+
+::: {.callout-note appearance="minimal"}
+Very similar change in ideal-self openness in both age groups. No significant differences according to the LRTs.
+:::
+
+##### Summary of latent main effects split by age group
+
+```{r}
+#| echo: true
+#| warning: false
+#| code-fold: true
+#| code-summary: "Show the code"
+#| cache: true
+
+params_agesplit_summary <- bind_rows(
+  params_agesplit_lcs_extra_current %>% mutate(trait = names(b5_vars)[1], self = "current") %>% select(trait, self, group = label, beta = std.all, p.value),
+  params_agesplit_lcs_extra_ideal %>% mutate(trait = names(b5_vars)[1], self = "ideal") %>% select(trait, self, group = label, beta = std.all, p.value),
+  params_agesplit_lcs_agree_current %>% mutate(trait = names(b5_vars)[2], self = "current") %>% select(trait, self, group = label, beta = std.all, p.value),
+  params_agesplit_lcs_agree_ideal %>% mutate(trait = names(b5_vars)[2], self = "ideal") %>% select(trait, self, group = label, beta = std.all, p.value),
+  params_agesplit_lcs_consc_current %>% mutate(trait = names(b5_vars)[3], self = "current") %>% select(trait, self, group = label, beta = std.all, p.value),
+  params_agesplit_lcs_consc_ideal %>% mutate(trait = names(b5_vars)[3], self = "ideal") %>% select(trait, self, group = label, beta = std.all, p.value),
+  params_agesplit_lcs_neuro_current %>% mutate(trait = names(b5_vars)[4], self = "current") %>% select(trait, self, group = label, beta = std.all, p.value),
+  params_agesplit_lcs_neuro_ideal %>% mutate(trait = names(b5_vars)[4], self = "ideal") %>% select(trait, self, group = label, beta = std.all, p.value),
+  params_agesplit_lcs_openn_current %>% mutate(trait = names(b5_vars)[5], self = "current") %>% select(trait, self, group = label, beta = std.all, p.value),
+  params_agesplit_lcs_openn_ideal %>% mutate(trait = names(b5_vars)[5], self = "ideal") %>% select(trait, self, group = label, beta = std.all, p.value)
+) %>% mutate(group = ifelse(group=="d_int_a", "old", "young"))
+
+kable(params_agesplit_summary, digits = 3)
+```
+
+::: {.callout-note appearance="minimal"}
+Overall, no significant differences between the two age groups in how they change in personality (current / ideal). 
+:::
 
 <!--
 ## References
