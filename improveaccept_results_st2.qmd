@@ -1,5 +1,5 @@
 ---
-title: "Results Study 2: Self-Improvement and Self-Acceptance as Mechanisms of Positive Personality Change"
+title: "Results Study 2: Personality Change Through Self-Improvement or Self-Acceptance"
 author: "[blinded]"
 toc: true
 toc-depth: 5
@@ -73,7 +73,111 @@ library(tm)
 #| code-fold: true
 #| code-summary: "Show the code"
 #| cache: false
-source("clean_data_st2.R")
+# source("clean_data_st2.R") 
+# for data protection reasons, we provide the cleaned data sets here where potentially sensitive variables were dropped (see "clean_data_st2.R" for details)
+base::load("data/df_sbsa2.rda")
+```
+
+Also need this list of the Big Five traits:
+```{r}
+#| echo: true
+#| warning: false
+#| output: false
+#| code-fold: true
+#| code-summary: "Show the code"
+#| cache: false
+
+### BFI-2 - Traits
+b5t_extraversion = c("_01", "_06", "_11", "_16", "_21", "_26", 
+                     "_31", "_36", "_41", "_46", "_51", "_56")
+b5t_agreeableness = c("_02", "_07", "_12", "_17", "_22", "_27", 
+                      "_32", "_37", "_42", "_47", "_52", "_57")
+b5t_conscientiousness = c("_03", "_08", "_13", "_18", "_23", "_28", 
+                          "_33", "_38", "_43", "_48", "_53", "_58")
+b5t_neuroticism = c("_04", "_09", "_14", "_19", "_24", "_29", 
+                    "_34", "_39", "_44", "_49", "_54", "_59")
+b5t_openness = c("_05", "_10", "_15", "_20", "_25", "_30", 
+                 "_35", "_40", "_45", "_50", "_55", "_60")
+### BFI-2 - Facets
+# facets of extraversion
+b5f_sociability = c("_01", "_16", "_31", "_46") 
+b5f_assertiveness = c("_06", "_21", "_36", "_51")
+b5f_energy = c("_11", "_26", "_41", "_56")
+# facets of agreeableness
+b5f_compassion = c("_02", "_17", "_32", "_47")
+b5f_respectfulness = c("_07", "_22", "_37", "_52")
+b5f_trust = c("_12", "_27", "_42", "_57")
+# facets of conscientiousness
+b5f_organization = c("_03", "_18", "_33", "_48")
+b5f_productiveness = c("_08", "_23", "_38", "_53")
+b5f_responsibility = c("_13", "_28", "_43", "_58")
+# facets of neuroticism
+b5f_anxiety = c("_04", "_19", "_34", "_49")
+b5f_depression = c("_09", "_24", "_39", "_54")
+b5f_volatility = c("_14", "_29", "_44", "_59")
+# facets of openness
+b5f_curiosity = c("_10", "_25", "_40", "_55")
+b5f_aesthetic = c("_05", "_20", "_35", "_50")
+b5f_imagination = c("_15", "_30", "_45", "_60")
+
+# add keys list (to indicate reverse scoring) - unfortunately this does not work (for the facets) automatically with psych function
+keys_extraversion = c("+", "+", "-", "-", "+", "-", "-", "-", "+", "+", "-", "+")
+keys_agreeableness = c("+", "+", "-", "-", "-", "+", "+", "-", "-", "-", "+", "+")
+keys_conscientiousness = c("-", "-", "+", "+", "-", "-", "+", "+", "+", "-", "+", "-")
+keys_neuroticism = c("-", "-", "+", "+", "-", "-", "+", "+", "-", "-", "+", "+")
+keys_openness = c("-", "+", "+", "+", "-", "-", "+", "+", "-", "-", "-", "+")
+# facets of extraversion
+keys_sociability = c("+", "-", "-", "+") 
+keys_assertiveness = c("+", "+", "-", "-")
+keys_energy = c("-", "-", "+", "+")
+# facets of agreeableness
+keys_compassion = c("+", "-", "+", "-")
+keys_respectfulness = c("+", "-", "-", "+")
+keys_trust = c("-", "+", "-", "+")
+# facets of conscientiousness
+keys_organization = c("-", "+", "+", "-")
+keys_productiveness = c("-", "-", "+", "+")
+keys_responsibility = c("+", "-", "+", "-")
+# facets of neuroticism
+keys_anxiety = c("-", "+", "+", "-")
+keys_depression = c("-", "-", "+", "+")
+keys_volatility = c("+", "-", "-", "+")
+# facets of openness
+keys_curiosity = c("+", "-", "+", "-")
+keys_aesthetic = c("-", "+", "+", "-")
+keys_imagination = c("+", "-", "-", "+")
+
+b5_vars <- list(list(b5t_extraversion, keys_extraversion), 
+                list(b5t_agreeableness, keys_agreeableness), 
+                list(b5t_conscientiousness, keys_conscientiousness), 
+                list(b5t_neuroticism, keys_neuroticism), 
+                list(b5t_openness, keys_openness),
+                list(b5f_sociability, keys_sociability), 
+                list(b5f_assertiveness, keys_assertiveness), 
+                list(b5f_energy, keys_energy), 
+                list(b5f_compassion, keys_compassion), 
+                list(b5f_respectfulness, keys_respectfulness), 
+                list(b5f_trust, keys_trust),
+                list(b5f_organization, keys_organization), 
+                list(b5f_productiveness, keys_productiveness), 
+                list(b5f_responsibility, keys_responsibility),
+                list(b5f_anxiety, keys_anxiety), 
+                list(b5f_depression, keys_depression), 
+                list(b5f_volatility, keys_volatility),
+                list(b5f_curiosity, keys_curiosity), 
+                list(b5f_aesthetic, keys_aesthetic), 
+                list(b5f_imagination, keys_imagination))
+names(b5_vars) = c("extraversion", "agreeableness", "conscientiousness", "neuroticism", "openness",
+                   "sociability", "assertiveness", "energy", 
+                   "compassion", "respectfulness", "trust",
+                   "organization", "productiveness", "responsibility",
+                   "anxiety", "depression", "volatility",
+                   "curiosity", "aesthetic", "imagination")
+
+bfi_versions <- list("bf01", "bf02", "bf03", "bf04",
+                     "bf05", "bf06")
+names(bfi_versions) <- c("pre_curr", "pre_ideal", "post_curr", "post_ideal",
+                         "comb_curr", "comb_ideal")
 ```
 
 ------------------------------------------------------------------------
@@ -6100,6 +6204,7 @@ On the trait/dimensional level:
 #| warning: false
 
 # created in study 2 cleaning script 
+base::load("data/int_consist_traits_st2.rda")
 kable(int_consist_traits_st2, digits = 3)
 ```
 
@@ -6111,6 +6216,7 @@ On the facet level:
 #| warning: false
 
 # created in study 2 cleaning script 
+base::load("data/int_consist_facets_st2.rda")
 kable(int_consist_facets_st2, digits = 3)
 ```
 
@@ -6453,6 +6559,8 @@ effectsize::cohens_d(consc_comb_curr ~ remained, data = attrition_sample_1)
 effectsize::cohens_d(aesth_comb_curr ~ remained, data = attrition_sample_1)
 effectsize::cohens_d(respe_comb_curr ~ remained, data = attrition_sample_1)
 ```
+
+Participants who dropped out at T2 were less responsible, d = -0.28, 95% CI [-0.47; -0.09], p = .004, less organized, d = -0.22, 95% CI [-0.41; -0.02], p = .021, less conscientious, d = -0.25, 95% CI [-0.44; -0.06], p = .010, less aesthetically oriented, d = -0.20, 95% CI [-0.39; -0.01], p = .042, and less respectful, d = -0.19, 95% CI [-0.38; -0.001], p = .046. In addition, participants who dropped out at T3 were younger, d = -0.27, 95% CI [-0.49; -0.04], p = .019, less organized, d = -0.27, 95% CI [-0.50; -0.05], p = .017, and less conscientious, d = -0.25, 95% CI [-0.47; -0.02], p = .031, and also rated their ideal personality as less conscientious, d = -0.31, 95% CI [-0.53; -0.08], p = .007, less organized, d = -0.36, 95% CI [-0.58; -0.13], p = .002, less productive, d = -0.28, 95% CI [-0.50; -0.05], p = .015, and less imaginative, d = -0.24, 95% CI [-0.47; -0.02], p = .035.  
 
 Show all results: 
 ```{r}
@@ -7323,7 +7431,7 @@ semPaths(fit_mi_lcs_swls_hyp2, what="est",
 ```
 
 ::: {.callout-note appearance="minimal"}
-Significantly higher life satisfaction at the post test, *b* = `r round(params_lcs_swls_hyp2 %>% filter(term=="d_swls_1 ~1 ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_swls_hyp2 %>% filter(term=="d_swls_1 ~1 ") %>% pull(p.value), 3)`. Those with initially higher levels of life satisfaction (at T1) change to a lesser degree.
+Significantly higher life satisfaction at the post test, *b* = `r round(params_lcs_swls_hyp2 %>% filter(term=="d_swls_1 ~1 ") %>% pull(estimate), 3)`, *beta* = `r round(params_lcs_swls_hyp2 %>% filter(term=="d_swls_1 ~1 ") %>% pull(std.all), 3)`, *p* = `r round(params_lcs_swls_hyp2 %>% filter(term=="d_swls_1 ~1 ") %>% pull(p.value), 3)`. Those with initially higher levels of life satisfaction (at T1) change to a lesser degree.
 :::
 
 What happens in the waitlist control group during this time?
@@ -7359,7 +7467,7 @@ kable(params_lcs_swls_hyp2_cg, digits = 3)
 ```
 
 ::: {.callout-note appearance="minimal"}
-Life satisfaction changes in the control group significantly at positively (at *p* < .001), *b* = `r round(params_lcs_swls_hyp2_cg %>% filter(term=="d_swls_1 ~1 ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_swls_hyp2_cg %>% filter(term=="d_swls_1 ~1 ") %>% pull(p.value), 3)`. Slightly weaker effect size than in intervention group.  
+Life satisfaction changes in the control group significantly at positively (at *p* < .001), *b* = `r round(params_lcs_swls_hyp2_cg %>% filter(term=="d_swls_1 ~1 ") %>% pull(estimate), 3)`, *beta* = `r round(params_lcs_swls_hyp2_cg %>% filter(term=="d_swls_1 ~1 ") %>% pull(std.all), 3)`, *p* = `r round(params_lcs_swls_hyp2_cg %>% filter(term=="d_swls_1 ~1 ") %>% pull(p.value), 3)`. Slightly weaker effect size than in intervention group.  
 :::
 
 ##### Meaning in life
@@ -7436,7 +7544,7 @@ kable(params_lcs_meaning_hyp2, digits = 3)
 ```
 
 ::: {.callout-note appearance="minimal"}
-Participants improved significantly in meaning in life across time, *b* = `r round(params_lcs_meaning_hyp2 %>% filter(term=="d_meaning_1 ~1 ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_meaning_hyp2 %>% filter(term=="d_meaning_1 ~1 ") %>% pull(p.value), 3)`. 
+Participants improved significantly in meaning in life across time, *b* = `r round(params_lcs_meaning_hyp2 %>% filter(term=="d_meaning_1 ~1 ") %>% pull(estimate), 3)`, *beta* = `r round(params_lcs_meaning_hyp2 %>% filter(term=="d_meaning_1 ~1 ") %>% pull(std.all), 3)`, *p* = `r round(params_lcs_meaning_hyp2 %>% filter(term=="d_meaning_1 ~1 ") %>% pull(p.value), 3)`. 
 :::
 
 What happens in the waitlist control group during this time?
@@ -7472,7 +7580,7 @@ kable(params_lcs_meaning_hyp2_cg, digits = 3)
 ```
 
 ::: {.callout-note appearance="minimal"}
-Meaning increases significantly in the control group, *b* = `r round(params_lcs_meaning_hyp2_cg %>% filter(term=="d_meaning_1 ~1 ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_meaning_hyp2_cg %>% filter(term=="d_meaning_1 ~1 ") %>% pull(p.value), 3)`, with an even stronger effect size than in the intervention groups.  
+Meaning increases significantly in the control group, *b* = `r round(params_lcs_meaning_hyp2_cg %>% filter(term=="d_meaning_1 ~1 ") %>% pull(estimate), 3)`, *beta* = `r round(params_lcs_meaning_hyp2_cg %>% filter(term=="d_meaning_1 ~1 ") %>% pull(std.all), 3)`, *p* = `r round(params_lcs_meaning_hyp2_cg %>% filter(term=="d_meaning_1 ~1 ") %>% pull(p.value), 3)`, with an even stronger effect size than in the intervention groups.  
 :::
 
 ##### Self-esteem
@@ -7549,7 +7657,7 @@ kable(params_lcs_selfes_hyp2, digits = 3)
 ```
 
 ::: {.callout-note appearance="minimal"}
-Participants increased significantly in self-esteem between the two assessments, *b* = `r round(params_lcs_selfes_hyp2 %>% filter(term=="d_selfes_1 ~1 ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_selfes_hyp2 %>% filter(term=="d_selfes_1 ~1 ") %>% pull(p.value), 3)`.
+Participants increased significantly in self-esteem between the two assessments, *b* = `r round(params_lcs_selfes_hyp2 %>% filter(term=="d_selfes_1 ~1 ") %>% pull(estimate), 3)`, *beta* = `r round(params_lcs_selfes_hyp2 %>% filter(term=="d_selfes_1 ~1 ") %>% pull(std.all), 3)`, *p* = `r round(params_lcs_selfes_hyp2 %>% filter(term=="d_selfes_1 ~1 ") %>% pull(p.value), 3)`.
 :::
 
 What happens in the waitlist control group during this time?
@@ -7585,7 +7693,7 @@ kable(params_lcs_selfes_hyp2_cg, digits = 3)
 ```
 
 ::: {.callout-note appearance="minimal"}
-Self-esteem changes significantly and positively in the control group, *b* = `r round(params_lcs_selfes_hyp2_cg %>% filter(term=="d_selfes_1 ~1 ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_selfes_hyp2_cg %>% filter(term=="d_selfes_1 ~1 ") %>% pull(p.value), 3)`. Comparable effect size to the intervention groups.  
+Self-esteem changes significantly and positively in the control group, *b* = `r round(params_lcs_selfes_hyp2_cg %>% filter(term=="d_selfes_1 ~1 ") %>% pull(estimate), 3)`, *beta* = `r round(params_lcs_selfes_hyp2_cg %>% filter(term=="d_selfes_1 ~1 ") %>% pull(std.all), 3)`, *p* = `r round(params_lcs_selfes_hyp2_cg %>% filter(term=="d_selfes_1 ~1 ") %>% pull(p.value), 3)`. Comparable effect size to the intervention groups.  
 :::
 
 ##### Self concept clarity
@@ -7662,7 +7770,7 @@ kable(params_lcs_concept_hyp2, digits = 3)
 ```
 
 ::: {.callout-note appearance="minimal"}
-Self concept clarity improved significantly across time, *b* = `r round(params_lcs_concept_hyp2 %>% filter(term=="d_concept_1 ~1 ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_concept_hyp2 %>% filter(term=="d_concept_1 ~1 ") %>% pull(p.value), 3)`.
+Self concept clarity improved significantly across time, *b* = `r round(params_lcs_concept_hyp2 %>% filter(term=="d_concept_1 ~1 ") %>% pull(estimate), 3)`, *beta* = `r round(params_lcs_concept_hyp2 %>% filter(term=="d_concept_1 ~1 ") %>% pull(std.all), 3)`, *p* = `r round(params_lcs_concept_hyp2 %>% filter(term=="d_concept_1 ~1 ") %>% pull(p.value), 3)`.
 :::
 
 What happens in the waitlist control group during this time?
@@ -7698,7 +7806,7 @@ kable(params_lcs_concept_hyp2_cg, digits = 3)
 ```
 
 ::: {.callout-note appearance="minimal"}
-Self concept clarity changes in the control group not significant, *b* = `r round(params_lcs_concept_hyp2_cg %>% filter(term=="d_concept_1 ~1 ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_concept_hyp2_cg %>% filter(term=="d_concept_1 ~1 ") %>% pull(p.value), 3)`. Still a slight positive estimate, but weaker effect size than in intervention group.  
+Self concept clarity changes in the control group not significant, *b* = `r round(params_lcs_concept_hyp2_cg %>% filter(term=="d_concept_1 ~1 ") %>% pull(estimate), 3)`, *beta* = `r round(params_lcs_concept_hyp2_cg %>% filter(term=="d_concept_1 ~1 ") %>% pull(std.all), 3)`, *p* = `r round(params_lcs_concept_hyp2_cg %>% filter(term=="d_concept_1 ~1 ") %>% pull(p.value), 3)`. Still a slight positive estimate, but weaker effect size than in intervention group.  
 :::
 
 #### Follow-up effects (changes from T2 to T3)
@@ -8121,6 +8229,36 @@ d_profile_corr_facet_cg$cohen.d
 Slightly higher higher profile correlations at the second measurement occasion also in the controlg group, although this is only significant at .001 for the item-level profile correlation but not for the facet-level profile correlations.
 :::
 
+Testing the difference between intervention groups and control group for significance:
+```{r}
+#| echo: true
+#| warning: false
+
+df_sbsa2_anov <- df_sbsa2 %>% 
+  mutate(interv = ifelse(rando!="Waitlist-Control", 1, 0)) %>% 
+  filter(time!=3) %>% 
+  select(pid, interv, time, profile_corr_item_z, profile_corr_facet_z) %>% 
+  mutate(time_d = time - 1)
+
+anov_interv_contr_item <- lmerTest::lmer(profile_corr_item_z ~ time_d * interv + (1 | pid), 
+                                         data = df_sbsa2_anov)
+kable(summary(anov_interv_contr_item)$coefficients, digits = 3)
+
+effectsize::standardize_parameters(anov_interv_contr_item, 
+                       method = "pseudo", ci_method = "satterthwaite", ci = 0.999)
+
+anov_interv_contr_facet <- lmerTest::lmer(profile_corr_facet_z ~ time_d * interv + (1 | pid), 
+                                         data = df_sbsa2_anov)
+kable(summary(anov_interv_contr_facet)$coefficients, digits = 3)
+
+effectsize::standardize_parameters(anov_interv_contr_facet, 
+                       method = "pseudo", ci_method = "satterthwaite", ci = 0.999)
+```
+
+::: {.callout-note appearance="minimal"}
+Higher effect size of change in the intervention groups versus the waitlist control group from T1 to T2 but this difference is not significant. Might have something to do though with different group sizes. Note that this is a rather basic method of standardizing multilevel modeling parameters.
+:::
+
 ##### Follow-up effects (changes from T2 to T3)
 
 Checking assumptions
@@ -8312,6 +8450,8 @@ for (i in 2:length(names(b5_vars))) {
 }
 kable(d_traits_unlist %>% mutate(outcome = names(b5_vars)) %>% select(outcome, everything()), digits = 3)
 ```
+
+[Note: These CIs for *d* are probably “wrong” -> not appropriate for paired t-test]  
 
 ::: {.callout-note appearance="minimal"}
 Significantly lower squared mean-level differences at the second measurement occasion for extraversion, agreeableness, and neuroticism (at .001). For conscientiousness and openness only at p < .01. On the level of the 15 BFI-2 facets, we find 8 significant effects (at .001) where squared mean-level differences were reduced. For example, pronounced effect for energy but no effect for assertiveness.
@@ -25261,7 +25401,7 @@ lcs_selfes_group_strong <- sem(mi_lcs_selfes_group_strong, data=df_sbsa2_wide_wb
                              group = "rando", group.equal = c("intercepts", "loadings"))
 ```
 
-Meaning in life: results
+Self-esteem: results
 ```{r}
 #| echo: true
 #| fig-width: 9.5
@@ -25428,7 +25568,7 @@ lcs_concept_group_strong <- sem(mi_lcs_concept_group_strong, data=df_sbsa2_wide_
                              group = "rando", group.equal = c("intercepts", "loadings"))
 ```
 
-Meaning in life: results
+Self-concept clarity: results
 ```{r}
 #| echo: true
 #| fig-width: 9.5
@@ -26494,7 +26634,7 @@ We will explore c) whether there are stronger rates of change/acceptance on trai
 
 *TBD!*
 
-### Manipulation check (d)
+### Robustness check (d)
 
 Does self-improvement intervene on current personality trait change (but not ideal personality)? Does self-acceptance intervene on ideal personality trait change (but not current personality)?
 
@@ -26923,6 +27063,8 @@ ggplot(df_manip_check_wb_forplot,
 
 Generate word clouds based on the content from the free-form change descriptions written after the intervention at T2 and T3 (same question asked at both time points).
 
+*For data protection reasons, we don't provide the free-form change descriptions on the OSF. Therefore, the following code chunks are not run (eval: false). We do, however, provide an even more extensive overview of these open-response variables including word clouds in the separate document textmining.html.*
+
 Prepare data, separately for each intervention group
 ```{r}
 #| echo: true
@@ -26931,6 +27073,7 @@ Prepare data, separately for each intervention group
 #| code-summary: "Show the code"
 #| output: false
 #| cache: true
+#| eval: false
 
 # see tutorial here: https://towardsdatascience.com/create-a-word-cloud-with-r-bde3e7422e8a
 
@@ -26992,6 +27135,7 @@ Generate the word cloud: for self-improvement group
 #| fig-height: 8
 #| code-fold: true
 #| code-summary: "Show the code"
+#| eval: false
 
 set.seed(1234) # for reproducibility 
 wordcloud(words = df_words_sb$word, freq = df_words_sb$freq, min.freq = 1,           
@@ -27006,6 +27150,7 @@ Generate the word cloud: for self-acceptance group
 #| fig-height: 8
 #| code-fold: true
 #| code-summary: "Show the code"
+#| eval: false
 
 set.seed(1234) # for reproducibility 
 wordcloud(words = df_words_sa$word, freq = df_words_sa$freq, min.freq = 1,           
@@ -27017,14 +27162,17 @@ Lastly, delete free-form text variables again from data set
 ```{r}
 #| echo: true
 #| warning: false
+#| eval: false
 
-df_sbsa2 <- df_sbsa2 %>% select(-c(sb14_01, sa13_01))
+df_sbsa2 <- df_sbsa2 %>% select(-any_of(c("sb14_01", "sa13_01")))
 base::save(df_sbsa2, file = "data/df_sbsa2.rda")
 ```
 
 ### Word clouds of diary entries (f)
 
 Generate word clouds based on the content of the three diaries written between T1 and T2. I only focus on the two intervention groups here (not on the CG between T2 and T3).  
+
+*For data protection reasons, we don't provide the diary entries on the OSF. Therefore, the following code chunks are not run (eval: false). We do, however, provide an even more extensive overview of all open-response variables including word clouds of the diaries in the separate document textmining.html.*
 
 Read in the data and see how many people filled out the diaries (optional but still compensated)  
 ```{r}
@@ -27034,6 +27182,7 @@ Read in the data and see how many people filled out the diaries (optional but st
 #| code-summary: "Show the code"
 #| output: false
 #| cache: true
+#| eval: false
 
 path_diar1_sb <- "data/diaries/sb_1/data_PersonalityChange_2024-03-22_14-37.xlsx"
 path_diar2_sb <- "data/diaries/sb_2/data_PersonalityChange_2024-03-22_16-19.xlsx"
@@ -27106,6 +27255,7 @@ How many diaries at each time point?
 ```{r}
 #| echo: true
 #| warning: false
+#| eval: false
 
 tibble(time = c(1, 2, 3), improve = c(nrow(diar1_sb), nrow(diar2_sb), nrow(diar2_sb)),
        accept = c(nrow(diar1_sa), nrow(diar2_sa), nrow(diar2_sa)))
@@ -27119,6 +27269,7 @@ Prepare data, separately for each intervention group
 #| code-summary: "Show the code"
 #| output: false
 #| cache: true
+#| eval: false
 
 # see tutorial here: https://towardsdatascience.com/create-a-word-cloud-with-r-bde3e7422e8a
 
@@ -27180,6 +27331,7 @@ Generate the word cloud: for self-improvement group
 #| fig-height: 8
 #| code-fold: true
 #| code-summary: "Show the code"
+#| eval: false
 
 set.seed(1234) # for reproducibility 
 wordcloud(words = df_words_diaries_sb$word, freq = df_words_diaries_sb$freq, min.freq = 1,           
@@ -27194,6 +27346,7 @@ Generate the word cloud: for self-acceptance group
 #| fig-height: 8
 #| code-fold: true
 #| code-summary: "Show the code"
+#| eval: false
 
 set.seed(1234) # for reproducibility 
 wordcloud(words = df_words_diaries_sa$word, freq = df_words_diaries_sa$freq, min.freq = 1,           

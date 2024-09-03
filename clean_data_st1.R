@@ -620,6 +620,7 @@ int_consist_traits_st1 <- tibble(
     omega_extra_comb_ideal$omega_h, omega_agree_comb_ideal$omega_h, 
     omega_consc_comb_ideal$omega_h, omega_neuro_comb_ideal$omega_h, 
     omega_openn_comb_ideal$omega_h))
+base::save(int_consist_traits_st1, file = "data/int_consist_traits_st1.rda") # save for later import
 
 int_consist_facets_st1 <- tibble(
   facet = str_trunc(names(b5_vars), 5, ellipsis = "")[6:20],
@@ -643,6 +644,7 @@ int_consist_facets_st1 <- tibble(
     alpha_volat_comb_ideal$total$raw_alpha, alpha_depre_comb_ideal$total$raw_alpha, 
     alpha_curio_comb_ideal$total$raw_alpha, alpha_aesth_comb_ideal$total$raw_alpha, 
     alpha_imagi_comb_ideal$total$raw_alpha))
+base::save(int_consist_facets_st1, file = "data/int_consist_facets_st1.rda") # save for later import
 
 # squared difference between current and ideal self
 for (i in 1:length(b5_vars)) {

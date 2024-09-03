@@ -1,5 +1,5 @@
 ---
-title: "Results Study 1: Self-Improvement and Self-Acceptance as Mechanisms of Positive Personality Change"
+title: "Results Study 1: Personality Change Through Self-Improvement or Self-Acceptance"
 author: "[blinded]"
 toc: true
 toc-depth: 5
@@ -72,7 +72,111 @@ library(tm)
 #| code-fold: true
 #| code-summary: "Show the code"
 #| cache: false
-source("clean_data_st1.R")
+# source("clean_data_st1.R") 
+# for data protection reasons, we provide the cleaned data sets here where potentially sensitive variables were dropped (see "clean_data_st1.R" for details)
+base::load("data/df_sbsa.rda")
+```
+
+Also need this list of the Big Five traits:
+```{r}
+#| echo: true
+#| warning: false
+#| output: false
+#| code-fold: true
+#| code-summary: "Show the code"
+#| cache: false
+
+### BFI-2 - Traits
+b5t_extraversion = c("_01", "_06", "_11", "_16", "_21", "_26", 
+                     "_31", "_36", "_41", "_46", "_51", "_56")
+b5t_agreeableness = c("_02", "_07", "_12", "_17", "_22", "_27", 
+                      "_32", "_37", "_42", "_47", "_52", "_57")
+b5t_conscientiousness = c("_03", "_08", "_13", "_18", "_23", "_28", 
+                          "_33", "_38", "_43", "_48", "_53", "_58")
+b5t_neuroticism = c("_04", "_09", "_14", "_19", "_24", "_29", 
+                    "_34", "_39", "_44", "_49", "_54", "_59")
+b5t_openness = c("_05", "_10", "_15", "_20", "_25", "_30", 
+                 "_35", "_40", "_45", "_50", "_55", "_60")
+### BFI-2 - Facets
+# facets of extraversion
+b5f_sociability = c("_01", "_16", "_31", "_46") 
+b5f_assertiveness = c("_06", "_21", "_36", "_51")
+b5f_energy = c("_11", "_26", "_41", "_56")
+# facets of agreeableness
+b5f_compassion = c("_02", "_17", "_32", "_47")
+b5f_respectfulness = c("_07", "_22", "_37", "_52")
+b5f_trust = c("_12", "_27", "_42", "_57")
+# facets of conscientiousness
+b5f_organization = c("_03", "_18", "_33", "_48")
+b5f_productiveness = c("_08", "_23", "_38", "_53")
+b5f_responsibility = c("_13", "_28", "_43", "_58")
+# facets of neuroticism
+b5f_anxiety = c("_04", "_19", "_34", "_49")
+b5f_depression = c("_09", "_24", "_39", "_54")
+b5f_volatility = c("_14", "_29", "_44", "_59")
+# facets of openness
+b5f_curiosity = c("_10", "_25", "_40", "_55")
+b5f_aesthetic = c("_05", "_20", "_35", "_50")
+b5f_imagination = c("_15", "_30", "_45", "_60")
+
+# add keys list (to indicate reverse scoring) - unfortunately this does not work (for the facets) automatically with psych function
+keys_extraversion = c("+", "+", "-", "-", "+", "-", "-", "-", "+", "+", "-", "+")
+keys_agreeableness = c("+", "+", "-", "-", "-", "+", "+", "-", "-", "-", "+", "+")
+keys_conscientiousness = c("-", "-", "+", "+", "-", "-", "+", "+", "+", "-", "+", "-")
+keys_neuroticism = c("-", "-", "+", "+", "-", "-", "+", "+", "-", "-", "+", "+")
+keys_openness = c("-", "+", "+", "+", "-", "-", "+", "+", "-", "-", "-", "+")
+# facets of extraversion
+keys_sociability = c("+", "-", "-", "+") 
+keys_assertiveness = c("+", "+", "-", "-")
+keys_energy = c("-", "-", "+", "+")
+# facets of agreeableness
+keys_compassion = c("+", "-", "+", "-")
+keys_respectfulness = c("+", "-", "-", "+")
+keys_trust = c("-", "+", "-", "+")
+# facets of conscientiousness
+keys_organization = c("-", "+", "+", "-")
+keys_productiveness = c("-", "-", "+", "+")
+keys_responsibility = c("+", "-", "+", "-")
+# facets of neuroticism
+keys_anxiety = c("-", "+", "+", "-")
+keys_depression = c("-", "-", "+", "+")
+keys_volatility = c("+", "-", "-", "+")
+# facets of openness
+keys_curiosity = c("+", "-", "+", "-")
+keys_aesthetic = c("-", "+", "+", "-")
+keys_imagination = c("+", "-", "-", "+")
+
+b5_vars <- list(list(b5t_extraversion, keys_extraversion), 
+                list(b5t_agreeableness, keys_agreeableness), 
+                list(b5t_conscientiousness, keys_conscientiousness), 
+                list(b5t_neuroticism, keys_neuroticism), 
+                list(b5t_openness, keys_openness),
+                list(b5f_sociability, keys_sociability), 
+                list(b5f_assertiveness, keys_assertiveness), 
+                list(b5f_energy, keys_energy), 
+                list(b5f_compassion, keys_compassion), 
+                list(b5f_respectfulness, keys_respectfulness), 
+                list(b5f_trust, keys_trust),
+                list(b5f_organization, keys_organization), 
+                list(b5f_productiveness, keys_productiveness), 
+                list(b5f_responsibility, keys_responsibility),
+                list(b5f_anxiety, keys_anxiety), 
+                list(b5f_depression, keys_depression), 
+                list(b5f_volatility, keys_volatility),
+                list(b5f_curiosity, keys_curiosity), 
+                list(b5f_aesthetic, keys_aesthetic), 
+                list(b5f_imagination, keys_imagination))
+names(b5_vars) = c("extraversion", "agreeableness", "conscientiousness", "neuroticism", "openness",
+                   "sociability", "assertiveness", "energy", 
+                   "compassion", "respectfulness", "trust",
+                   "organization", "productiveness", "responsibility",
+                   "anxiety", "depression", "volatility",
+                   "curiosity", "aesthetic", "imagination")
+
+bfi_versions <- list("bf01", "bf02", "bf03", "bf04",
+                     "bf05", "bf06") 
+names(bfi_versions) <- c("pre_curr", "pre_ideal", "post_curr", "post_ideal",
+                         "comb_curr", "comb_ideal")
 ```
 
 ------------------------------------------------------------------------
@@ -3867,6 +3971,7 @@ On the trait/dimensional level:
 #| warning: false
 
 # created in study 1 cleaning script 
+base::load("data/int_consist_traits_st1.rda")
 kable(int_consist_traits_st1, digits = 3)
 ```
 
@@ -3878,6 +3983,7 @@ On the facet level:
 #| warning: false
 
 # created in study 1 cleaning script 
+base::load("data/int_consist_facets_st1.rda")
 kable(int_consist_facets_st1, digits = 3)
 ```
 
@@ -4401,6 +4507,7 @@ corrplot(cormat_sqtraits, type = "lower", order = "original", tl.col = "black", 
 ```
 
 As a table with confidence intervals - squared differences:  
+
 ```{r}
 #| echo: true
 #| warning: false
@@ -4699,7 +4806,7 @@ kable(df_check_adjusted_swls_unlist %>%
 ```
 
 ::: {.callout-note appearance="minimal"}
-Effects mostly still significant but not always at the *p* < .001 level. Few effects still significant for self-concept clarity. Correlation is especially stongly reduced for neuroticism and its facets depression and anxiety. 
+Effects mostly still significant but not always at the *p* < .001 level. Few effects still significant for self-concept clarity. Correlation is especially strongly reduced for neuroticism and its facets depression and anxiety. 
 :::
 
 Across all time points, using a mixed model:  
@@ -5352,6 +5459,8 @@ for (i in 2:length(names(b5_vars))) {
 }
 kable(d_traits_unlist %>% mutate(outcome = names(b5_vars)) %>% select(outcome, everything()), digits = 3)
 ```
+
+[Note: These CIs for *d* are probably “wrong” -> not appropriate for paired t-test]  
 
 ::: {.callout-note appearance="minimal"}
 Significantly lower squared mean-level differences at the second measurement occasion, both for the Big Five traits and the 15 BFI-2 facets.
@@ -19461,7 +19570,7 @@ lcs_selfes_group_strong <- sem(mi_lcs_selfes_group_strong, data=df_sbsa_wide_wb,
                              group = "rando", group.equal = c("intercepts", "loadings"))
 ```
 
-Meaning in life: results
+Self-esteem: results
 ```{r}
 #| echo: true
 #| fig-width: 9.5
@@ -19628,7 +19737,7 @@ lcs_concept_group_strong <- sem(mi_lcs_concept_group_strong, data=df_sbsa_wide_w
                              group = "rando", group.equal = c("intercepts", "loadings"))
 ```
 
-Meaning in life: results
+Self-concept clarity: results
 ```{r}
 #| echo: true
 #| fig-width: 9.5
@@ -20251,15 +20360,15 @@ We will explore b) whether the extent of change/acceptance is related to persona
 
 For now, I use the personal project dimension variables assessed at T1:  
 
-- Skill-building group: "How important is it for you to change your personality?"  
-- Skill-building group: "How difficult is it for you to work on changing your personality?"  
+- Self-improvement group: "How important is it for you to change your personality?"  
+- Self-improvement group: "How difficult is it for you to work on changing your personality?"  
 - Self-acceptance group: "How important is it for you to accept your personality?"  
 - Self-acceptance group: "How difficult is it for you to work on accepting your personality?"  
 
 They were, however, also assessed at T2:  
 
-- Skill-building group: "During this study, how important was it for you to change your personality?"  
-- Skill-building group: "During this study, how difficult was it for you to work on changing your personality?"  
+- Self-improvement group: "During this study, how important was it for you to change your personality?"  
+- Self-improvement group: "During this study, how difficult was it for you to work on changing your personality?"  
 - Self-acceptance group: "During this study, how important was it for you to accept your personality?"  
 - Self-acceptance group: "During this study, how difficult was it for you to work on accepting your personality?"  
 
@@ -21981,7 +22090,7 @@ We will explore c) whether there are stronger rates of change/acceptance on trai
 
 *TBD!*
 
-### Manipulation check (d)
+### Robustness check (d)
 
 Does self-improvement intervene on current personality trait change (but not ideal personality)? Does self-acceptance intervene on ideal personality trait change (but not current personality)?
 
@@ -22314,6 +22423,8 @@ ggplot(df_manip_check_wb_forplot,
 
 Generate word clouds based on the content from the free-form change descriptions written after the intervention at T2.
 
+*For data protection reasons, we don't provide the free-form change descriptions on the OSF. Therefore, the following code chunks are not run (eval: false). We do, however, provide an even more extensive overview of these open-response variables including word clouds in the separate document textmining.html.*
+
 Prepare data, separately for each intervention group
 ```{r}
 #| echo: true
@@ -22322,6 +22433,7 @@ Prepare data, separately for each intervention group
 #| code-summary: "Show the code"
 #| output: false
 #| cache: true
+#| eval: false
 
 # see tutorial here: https://towardsdatascience.com/create-a-word-cloud-with-r-bde3e7422e8a
 
@@ -22383,6 +22495,7 @@ Generate the word cloud: for self-improvement group
 #| fig-height: 8
 #| code-fold: true
 #| code-summary: "Show the code"
+#| eval: false
 
 set.seed(1234) # for reproducibility 
 wordcloud(words = df_words_sb$word, freq = df_words_sb$freq, min.freq = 1,           
@@ -22397,6 +22510,7 @@ Generate the word cloud: for self-acceptance group
 #| fig-height: 8
 #| code-fold: true
 #| code-summary: "Show the code"
+#| eval: false
 
 set.seed(1234) # for reproducibility 
 wordcloud(words = df_words_sa$word, freq = df_words_sa$freq, min.freq = 1,           
@@ -22408,8 +22522,9 @@ Lastly, delete free-form text variables again from data set
 ```{r}
 #| echo: true
 #| warning: false
+#| eval: false
 
-df_sbsa <- df_sbsa %>% select(-c(sb14_01, sa13_01))
+df_sbsa <- df_sbsa %>% select(-any_of(c("sb14_01", "sa13_01")))
 base::save(df_sbsa, file = "data/df_sbsa.rda")
 ```
 
