@@ -4331,6 +4331,49 @@ Show all results:
 attrition_analysis %>% arrange(desc(abs(estimate))) %>% print(n=200)
 ```
 
+### Standard deviations (for later standardization)
+
+Personality
+```{r}
+#| echo: true
+#| warning: false
+
+sd_pers_st1 <- df_sbsa %>% 
+  select(pid, time, rando, contains("_comb_"), -c(na_comb_curr, na_comb_ideal)) %>% 
+  pivot_longer(-c(pid, time, rando), 
+               cols_vary = "slowest",
+               names_to = c("trait", "reference"),
+               names_pattern = "(.*)_(.*)",
+               values_to = "score") %>% 
+  mutate(trait = gsub("_comb", "", trait),
+         reference = ifelse(reference=="curr", "current", reference)) %>% 
+  left_join(tibble(long = str_to_title(names(b5_vars)), trait = str_trunc(names(b5_vars), 5, ellipsis = ""))) %>% 
+  filter(!is.na(score)) %>% 
+  group_by(long, trait, reference, time) %>% 
+  summarise(n = n(), m_trait = mean(score), sd_trait = sd(score)) %>% 
+  ungroup()
+```
+
+Well-being
+
+```{r}
+#| echo: true
+#| warning: false
+
+sd_wb_st1 <- df_sbsa %>% 
+  select(pid, time, rando, swls, meaning, selfes, concept) %>% 
+  pivot_longer(-c(pid, time, rando), 
+               cols_vary = "slowest",
+               names_to = c("trait"),
+               values_to = "score") %>% 
+  mutate(long = case_when(trait=="swls" ~ "Life Satisfaction", trait=="meaning" ~ "Meaning in Life", 
+                           trait=="selfes" ~ "Self-Esteem", trait=="concept" ~ "Self-Concept Clarity")) %>% 
+  filter(!is.na(score)) %>% 
+  group_by(long, trait, time) %>% 
+  summarise(n = n(), m_trait = mean(score), sd_trait = sd(score)) %>% 
+  ungroup()
+```
+
 ------------------------------------------------------------------------
 
 ## Confirmatory results
@@ -5054,7 +5097,7 @@ semPaths(fit_mi_lcs_swls_hyp2, what="est",
 ```
 
 ::: {.callout-note appearance="minimal"}
-Significantly higher life satisfaction at the post test, *b* = `r round(params_lcs_swls_hyp2 %>% filter(term=="d_swls_1 ~1 ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_swls_hyp2 %>% filter(term=="d_swls_1 ~1 ") %>% pull(p.value), 3)`. Those with initially higher levels of life satisfaction (at T1) change to a lesser degree.
+Significantly higher life satisfaction at the post test, *b* = `r round(params_lcs_swls_hyp2 %>% filter(term=="d_swls_1 ~1 ") %>% pull(estimate), 3)`, *beta* = `r round(params_lcs_swls_hyp2 %>% filter(term=="d_swls_1 ~1 ") %>% pull(estimate) / (sd_wb_st1 %>% filter(trait=="swls" & time==1) %>% pull(sd_trait)), 3)`, *p* = `r round(params_lcs_swls_hyp2 %>% filter(term=="d_swls_1 ~1 ") %>% pull(p.value), 3)`. Those with initially higher levels of life satisfaction (at T1) change to a lesser degree.
 :::
 
 #### Meaning in life
@@ -5131,7 +5174,7 @@ kable(params_lcs_meaning_hyp2, digits = 3)
 ```
 
 ::: {.callout-note appearance="minimal"}
-Participants improved significantly in meaning in life across time, *b* = `r round(params_lcs_meaning_hyp2 %>% filter(term=="d_meaning_1 ~1 ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_meaning_hyp2 %>% filter(term=="d_meaning_1 ~1 ") %>% pull(p.value), 3)`. 
+Participants improved significantly in meaning in life across time, *b* = `r round(params_lcs_meaning_hyp2 %>% filter(term=="d_meaning_1 ~1 ") %>% pull(estimate), 3)`, *beta* = `r round(params_lcs_meaning_hyp2 %>% filter(term=="d_meaning_1 ~1 ") %>% pull(estimate) / (sd_wb_st1 %>% filter(trait=="meaning" & time==1) %>% pull(sd_trait)), 3)`, *p* = `r round(params_lcs_meaning_hyp2 %>% filter(term=="d_meaning_1 ~1 ") %>% pull(p.value), 3)`. 
 :::
 
 #### Self-esteem
@@ -5208,7 +5251,7 @@ kable(params_lcs_selfes_hyp2, digits = 3)
 ```
 
 ::: {.callout-note appearance="minimal"}
-Participants increased significantly in self-esteem between the two assessments, *b* = `r round(params_lcs_selfes_hyp2 %>% filter(term=="d_selfes_1 ~1 ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_selfes_hyp2 %>% filter(term=="d_selfes_1 ~1 ") %>% pull(p.value), 3)`.
+Participants increased significantly in self-esteem between the two assessments, *b* = `r round(params_lcs_selfes_hyp2 %>% filter(term=="d_selfes_1 ~1 ") %>% pull(estimate), 3)`, *beta* = `r round(params_lcs_selfes_hyp2 %>% filter(term=="d_selfes_1 ~1 ") %>% pull(estimate) / (sd_wb_st1 %>% filter(trait=="selfes" & time==1) %>% pull(sd_trait)), 3)`, *p* = `r round(params_lcs_selfes_hyp2 %>% filter(term=="d_selfes_1 ~1 ") %>% pull(p.value), 3)`.
 :::
 
 #### Self concept clarity
@@ -5285,7 +5328,7 @@ kable(params_lcs_concept_hyp2, digits = 3)
 ```
 
 ::: {.callout-note appearance="minimal"}
-Self concept clarity improved significantly across time, *b* = `r round(params_lcs_concept_hyp2 %>% filter(term=="d_concept_1 ~1 ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_concept_hyp2 %>% filter(term=="d_concept_1 ~1 ") %>% pull(p.value), 3)`.
+Self concept clarity improved significantly across time, *b* = `r round(params_lcs_concept_hyp2 %>% filter(term=="d_concept_1 ~1 ") %>% pull(estimate), 3)`, *beta* = `r round(params_lcs_concept_hyp2 %>% filter(term=="d_concept_1 ~1 ") %>% pull(estimate) / (sd_wb_st1 %>% filter(trait=="concept" & time==1) %>% pull(sd_trait)), 3)`, *p* = `r round(params_lcs_concept_hyp2 %>% filter(term=="d_concept_1 ~1 ") %>% pull(p.value), 3)`.
 :::
 
 ------------------------------------------------------------------------
@@ -19086,7 +19129,7 @@ ggplot(df_table_hyp7_plot_curr, aes(x = fct_rev(trait), y = estimate, color = in
 
 We will explore a) whether change in psychological well-being indicators as well as the difference between real- and ideal- self will differ across groups at follow-up.
 
-#### Well-being change: differences across groups
+#### Latent well-being change: acceptance vs. improvement
 
 ##### Life satisfaction 
 
@@ -19248,13 +19291,18 @@ lavTestLRT(lcs_swls_group_config, lcs_swls_group_weak, lcs_swls_group_strong)
 # show model with varying latent change parameters 
 # -> key parameter is "d_swls_1 ~1"
 # labelled parameter as "d_int_a" & "d_int_b" (a = Self-Acceptance group, b = Self-Improvement group)
-kable(broom::tidy(lcs_swls_group_weak, conf.int = TRUE, conf.level = 0.95) %>% 
-        select(term, label, estimate, std.all, statistic, p.value) %>% 
-        filter(term %in% c("d_swls_1 ~1 ")), digits = 3) 
+params_main_lcs_swls <- broom::tidy(lcs_swls_group_weak, conf.int = TRUE, conf.level = 0.95) %>% 
+        mutate(beta = estimate / 
+           (sd_wb_st1 %>% filter(trait=="swls" & time==1) %>% pull(sd_trait))) %>% 
+        select(term, label, estimate, beta, std.all, statistic, p.value) %>% 
+        filter(term %in% c("d_swls_1 ~1 "))
+kable(params_main_lcs_swls, digits = 3) 
 
 # constrained to be equal in the strong measurement invariance model:
 kable(broom::tidy(lcs_swls_group_strong, conf.int = TRUE, conf.level = 0.95) %>% 
-        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        mutate(beta = estimate / 
+           (sd_wb_st1 %>% filter(trait=="swls" & time==1) %>% pull(sd_trait))) %>% 
+        select(term, label, estimate, beta, std.all, statistic, p.value) %>% 
         filter(term %in% c("d_swls_1 ~1 ")), digits = 3) 
 ```
 
@@ -19415,13 +19463,18 @@ lavTestLRT(lcs_meaning_group_config, lcs_meaning_group_weak, lcs_meaning_group_s
 # show model with varying latent change parameters 
 # -> key parameter is "d_meaning_1 ~1"
 # labelled parameter as "d_int_a" & "d_int_b" (a = Self-Acceptance group, b = Self-Improvement group)
-kable(broom::tidy(lcs_meaning_group_weak, conf.int = TRUE, conf.level = 0.95) %>% 
-        select(term, label, estimate, std.all, statistic, p.value) %>% 
-        filter(term %in% c("d_meaning_1 ~1 ")), digits = 3) 
+params_main_lcs_meaning <- broom::tidy(lcs_meaning_group_weak, conf.int = TRUE, conf.level = 0.95) %>% 
+        mutate(beta = estimate / 
+           (sd_wb_st1 %>% filter(trait=="meaning" & time==1) %>% pull(sd_trait))) %>% 
+        select(term, label, estimate, beta, std.all, statistic, p.value) %>% 
+        filter(term %in% c("d_meaning_1 ~1 "))
+kable(params_main_lcs_meaning, digits = 3) 
 
 # constrained to be equal in the strong measurement invariance model:
 kable(broom::tidy(lcs_meaning_group_strong, conf.int = TRUE, conf.level = 0.95) %>% 
-        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        mutate(beta = estimate / 
+           (sd_wb_st1 %>% filter(trait=="meaning" & time==1) %>% pull(sd_trait))) %>% 
+        select(term, label, estimate, beta, std.all, statistic, p.value) %>% 
         filter(term %in% c("d_meaning_1 ~1 ")), digits = 3) 
 ```
 
@@ -19582,13 +19635,18 @@ lavTestLRT(lcs_selfes_group_config, lcs_selfes_group_weak, lcs_selfes_group_stro
 # show model with varying latent change parameters 
 # -> key parameter is "d_selfes_1 ~1"
 # labelled parameter as "d_int_a" & "d_int_b" (a = Self-Acceptance group, b = Self-Improvement group)
-kable(broom::tidy(lcs_selfes_group_weak, conf.int = TRUE, conf.level = 0.95) %>% 
-        select(term, label, estimate, std.all, statistic, p.value) %>% 
-        filter(term %in% c("d_selfes_1 ~1 ")), digits = 3) 
+params_main_lcs_selfes <- broom::tidy(lcs_selfes_group_weak, conf.int = TRUE, conf.level = 0.95) %>% 
+        mutate(beta = estimate / 
+           (sd_wb_st1 %>% filter(trait=="selfes" & time==1) %>% pull(sd_trait))) %>% 
+        select(term, label, estimate, beta, std.all, statistic, p.value) %>% 
+        filter(term %in% c("d_selfes_1 ~1 "))
+kable(params_main_lcs_selfes, digits = 3) 
 
 # constrained to be equal in the strong measurement invariance model:
 kable(broom::tidy(lcs_selfes_group_strong, conf.int = TRUE, conf.level = 0.95) %>% 
-        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        mutate(beta = estimate / 
+           (sd_wb_st1 %>% filter(trait=="selfes" & time==1) %>% pull(sd_trait))) %>% 
+        select(term, label, estimate, beta, std.all, statistic, p.value) %>% 
         filter(term %in% c("d_selfes_1 ~1 ")), digits = 3) 
 ```
 
@@ -19749,13 +19807,18 @@ lavTestLRT(lcs_concept_group_config, lcs_concept_group_weak, lcs_concept_group_s
 # show model with varying latent change parameters 
 # -> key parameter is "d_concept_1 ~1"
 # labelled parameter as "d_int_a" & "d_int_b" (a = Self-Acceptance group, b = Self-Improvement group)
-kable(broom::tidy(lcs_concept_group_weak, conf.int = TRUE, conf.level = 0.95) %>% 
-        select(term, label, estimate, std.all, statistic, p.value) %>% 
-        filter(term %in% c("d_concept_1 ~1 ")), digits = 3) 
+params_main_lcs_concept <- broom::tidy(lcs_concept_group_weak, conf.int = TRUE, conf.level = 0.95) %>% 
+        mutate(beta = estimate / 
+           (sd_wb_st1 %>% filter(trait=="concept" & time==1) %>% pull(sd_trait))) %>% 
+        select(term, label, estimate, beta, std.all, statistic, p.value) %>% 
+        filter(term %in% c("d_concept_1 ~1 "))
+kable(params_main_lcs_concept, digits = 3) 
 
 # constrained to be equal in the strong measurement invariance model:
 kable(broom::tidy(lcs_concept_group_strong, conf.int = TRUE, conf.level = 0.95) %>% 
-        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        mutate(beta = estimate / 
+           (sd_wb_st1 %>% filter(trait=="concept" & time==1) %>% pull(sd_trait))) %>% 
+        select(term, label, estimate, beta, std.all, statistic, p.value) %>% 
         filter(term %in% c("d_concept_1 ~1 ")), digits = 3) 
 ```
 
@@ -19771,7 +19834,22 @@ Slightly more positive change in self-concept clarity in the self-improvement gr
 summary(lcs_concept_group_weak, fit.measures=TRUE, standardized=TRUE, rsquare=F)
 ```
 
-#### Current- and ideal personality personality differences across groups
+##### Summary of latent main effects
+
+```{r}
+#| echo: true
+#| warning: false
+
+params_main_wb_summary <- bind_rows(
+  params_main_lcs_swls %>% mutate(trait = "Life satisfaction") %>% select(trait, group = label, estimate, beta, p.value),
+  params_main_lcs_meaning %>% mutate(trait = "Meaning in life") %>% select(trait, group = label, estimate, beta, p.value),
+  params_main_lcs_selfes %>% mutate(trait = "Self-esteem") %>% select(trait, group = label, estimate, beta, p.value),
+  params_main_lcs_concept %>% mutate(trait = "Self-concept clarity") %>% select(trait, group = label, estimate, beta, p.value)) %>% mutate(group = ifelse(group=="d_int_a", "Self-Acceptance", "Self-Improvement"))
+
+kable(params_main_wb_summary, digits = 3)
+```
+
+#### Profile correlations / squared diffs: acceptance vs. improvement (MLMs)
 
 Profile correlations by group and measurement occasion (mixed effects models) - results:
 ```{r}
@@ -19826,7 +19904,7 @@ kable(mod_traits_sqdiff_groups_unlist %>%
 With both conceptualizations of the similarity / difference of current- and ideal-level personality (profile correlations / squared differences), we find no significant effects of group (at T1; with few exceptions...) or of interaction effects of group by measurement occasion (at T2).  
 :::
 
-#### Latent change: differences in personality change
+#### Latent personality change: acceptance vs. improvement
 
 ##### Run models 
 
@@ -20042,13 +20120,17 @@ lavTestLRT(fit_lcs_extra_main_config_current, fit_lcs_extra_main_weak_current, f
 # -> key parameter is "d_extra_1 ~1"
 # labelled parameter as "d_int_a" & "d_int_b" (a = Self-Acceptance group, b = Self-Improvement group)
 params_main_lcs_extra_current <- broom::tidy(fit_lcs_extra_main_weak_current, conf.int = TRUE, conf.level = 0.95) %>% 
-        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        mutate(beta = estimate / 
+           (sd_pers_st1 %>% filter(trait=="extra" & reference=="current" & time==1) %>% pull(sd_trait))) %>% 
+        select(term, label, estimate, beta, std.all, statistic, p.value) %>% 
         filter(term %in% c("d_extra_1 ~1 ")) %>% mutate(sig_diff = " ")
 kable(params_main_lcs_extra_current, digits = 3) 
 
 # constrained to be equal in the strong measurement invariance model:
 kable(broom::tidy(fit_lcs_extra_main_strong_current, conf.int = TRUE, conf.level = 0.95) %>% 
-        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        mutate(beta = estimate / 
+           (sd_pers_st1 %>% filter(trait=="extra" & reference=="current" & time==1) %>% pull(sd_trait))) %>% 
+        select(term, label, estimate, beta, std.all, statistic, p.value) %>% 
         filter(term %in% c("d_extra_1 ~1 ")), digits = 3) 
 
 # model fit
@@ -20072,13 +20154,17 @@ lavTestLRT(fit_lcs_agree_main_config_current, fit_lcs_agree_main_weak_current, f
 # -> key parameter is "d_agree_1 ~1"
 # labelled parameter as "d_int_a" & "d_int_b" (a = Self-Acceptance group, b = Self-Improvement group)
 params_main_lcs_agree_current <- broom::tidy(fit_lcs_agree_main_weak_current, conf.int = TRUE, conf.level = 0.95) %>% 
-        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        mutate(beta = estimate / 
+           (sd_pers_st1 %>% filter(trait=="agree" & reference=="current" & time==1) %>% pull(sd_trait))) %>% 
+        select(term, label, estimate, beta, std.all, statistic, p.value) %>% 
         filter(term %in% c("d_agree_1 ~1 ")) %>% mutate(sig_diff = " ")
 kable(params_main_lcs_agree_current, digits = 3) 
 
 # constrained to be equal in the strong measurement invariance model:
 kable(broom::tidy(fit_lcs_agree_main_strong_current, conf.int = TRUE, conf.level = 0.95) %>% 
-        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        mutate(beta = estimate / 
+           (sd_pers_st1 %>% filter(trait=="agree" & reference=="current" & time==1) %>% pull(sd_trait))) %>% 
+        select(term, label, estimate, beta, std.all, statistic, p.value) %>% 
         filter(term %in% c("d_agree_1 ~1 ")), digits = 3) 
 
 # model fit
@@ -20102,13 +20188,17 @@ lavTestLRT(fit_lcs_consc_main_config_current, fit_lcs_consc_main_weak_current, f
 # -> key parameter is "d_consc_1 ~1"
 # labelled parameter as "d_int_a" & "d_int_b" (a = Self-Acceptance group, b = Self-Improvement group)
 params_main_lcs_consc_current <- broom::tidy(fit_lcs_consc_main_weak_current, conf.int = TRUE, conf.level = 0.95) %>% 
-        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        mutate(beta = estimate / 
+           (sd_pers_st1 %>% filter(trait=="consc" & reference=="current" & time==1) %>% pull(sd_trait))) %>% 
+        select(term, label, estimate, beta, std.all, statistic, p.value) %>% 
         filter(term %in% c("d_consc_1 ~1 ")) %>% mutate(sig_diff = " ")
 kable(params_main_lcs_consc_current, digits = 3) 
 
 # constrained to be equal in the strong measurement invariance model:
 kable(broom::tidy(fit_lcs_consc_main_strong_current, conf.int = TRUE, conf.level = 0.95) %>% 
-        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        mutate(beta = estimate / 
+           (sd_pers_st1 %>% filter(trait=="consc" & reference=="current" & time==1) %>% pull(sd_trait))) %>% 
+        select(term, label, estimate, beta, std.all, statistic, p.value) %>% 
         filter(term %in% c("d_consc_1 ~1 ")), digits = 3) 
 
 # model fit
@@ -20132,13 +20222,17 @@ lavTestLRT(fit_lcs_neuro_main_config_current, fit_lcs_neuro_main_weak_current, f
 # -> key parameter is "d_neuro_1 ~1"
 # labelled parameter as "d_int_a" & "d_int_b" (a = Self-Acceptance group, b = Self-Improvement group)
 params_main_lcs_neuro_current <- broom::tidy(fit_lcs_neuro_main_weak_current, conf.int = TRUE, conf.level = 0.95) %>% 
-        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        mutate(beta = estimate / 
+           (sd_pers_st1 %>% filter(trait=="neuro" & reference=="current" & time==1) %>% pull(sd_trait))) %>% 
+        select(term, label, estimate, beta, std.all, statistic, p.value) %>% 
         filter(term %in% c("d_neuro_1 ~1 ")) %>% mutate(sig_diff = " ")
 kable(params_main_lcs_neuro_current, digits = 3) 
 
 # constrained to be equal in the strong measurement invariance model:
 kable(broom::tidy(fit_lcs_neuro_main_strong_current, conf.int = TRUE, conf.level = 0.95) %>% 
-        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        mutate(beta = estimate / 
+           (sd_pers_st1 %>% filter(trait=="neuro" & reference=="current" & time==1) %>% pull(sd_trait))) %>% 
+        select(term, label, estimate, beta, std.all, statistic, p.value) %>% 
         filter(term %in% c("d_neuro_1 ~1 ")), digits = 3) 
 
 # model fit
@@ -20162,13 +20256,17 @@ lavTestLRT(fit_lcs_openn_main_config_current, fit_lcs_openn_main_weak_current, f
 # -> key parameter is "d_openn_1 ~1"
 # labelled parameter as "d_int_a" & "d_int_b" (a = Self-Acceptance group, b = Self-Improvement group)
 params_main_lcs_openn_current <- broom::tidy(fit_lcs_openn_main_weak_current, conf.int = TRUE, conf.level = 0.95) %>% 
-        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        mutate(beta = estimate / 
+           (sd_pers_st1 %>% filter(trait=="openn" & reference=="current" & time==1) %>% pull(sd_trait))) %>% 
+        select(term, label, estimate, beta, std.all, statistic, p.value) %>% 
         filter(term %in% c("d_openn_1 ~1 ")) %>% mutate(sig_diff = " ")
 kable(params_main_lcs_openn_current, digits = 3) 
 
 # constrained to be equal in the strong measurement invariance model:
 kable(broom::tidy(fit_lcs_openn_main_strong_current, conf.int = TRUE, conf.level = 0.95) %>% 
-        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        mutate(beta = estimate / 
+           (sd_pers_st1 %>% filter(trait=="openn" & reference=="current" & time==1) %>% pull(sd_trait))) %>% 
+        select(term, label, estimate, beta, std.all, statistic, p.value) %>% 
         filter(term %in% c("d_openn_1 ~1 ")), digits = 3) 
 
 # model fit
@@ -20194,13 +20292,17 @@ lavTestLRT(fit_lcs_extra_main_config_ideal, fit_lcs_extra_main_weak_ideal, fit_l
 # -> key parameter is "d_extra_1 ~1"
 # labelled parameter as "d_int_a" & "d_int_b" (a = Self-Acceptance group, b = Self-Improvement group)
 params_main_lcs_extra_ideal <- broom::tidy(fit_lcs_extra_main_weak_ideal, conf.int = TRUE, conf.level = 0.95) %>% 
-        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        mutate(beta = estimate / 
+           (sd_pers_st1 %>% filter(trait=="extra" & reference=="ideal" & time==1) %>% pull(sd_trait))) %>% 
+        select(term, label, estimate, beta, std.all, statistic, p.value) %>% 
         filter(term %in% c("d_extra_1 ~1 ")) %>% mutate(sig_diff = " ")
 kable(params_main_lcs_extra_ideal, digits = 3) 
 
 # constrained to be equal in the strong measurement invariance model:
 kable(broom::tidy(fit_lcs_extra_main_strong_ideal, conf.int = TRUE, conf.level = 0.95) %>% 
-        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        mutate(beta = estimate / 
+           (sd_pers_st1 %>% filter(trait=="extra" & reference=="ideal" & time==1) %>% pull(sd_trait))) %>% 
+        select(term, label, estimate, beta, std.all, statistic, p.value) %>% 
         filter(term %in% c("d_extra_1 ~1 ")), digits = 3) 
 
 # model fit
@@ -20224,13 +20326,17 @@ lavTestLRT(fit_lcs_agree_main_config_ideal, fit_lcs_agree_main_weak_ideal, fit_l
 # -> key parameter is "d_agree_1 ~1"
 # labelled parameter as "d_int_a" & "d_int_b" (a = Self-Acceptance group, b = Self-Improvement group)
 params_main_lcs_agree_ideal <- broom::tidy(fit_lcs_agree_main_weak_ideal, conf.int = TRUE, conf.level = 0.95) %>% 
-        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        mutate(beta = estimate / 
+           (sd_pers_st1 %>% filter(trait=="agree" & reference=="ideal" & time==1) %>% pull(sd_trait))) %>% 
+        select(term, label, estimate, beta, std.all, statistic, p.value) %>% 
         filter(term %in% c("d_agree_1 ~1 ")) %>% mutate(sig_diff = " ")
 kable(params_main_lcs_agree_ideal, digits = 3) 
 
 # constrained to be equal in the strong measurement invariance model:
 kable(broom::tidy(fit_lcs_agree_main_strong_ideal, conf.int = TRUE, conf.level = 0.95) %>% 
-        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        mutate(beta = estimate / 
+           (sd_pers_st1 %>% filter(trait=="agree" & reference=="ideal" & time==1) %>% pull(sd_trait))) %>% 
+        select(term, label, estimate, beta, std.all, statistic, p.value) %>% 
         filter(term %in% c("d_agree_1 ~1 ")), digits = 3) 
 
 # model fit
@@ -20254,13 +20360,17 @@ lavTestLRT(fit_lcs_consc_main_config_ideal, fit_lcs_consc_main_weak_ideal, fit_l
 # -> key parameter is "d_consc_1 ~1"
 # labelled parameter as "d_int_a" & "d_int_b" (a = Self-Acceptance group, b = Self-Improvement group)
 params_main_lcs_consc_ideal <- broom::tidy(fit_lcs_consc_main_weak_ideal, conf.int = TRUE, conf.level = 0.95) %>% 
-        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        mutate(beta = estimate / 
+           (sd_pers_st1 %>% filter(trait=="consc" & reference=="ideal" & time==1) %>% pull(sd_trait))) %>% 
+        select(term, label, estimate, beta, std.all, statistic, p.value) %>% 
         filter(term %in% c("d_consc_1 ~1 ")) %>% mutate(sig_diff = " ")
 kable(params_main_lcs_consc_ideal, digits = 3) 
 
 # constrained to be equal in the strong measurement invariance model:
 kable(broom::tidy(fit_lcs_consc_main_strong_ideal, conf.int = TRUE, conf.level = 0.95) %>% 
-        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        mutate(beta = estimate / 
+           (sd_pers_st1 %>% filter(trait=="consc" & reference=="ideal" & time==1) %>% pull(sd_trait))) %>% 
+        select(term, label, estimate, beta, std.all, statistic, p.value) %>% 
         filter(term %in% c("d_consc_1 ~1 ")), digits = 3) 
 
 # model fit
@@ -20284,13 +20394,17 @@ lavTestLRT(fit_lcs_neuro_main_config_ideal, fit_lcs_neuro_main_weak_ideal, fit_l
 # -> key parameter is "d_neuro_1 ~1"
 # labelled parameter as "d_int_a" & "d_int_b" (a = Self-Acceptance group, b = Self-Improvement group)
 params_main_lcs_neuro_ideal <- broom::tidy(fit_lcs_neuro_main_weak_ideal, conf.int = TRUE, conf.level = 0.95) %>% 
-        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        mutate(beta = estimate / 
+           (sd_pers_st1 %>% filter(trait=="neuro" & reference=="ideal" & time==1) %>% pull(sd_trait))) %>% 
+        select(term, label, estimate, beta, std.all, statistic, p.value) %>% 
         filter(term %in% c("d_neuro_1 ~1 ")) %>% mutate(sig_diff = " ")
 kable(params_main_lcs_neuro_ideal, digits = 3) 
 
 # constrained to be equal in the strong measurement invariance model:
 kable(broom::tidy(fit_lcs_neuro_main_strong_ideal, conf.int = TRUE, conf.level = 0.95) %>% 
-        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        mutate(beta = estimate / 
+           (sd_pers_st1 %>% filter(trait=="neuro" & reference=="ideal" & time==1) %>% pull(sd_trait))) %>% 
+        select(term, label, estimate, beta, std.all, statistic, p.value) %>% 
         filter(term %in% c("d_neuro_1 ~1 ")), digits = 3) 
 
 # model fit
@@ -20314,13 +20428,17 @@ lavTestLRT(fit_lcs_openn_main_config_ideal, fit_lcs_openn_main_weak_ideal, fit_l
 # -> key parameter is "d_openn_1 ~1"
 # labelled parameter as "d_int_a" & "d_int_b" (a = Self-Acceptance group, b = Self-Improvement group)
 params_main_lcs_openn_ideal <- broom::tidy(fit_lcs_openn_main_weak_ideal, conf.int = TRUE, conf.level = 0.95) %>% 
-        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        mutate(beta = estimate / 
+           (sd_pers_st1 %>% filter(trait=="openn" & reference=="ideal" & time==1) %>% pull(sd_trait))) %>% 
+        select(term, label, estimate, beta, std.all, statistic, p.value) %>% 
         filter(term %in% c("d_openn_1 ~1 ")) %>% mutate(sig_diff = " ")
 kable(params_main_lcs_openn_ideal, digits = 3) 
 
 # constrained to be equal in the strong measurement invariance model:
 kable(broom::tidy(fit_lcs_openn_main_strong_ideal, conf.int = TRUE, conf.level = 0.95) %>% 
-        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        mutate(beta = estimate / 
+           (sd_pers_st1 %>% filter(trait=="openn" & reference=="ideal" & time==1) %>% pull(sd_trait))) %>% 
+        select(term, label, estimate, beta, std.all, statistic, p.value) %>% 
         filter(term %in% c("d_openn_1 ~1 ")), digits = 3) 
 
 # model fit
@@ -20339,16 +20457,16 @@ Similar change in ideal personality openness in both groups (increase is slightl
 #| warning: false
 
 params_main_summary <- bind_rows(
-  params_main_lcs_extra_current %>% mutate(trait = names(b5_vars)[1], self = "current") %>% select(trait, self, group = label, beta = std.all, p.value, sig_diff),
-  params_main_lcs_extra_ideal %>% mutate(trait = names(b5_vars)[1], self = "ideal") %>% select(trait, self, group = label, beta = std.all, p.value, sig_diff),
-  params_main_lcs_agree_current %>% mutate(trait = names(b5_vars)[2], self = "current") %>% select(trait, self, group = label, beta = std.all, p.value, sig_diff),
-  params_main_lcs_agree_ideal %>% mutate(trait = names(b5_vars)[2], self = "ideal") %>% select(trait, self, group = label, beta = std.all, p.value, sig_diff),
-  params_main_lcs_consc_current %>% mutate(trait = names(b5_vars)[3], self = "current") %>% select(trait, self, group = label, beta = std.all, p.value, sig_diff),
-  params_main_lcs_consc_ideal %>% mutate(trait = names(b5_vars)[3], self = "ideal") %>% select(trait, self, group = label, beta = std.all, p.value, sig_diff),
-  params_main_lcs_neuro_current %>% mutate(trait = names(b5_vars)[4], self = "current") %>% select(trait, self, group = label, beta = std.all, p.value, sig_diff),
-  params_main_lcs_neuro_ideal %>% mutate(trait = names(b5_vars)[4], self = "ideal") %>% select(trait, self, group = label, beta = std.all, p.value, sig_diff),
-  params_main_lcs_openn_current %>% mutate(trait = names(b5_vars)[5], self = "current") %>% select(trait, self, group = label, beta = std.all, p.value, sig_diff),
-  params_main_lcs_openn_ideal %>% mutate(trait = names(b5_vars)[5], self = "ideal") %>% select(trait, self, group = label, beta = std.all, p.value, sig_diff)
+  params_main_lcs_extra_current %>% mutate(trait = names(b5_vars)[1], self = "current") %>% select(trait, self, group = label, estimate, beta, p.value, sig_diff),
+  params_main_lcs_extra_ideal %>% mutate(trait = names(b5_vars)[1], self = "ideal") %>% select(trait, self, group = label, estimate, beta, p.value, sig_diff),
+  params_main_lcs_agree_current %>% mutate(trait = names(b5_vars)[2], self = "current") %>% select(trait, self, group = label, estimate, beta, p.value, sig_diff),
+  params_main_lcs_agree_ideal %>% mutate(trait = names(b5_vars)[2], self = "ideal") %>% select(trait, self, group = label, estimate, beta, p.value, sig_diff),
+  params_main_lcs_consc_current %>% mutate(trait = names(b5_vars)[3], self = "current") %>% select(trait, self, group = label, estimate, beta, p.value, sig_diff),
+  params_main_lcs_consc_ideal %>% mutate(trait = names(b5_vars)[3], self = "ideal") %>% select(trait, self, group = label, estimate, beta, p.value, sig_diff),
+  params_main_lcs_neuro_current %>% mutate(trait = names(b5_vars)[4], self = "current") %>% select(trait, self, group = label, estimate, beta, p.value, sig_diff),
+  params_main_lcs_neuro_ideal %>% mutate(trait = names(b5_vars)[4], self = "ideal") %>% select(trait, self, group = label, estimate, beta, p.value, sig_diff),
+  params_main_lcs_openn_current %>% mutate(trait = names(b5_vars)[5], self = "current") %>% select(trait, self, group = label, estimate, beta, p.value, sig_diff),
+  params_main_lcs_openn_ideal %>% mutate(trait = names(b5_vars)[5], self = "ideal") %>% select(trait, self, group = label, estimate, beta, p.value, sig_diff)
 ) %>% mutate(group = ifelse(group=="d_int_a", "accept", "improve"))
 
 kable(params_main_summary, digits = 3)

@@ -6636,6 +6636,49 @@ Show all results:
 attrition_analysis_2 %>% arrange(desc(abs(estimate))) %>% print(n=200)
 ```
 
+### Standard deviations (for later standardization)
+
+Personality
+```{r}
+#| echo: true
+#| warning: false
+
+sd_pers_st2 <- df_sbsa2 %>% 
+  select(pid, time, rando, contains("_comb_"), -c(na_comb_curr, na_comb_ideal)) %>% 
+  pivot_longer(-c(pid, time, rando), 
+               cols_vary = "slowest",
+               names_to = c("trait", "reference"),
+               names_pattern = "(.*)_(.*)",
+               values_to = "score") %>% 
+  mutate(trait = gsub("_comb", "", trait),
+         reference = ifelse(reference=="curr", "current", reference)) %>% 
+  left_join(tibble(long = str_to_title(names(b5_vars)), trait = str_trunc(names(b5_vars), 5, ellipsis = ""))) %>% 
+  filter(!is.na(score)) %>% 
+  group_by(long, trait, reference, time) %>% 
+  summarise(n = n(), m_trait = mean(score), sd_trait = sd(score)) %>% 
+  ungroup()
+```
+
+Well-being
+
+```{r}
+#| echo: true
+#| warning: false
+
+sd_wb_st2 <- df_sbsa2 %>% 
+  select(pid, time, rando, swls, meaning, selfes, concept) %>% 
+  pivot_longer(-c(pid, time, rando), 
+               cols_vary = "slowest",
+               names_to = c("trait"),
+               values_to = "score") %>% 
+  mutate(long = case_when(trait=="swls" ~ "Life Satisfaction", trait=="meaning" ~ "Meaning in Life", 
+                           trait=="selfes" ~ "Self-Esteem", trait=="concept" ~ "Self-Concept Clarity")) %>% 
+  filter(!is.na(score)) %>% 
+  group_by(long, trait, time) %>% 
+  summarise(n = n(), m_trait = mean(score), sd_trait = sd(score)) %>% 
+  ungroup()
+```
+
 ------------------------------------------------------------------------
 
 ## Confirmatory results
@@ -7431,7 +7474,7 @@ semPaths(fit_mi_lcs_swls_hyp2, what="est",
 ```
 
 ::: {.callout-note appearance="minimal"}
-Significantly higher life satisfaction at the post test, *b* = `r round(params_lcs_swls_hyp2 %>% filter(term=="d_swls_1 ~1 ") %>% pull(estimate), 3)`, *beta* = `r round(params_lcs_swls_hyp2 %>% filter(term=="d_swls_1 ~1 ") %>% pull(std.all), 3)`, *p* = `r round(params_lcs_swls_hyp2 %>% filter(term=="d_swls_1 ~1 ") %>% pull(p.value), 3)`. Those with initially higher levels of life satisfaction (at T1) change to a lesser degree.
+Significantly higher life satisfaction at the post test, *b* = `r round(params_lcs_swls_hyp2 %>% filter(term=="d_swls_1 ~1 ") %>% pull(estimate), 3)`, *beta* = `r round(params_lcs_swls_hyp2 %>% filter(term=="d_swls_1 ~1 ") %>% pull(estimate) / (sd_wb_st2 %>% filter(trait=="swls" & time==1) %>% pull(sd_trait)), 3)`, *p* = `r round(params_lcs_swls_hyp2 %>% filter(term=="d_swls_1 ~1 ") %>% pull(p.value), 3)`. Those with initially higher levels of life satisfaction (at T1) change to a lesser degree.
 :::
 
 What happens in the waitlist control group during this time?
@@ -7467,7 +7510,7 @@ kable(params_lcs_swls_hyp2_cg, digits = 3)
 ```
 
 ::: {.callout-note appearance="minimal"}
-Life satisfaction changes in the control group significantly at positively (at *p* < .001), *b* = `r round(params_lcs_swls_hyp2_cg %>% filter(term=="d_swls_1 ~1 ") %>% pull(estimate), 3)`, *beta* = `r round(params_lcs_swls_hyp2_cg %>% filter(term=="d_swls_1 ~1 ") %>% pull(std.all), 3)`, *p* = `r round(params_lcs_swls_hyp2_cg %>% filter(term=="d_swls_1 ~1 ") %>% pull(p.value), 3)`. Slightly weaker effect size than in intervention group.  
+Life satisfaction changes in the control group significantly at positively (at *p* < .001), *b* = `r round(params_lcs_swls_hyp2_cg %>% filter(term=="d_swls_1 ~1 ") %>% pull(estimate), 3)`, *beta* = `r round(params_lcs_swls_hyp2_cg %>% filter(term=="d_swls_1 ~1 ") %>% pull(estimate) / (sd_wb_st2 %>% filter(trait=="swls" & time==1) %>% pull(sd_trait)), 3)`, *p* = `r round(params_lcs_swls_hyp2_cg %>% filter(term=="d_swls_1 ~1 ") %>% pull(p.value), 3)`. Slightly weaker effect size than in intervention group.  
 :::
 
 ##### Meaning in life
@@ -7544,7 +7587,7 @@ kable(params_lcs_meaning_hyp2, digits = 3)
 ```
 
 ::: {.callout-note appearance="minimal"}
-Participants improved significantly in meaning in life across time, *b* = `r round(params_lcs_meaning_hyp2 %>% filter(term=="d_meaning_1 ~1 ") %>% pull(estimate), 3)`, *beta* = `r round(params_lcs_meaning_hyp2 %>% filter(term=="d_meaning_1 ~1 ") %>% pull(std.all), 3)`, *p* = `r round(params_lcs_meaning_hyp2 %>% filter(term=="d_meaning_1 ~1 ") %>% pull(p.value), 3)`. 
+Participants improved significantly in meaning in life across time, *b* = `r round(params_lcs_meaning_hyp2 %>% filter(term=="d_meaning_1 ~1 ") %>% pull(estimate), 3)`, *beta* = `r round(params_lcs_meaning_hyp2 %>% filter(term=="d_meaning_1 ~1 ") %>% pull(estimate) / (sd_wb_st2 %>% filter(trait=="meaning" & time==1) %>% pull(sd_trait)), 3)`, *p* = `r round(params_lcs_meaning_hyp2 %>% filter(term=="d_meaning_1 ~1 ") %>% pull(p.value), 3)`. 
 :::
 
 What happens in the waitlist control group during this time?
@@ -7580,7 +7623,7 @@ kable(params_lcs_meaning_hyp2_cg, digits = 3)
 ```
 
 ::: {.callout-note appearance="minimal"}
-Meaning increases significantly in the control group, *b* = `r round(params_lcs_meaning_hyp2_cg %>% filter(term=="d_meaning_1 ~1 ") %>% pull(estimate), 3)`, *beta* = `r round(params_lcs_meaning_hyp2_cg %>% filter(term=="d_meaning_1 ~1 ") %>% pull(std.all), 3)`, *p* = `r round(params_lcs_meaning_hyp2_cg %>% filter(term=="d_meaning_1 ~1 ") %>% pull(p.value), 3)`, with an even stronger effect size than in the intervention groups.  
+Meaning increases significantly in the control group, *b* = `r round(params_lcs_meaning_hyp2_cg %>% filter(term=="d_meaning_1 ~1 ") %>% pull(estimate), 3)`, *beta* = `r round(params_lcs_meaning_hyp2_cg %>% filter(term=="d_meaning_1 ~1 ") %>% pull(estimate) / (sd_wb_st2 %>% filter(trait=="meaning" & time==1) %>% pull(sd_trait)), 3)`, *p* = `r round(params_lcs_meaning_hyp2_cg %>% filter(term=="d_meaning_1 ~1 ") %>% pull(p.value), 3)`, with an even stronger effect size than in the intervention groups.  
 :::
 
 ##### Self-esteem
@@ -7657,7 +7700,7 @@ kable(params_lcs_selfes_hyp2, digits = 3)
 ```
 
 ::: {.callout-note appearance="minimal"}
-Participants increased significantly in self-esteem between the two assessments, *b* = `r round(params_lcs_selfes_hyp2 %>% filter(term=="d_selfes_1 ~1 ") %>% pull(estimate), 3)`, *beta* = `r round(params_lcs_selfes_hyp2 %>% filter(term=="d_selfes_1 ~1 ") %>% pull(std.all), 3)`, *p* = `r round(params_lcs_selfes_hyp2 %>% filter(term=="d_selfes_1 ~1 ") %>% pull(p.value), 3)`.
+Participants increased significantly in self-esteem between the two assessments, *b* = `r round(params_lcs_selfes_hyp2 %>% filter(term=="d_selfes_1 ~1 ") %>% pull(estimate), 3)`, *beta* = `r round(params_lcs_selfes_hyp2 %>% filter(term=="d_selfes_1 ~1 ") %>% pull(estimate) / (sd_wb_st2 %>% filter(trait=="selfes" & time==1) %>% pull(sd_trait)), 3)`, *p* = `r round(params_lcs_selfes_hyp2 %>% filter(term=="d_selfes_1 ~1 ") %>% pull(p.value), 3)`.
 :::
 
 What happens in the waitlist control group during this time?
@@ -7693,7 +7736,7 @@ kable(params_lcs_selfes_hyp2_cg, digits = 3)
 ```
 
 ::: {.callout-note appearance="minimal"}
-Self-esteem changes significantly and positively in the control group, *b* = `r round(params_lcs_selfes_hyp2_cg %>% filter(term=="d_selfes_1 ~1 ") %>% pull(estimate), 3)`, *beta* = `r round(params_lcs_selfes_hyp2_cg %>% filter(term=="d_selfes_1 ~1 ") %>% pull(std.all), 3)`, *p* = `r round(params_lcs_selfes_hyp2_cg %>% filter(term=="d_selfes_1 ~1 ") %>% pull(p.value), 3)`. Comparable effect size to the intervention groups.  
+Self-esteem changes significantly and positively in the control group, *b* = `r round(params_lcs_selfes_hyp2_cg %>% filter(term=="d_selfes_1 ~1 ") %>% pull(estimate), 3)`, *beta* = `r round(params_lcs_selfes_hyp2_cg %>% filter(term=="d_selfes_1 ~1 ") %>% pull(estimate) / (sd_wb_st2 %>% filter(trait=="selfes" & time==1) %>% pull(sd_trait)), 3)`, *p* = `r round(params_lcs_selfes_hyp2_cg %>% filter(term=="d_selfes_1 ~1 ") %>% pull(p.value), 3)`. Comparable effect size to the intervention groups.  
 :::
 
 ##### Self concept clarity
@@ -7770,7 +7813,7 @@ kable(params_lcs_concept_hyp2, digits = 3)
 ```
 
 ::: {.callout-note appearance="minimal"}
-Self concept clarity improved significantly across time, *b* = `r round(params_lcs_concept_hyp2 %>% filter(term=="d_concept_1 ~1 ") %>% pull(estimate), 3)`, *beta* = `r round(params_lcs_concept_hyp2 %>% filter(term=="d_concept_1 ~1 ") %>% pull(std.all), 3)`, *p* = `r round(params_lcs_concept_hyp2 %>% filter(term=="d_concept_1 ~1 ") %>% pull(p.value), 3)`.
+Self concept clarity improved significantly across time, *b* = `r round(params_lcs_concept_hyp2 %>% filter(term=="d_concept_1 ~1 ") %>% pull(estimate), 3)`, *beta* = `r round(params_lcs_concept_hyp2 %>% filter(term=="d_concept_1 ~1 ") %>% pull(estimate) / (sd_wb_st2 %>% filter(trait=="concept" & time==1) %>% pull(sd_trait)), 3)`, *p* = `r round(params_lcs_concept_hyp2 %>% filter(term=="d_concept_1 ~1 ") %>% pull(p.value), 3)`.
 :::
 
 What happens in the waitlist control group during this time?
@@ -7806,7 +7849,7 @@ kable(params_lcs_concept_hyp2_cg, digits = 3)
 ```
 
 ::: {.callout-note appearance="minimal"}
-Self concept clarity changes in the control group not significant, *b* = `r round(params_lcs_concept_hyp2_cg %>% filter(term=="d_concept_1 ~1 ") %>% pull(estimate), 3)`, *beta* = `r round(params_lcs_concept_hyp2_cg %>% filter(term=="d_concept_1 ~1 ") %>% pull(std.all), 3)`, *p* = `r round(params_lcs_concept_hyp2_cg %>% filter(term=="d_concept_1 ~1 ") %>% pull(p.value), 3)`. Still a slight positive estimate, but weaker effect size than in intervention group.  
+Self concept clarity changes in the control group not significant, *b* = `r round(params_lcs_concept_hyp2_cg %>% filter(term=="d_concept_1 ~1 ") %>% pull(estimate), 3)`, *beta* = `r round(params_lcs_concept_hyp2_cg %>% filter(term=="d_concept_1 ~1 ") %>% pull(estimate) / (sd_wb_st2 %>% filter(trait=="concept" & time==1) %>% pull(sd_trait)), 3)`, *p* = `r round(params_lcs_concept_hyp2_cg %>% filter(term=="d_concept_1 ~1 ") %>% pull(p.value), 3)`. Still a slight positive estimate, but weaker effect size than in intervention group.  
 :::
 
 #### Follow-up effects (changes from T2 to T3)
@@ -7887,7 +7930,7 @@ kable(params_lcs_swls_hyp2_fu, digits = 3)
 ```
 
 ::: {.callout-note appearance="minimal"}
-Life satisfaction further increased from T2 to the T3 follow up, *b* = `r round(params_lcs_swls_hyp2_fu %>% filter(term=="d_swls_1 ~1 ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_swls_hyp2_fu %>% filter(term=="d_swls_1 ~1 ") %>% pull(p.value), 3)`.  
+Life satisfaction further increased from T2 to the T3 follow up, *b* = `r round(params_lcs_swls_hyp2_fu %>% filter(term=="d_swls_1 ~1 ") %>% pull(estimate), 3)`, *beta* = `r round(params_lcs_swls_hyp2_fu %>% filter(term=="d_swls_1 ~1 ") %>% pull(estimate) / (sd_wb_st2 %>% filter(trait=="swls" & time==1) %>% pull(sd_trait)), 3)`, *p* = `r round(params_lcs_swls_hyp2_fu %>% filter(term=="d_swls_1 ~1 ") %>% pull(p.value), 3)`.  
 :::
 
 ##### Meaning in life
@@ -7964,7 +8007,7 @@ kable(params_lcs_meaning_hyp2_fu, digits = 3)
 ```
 
 ::: {.callout-note appearance="minimal"}
-Meaning in life further increased from T2 to the T3 follow up, *b* = `r round(params_lcs_meaning_hyp2_fu %>% filter(term=="d_meaning_1 ~1 ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_meaning_hyp2_fu %>% filter(term=="d_meaning_1 ~1 ") %>% pull(p.value), 3)`.  
+Meaning in life further increased from T2 to the T3 follow up, *b* = `r round(params_lcs_meaning_hyp2_fu %>% filter(term=="d_meaning_1 ~1 ") %>% pull(estimate), 3)`, *beta* = `r round(params_lcs_meaning_hyp2_fu %>% filter(term=="d_meaning_1 ~1 ") %>% pull(estimate) / (sd_wb_st2 %>% filter(trait=="meaning" & time==1) %>% pull(sd_trait)), 3)`, *p* = `r round(params_lcs_meaning_hyp2_fu %>% filter(term=="d_meaning_1 ~1 ") %>% pull(p.value), 3)`.  
 :::
 
 ##### Self-esteem
@@ -8041,7 +8084,7 @@ kable(params_lcs_selfes_hyp2_fu, digits = 3)
 ```
 
 ::: {.callout-note appearance="minimal"}
-Self-esteem further increased from T2 to the T3 follow up, *b* = `r round(params_lcs_selfes_hyp2_fu %>% filter(term=="d_selfes_1 ~1 ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_selfes_hyp2_fu %>% filter(term=="d_selfes_1 ~1 ") %>% pull(p.value), 3)`.
+Self-esteem further increased from T2 to the T3 follow up, *b* = `r round(params_lcs_selfes_hyp2_fu %>% filter(term=="d_selfes_1 ~1 ") %>% pull(estimate), 3)`, *beta* = `r round(params_lcs_selfes_hyp2_fu %>% filter(term=="d_selfes_1 ~1 ") %>% pull(estimate) / (sd_wb_st2 %>% filter(trait=="selfes" & time==1) %>% pull(sd_trait)), 3)`, *p* = `r round(params_lcs_selfes_hyp2_fu %>% filter(term=="d_selfes_1 ~1 ") %>% pull(p.value), 3)`.
 :::
 
 ##### Self concept clarity
@@ -8118,7 +8161,7 @@ kable(params_lcs_concept_hyp2_fu, digits = 3)
 ```
 
 ::: {.callout-note appearance="minimal"}
-Self concept clarity further increased from T2 to the T3 follow up, *b* = `r round(params_lcs_concept_hyp2_fu %>% filter(term=="d_concept_1 ~1 ") %>% pull(estimate), 3)`, *p* = `r round(params_lcs_concept_hyp2_fu %>% filter(term=="d_concept_1 ~1 ") %>% pull(p.value), 3)`.
+Self concept clarity further increased from T2 to the T3 follow up, *b* = `r round(params_lcs_concept_hyp2_fu %>% filter(term=="d_concept_1 ~1 ") %>% pull(estimate), 3)`, *beta* = `r round(params_lcs_concept_hyp2_fu %>% filter(term=="d_concept_1 ~1 ") %>% pull(estimate) / (sd_wb_st2 %>% filter(trait=="concept" & time==1) %>% pull(sd_trait)), 3)`, *p* = `r round(params_lcs_concept_hyp2_fu %>% filter(term=="d_concept_1 ~1 ") %>% pull(p.value), 3)`.
 :::
 
 ::: {.callout-note appearance="minimal"}
@@ -24917,7 +24960,7 @@ ggplot(df_table_hyp7_plot_curr, aes(x = fct_rev(trait), y = estimate, color = in
 
 *Change in psychological well-being indicators as well as the difference between real- and ideal-personality will differ across groups at follow-up. Based on exploratory results from Study 1, we expect that the self-acceptance intervention leads to more pronounced well-being gains and less pronounced differences between current- and ideal-personality personality compared to the self-improvement intervention.*  
 
-#### Well-being change: differences across groups
+#### Latent well-being change: acceptance vs. improvement
 
 ##### Life satisfaction 
 
@@ -25079,13 +25122,18 @@ lavTestLRT(lcs_swls_group_config, lcs_swls_group_weak, lcs_swls_group_strong)
 # show model with varying latent change parameters 
 # -> key parameter is "d_swls_1 ~1"
 # labelled parameter as "d_int_a" & "d_int_b" (a = Self-Acceptance group, b = Self-Improvement group)
-kable(broom::tidy(lcs_swls_group_weak, conf.int = TRUE, conf.level = 0.999) %>% 
-        select(term, label, estimate, std.all, statistic, p.value) %>% 
-        filter(term %in% c("d_swls_1 ~1 ")), digits = 3) 
+params_main_lcs_swls <- broom::tidy(lcs_swls_group_weak, conf.int = TRUE, conf.level = 0.999) %>% 
+        mutate(beta = estimate / 
+           (sd_wb_st2 %>% filter(trait=="swls" & time==1) %>% pull(sd_trait))) %>% 
+        select(term, label, estimate, beta, std.all, statistic, p.value) %>% 
+        filter(term %in% c("d_swls_1 ~1 "))
+kable(params_main_lcs_swls, digits = 3) 
 
 # constrained to be equal in the strong measurement invariance model:
 kable(broom::tidy(lcs_swls_group_strong, conf.int = TRUE, conf.level = 0.999) %>% 
-        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        mutate(beta = estimate / 
+           (sd_wb_st2 %>% filter(trait=="swls" & time==1) %>% pull(sd_trait))) %>% 
+        select(term, label, estimate, beta, std.all, statistic, p.value) %>% 
         filter(term %in% c("d_swls_1 ~1 ")), digits = 3) 
 ```
 
@@ -25246,13 +25294,18 @@ lavTestLRT(lcs_meaning_group_config, lcs_meaning_group_weak, lcs_meaning_group_s
 # show model with varying latent change parameters 
 # -> key parameter is "d_meaning_1 ~1"
 # labelled parameter as "d_int_a" & "d_int_b" (a = Self-Acceptance group, b = Self-Improvement group)
-kable(broom::tidy(lcs_meaning_group_weak, conf.int = TRUE, conf.level = 0.999) %>% 
-        select(term, label, estimate, std.all, statistic, p.value) %>% 
-        filter(term %in% c("d_meaning_1 ~1 ")), digits = 3) 
+params_main_lcs_meaning <- broom::tidy(lcs_meaning_group_weak, conf.int = TRUE, conf.level = 0.999) %>% 
+        mutate(beta = estimate / 
+           (sd_wb_st2 %>% filter(trait=="meaning" & time==1) %>% pull(sd_trait))) %>% 
+        select(term, label, estimate, beta, std.all, statistic, p.value) %>% 
+        filter(term %in% c("d_meaning_1 ~1 "))
+kable(params_main_lcs_meaning, digits = 3) 
 
 # constrained to be equal in the strong measurement invariance model:
 kable(broom::tidy(lcs_meaning_group_strong, conf.int = TRUE, conf.level = 0.999) %>% 
-        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        mutate(beta = estimate / 
+           (sd_wb_st2 %>% filter(trait=="meaning" & time==1) %>% pull(sd_trait))) %>% 
+        select(term, label, estimate, beta, std.all, statistic, p.value) %>% 
         filter(term %in% c("d_meaning_1 ~1 ")), digits = 3) 
 ```
 
@@ -25413,13 +25466,18 @@ lavTestLRT(lcs_selfes_group_config, lcs_selfes_group_weak, lcs_selfes_group_stro
 # show model with varying latent change parameters 
 # -> key parameter is "d_selfes_1 ~1"
 # labelled parameter as "d_int_a" & "d_int_b" (a = Self-Acceptance group, b = Self-Improvement group)
-kable(broom::tidy(lcs_selfes_group_weak, conf.int = TRUE, conf.level = 0.999) %>% 
-        select(term, label, estimate, std.all, statistic, p.value) %>% 
-        filter(term %in% c("d_selfes_1 ~1 ")), digits = 3) 
+params_main_lcs_selfes <- broom::tidy(lcs_selfes_group_weak, conf.int = TRUE, conf.level = 0.999) %>% 
+        mutate(beta = estimate / 
+           (sd_wb_st2 %>% filter(trait=="selfes" & time==1) %>% pull(sd_trait))) %>% 
+        select(term, label, estimate, beta, std.all, statistic, p.value) %>% 
+        filter(term %in% c("d_selfes_1 ~1 "))
+kable(params_main_lcs_selfes, digits = 3) 
 
 # constrained to be equal in the strong measurement invariance model:
 kable(broom::tidy(lcs_selfes_group_strong, conf.int = TRUE, conf.level = 0.999) %>% 
-        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        mutate(beta = estimate / 
+           (sd_wb_st2 %>% filter(trait=="selfes" & time==1) %>% pull(sd_trait))) %>% 
+        select(term, label, estimate, beta, std.all, statistic, p.value) %>% 
         filter(term %in% c("d_selfes_1 ~1 ")), digits = 3) 
 ```
 
@@ -25580,13 +25638,18 @@ lavTestLRT(lcs_concept_group_config, lcs_concept_group_weak, lcs_concept_group_s
 # show model with varying latent change parameters 
 # -> key parameter is "d_concept_1 ~1"
 # labelled parameter as "d_int_a" & "d_int_b" (a = Self-Acceptance group, b = Self-Improvement group)
-kable(broom::tidy(lcs_concept_group_weak, conf.int = TRUE, conf.level = 0.999) %>% 
-        select(term, label, estimate, std.all, statistic, p.value) %>% 
-        filter(term %in% c("d_concept_1 ~1 ")), digits = 3) 
+params_main_lcs_concept <- broom::tidy(lcs_concept_group_weak, conf.int = TRUE, conf.level = 0.999) %>% 
+        mutate(beta = estimate / 
+           (sd_wb_st2 %>% filter(trait=="concept" & time==1) %>% pull(sd_trait))) %>% 
+        select(term, label, estimate, beta, std.all, statistic, p.value) %>% 
+        filter(term %in% c("d_concept_1 ~1 "))
+kable(params_main_lcs_concept, digits = 3) 
 
 # constrained to be equal in the strong measurement invariance model:
 kable(broom::tidy(lcs_concept_group_strong, conf.int = TRUE, conf.level = 0.999) %>% 
-        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        mutate(beta = estimate / 
+           (sd_wb_st2 %>% filter(trait=="concept" & time==1) %>% pull(sd_trait))) %>% 
+        select(term, label, estimate, beta, std.all, statistic, p.value) %>% 
         filter(term %in% c("d_concept_1 ~1 ")), digits = 3) 
 ```
 
@@ -25602,9 +25665,756 @@ Slightly more positive change in self-concept clarity in the self-improvement gr
 summary(lcs_concept_group_weak, fit.measures=TRUE, standardized=TRUE, rsquare=F)
 ```
 
-#### Current- and ideal-personality personality differences across groups
+##### Summary of latent main effects
 
-Profile correlations by group and measurement occasion (mixed effects models) - results:
+```{r}
+#| echo: true
+#| warning: false
+
+params_main_wb_summary <- bind_rows(
+  params_main_lcs_swls %>% mutate(trait = "Life satisfaction") %>% select(trait, group = label, estimate, beta, p.value),
+  params_main_lcs_meaning %>% mutate(trait = "Meaning in life") %>% select(trait, group = label, estimate, beta, p.value),
+  params_main_lcs_selfes %>% mutate(trait = "Self-esteem") %>% select(trait, group = label, estimate, beta, p.value),
+  params_main_lcs_concept %>% mutate(trait = "Self-concept clarity") %>% select(trait, group = label, estimate, beta, p.value)) %>% mutate(group = ifelse(group=="d_int_a", "Self-Acceptance", "Self-Improvement"))
+
+kable(params_main_wb_summary, digits = 3)
+```
+
+#### Latent well-being change: intervention vs. control
+
+After seeing that the two intervention groups do not differ substantially, we want to test the control group vs. the two intervention groups (all from T1 to T2).  
+
+```{r}
+#| echo: true
+#| warning: false
+# add new group variable
+df_sbsa2_wide_wb <- df_sbsa2_wide_wb %>% 
+  mutate(group_cg = ifelse(rando=="Waitlist-Control", "Control", "Intervention"))
+
+df_sbsa2_wide_wb %>% group_by(group_cg) %>% tally()
+```
+
+##### Life satisfaction 
+
+Life satisfaction: fitting multi-group models
+```{r}
+#| echo: true
+#| warning: false
+#| code-fold: true
+#| code-summary: "Show the code"
+#| output: false
+#| cache: true
+
+# adapt latent change score model from above and add grouping factor in estimation (also add vectorized equality constraints to the model)
+
+# configural invariance
+mi_lcs_swls_group_cg_config <- '
+swls_t1 =~ 1*sw06_01_t1 + c("lamb2a", "lamb2b")*sw06_02_t1 + c("lamb3a", "lamb3b")*sw06_03_t1 + c("lamb4a", "lamb4b")*sw06_04_t1 # This specifies the measurement model for swls_t1 
+swls_t2 =~ 1*sw06_01_t2 + c("lamb2a", "lamb2b")*sw06_02_t2 + c("lamb3a", "lamb3b")*sw06_03_t2 + c("lamb4a", "lamb4b")*sw06_04_t2 # This specifies the measurement model for swls_t2 with the equality constrained factor loadings
+
+swls_t2 ~ 1*swls_t1     # This parameter regresses swls_t2 perfectly on swls_t1
+d_swls_1 =~ 1*swls_t2   # This defines the latent change score factor as measured perfectly by scores on swls_t2
+swls_t2 ~ 0*1           # This line constrains the intercept of swls_t2 to 0
+swls_t2 ~~ 0*swls_t2    # This fixes the variance of swls_t2 to 0
+
+d_swls_1 ~ c("d_int_a", "d_int_b")*1           # This estimates the intercept of the change score 
+swls_t1 ~ c("wb_int_a", "wb_int_b")*1            # This estimates the intercept of swls_t1 
+d_swls_1 ~~ c("d_var_a", "d_var_b")*d_swls_1   # This estimates the variance of the change scores 
+swls_t1 ~~ c("wb_var_a", "wb_var_b")*swls_t1     # This estimates the variance of the swls_t1 
+d_swls_1 ~~ c("fb_a", "fb_b")*swls_t1     # This estimates the self-feedback parameter, as a covariance! -> therefore, the interpretation of the change score remains unconditional
+
+sw06_01_t1 ~~ c("cov1a", "cov1b")*sw06_01_t2   # This allows residual covariance on indicator X1 across T1 and T2
+sw06_02_t1 ~~ c("cov2a", "cov2b")*sw06_02_t2   # This allows residual covariance on indicator X2 across T1 and T2
+sw06_03_t1 ~~ c("cov3a", "cov3b")*sw06_03_t2   # This allows residual covariance on indicator X3 across T1 and T2
+sw06_04_t1 ~~ c("cov4a", "cov4b")*sw06_04_t2   # This allows residual covariance on indicator X4 across T1 and T2
+
+sw06_01_t1 ~~ c("res1a", "res1b")*sw06_01_t1   # This allows residual variance on indicator X1 at T1 
+sw06_02_t1 ~~ c("res2a", "res2b")*sw06_02_t1   # This allows residual variance on indicator X2 at T1
+sw06_03_t1 ~~ c("res3a", "res3b")*sw06_03_t1   # This allows residual variance on indicator X3 at T1
+sw06_04_t1 ~~ c("res4a", "res4b")*sw06_04_t1   # This allows residual variance on indicator X4 at T1
+
+sw06_01_t2 ~~ c("res1a", "res1b")*sw06_01_t2  # This allows residual variance on indicator X1 at T2 
+sw06_02_t2 ~~ c("res2a", "res2b")*sw06_02_t2  # This allows residual variance on indicator X2 at T2 
+sw06_03_t2 ~~ c("res3a", "res3b")*sw06_03_t2  # This allows residual variance on indicator X3 at T2
+sw06_04_t2 ~~ c("res4a", "res4b")*sw06_04_t2  # This allows residual variance on indicator X4 at T2
+
+sw06_01_t1 ~ 0*1      # This constrains the intercept of X1 to 0 at T1
+sw06_02_t1 ~ c("m2a", "m2b")*1     # This estimates the intercept of X2 at T1
+sw06_03_t1 ~ c("m3a", "m3b")*1     # This estimates the intercept of X3 at T1
+sw06_04_t1 ~ c("m4a", "m4b")*1     # This estimates the intercept of X4 at T1
+
+sw06_01_t2 ~ 0*1      # This constrains the intercept of X1 to 0 at T2
+sw06_02_t2 ~ c("m2a", "m2b")*1     # This estimates the intercept of X2 at T2
+sw06_03_t2 ~ c("m3a", "m3b")*1     # This estimates the intercept of X3 at T2
+sw06_04_t2 ~ c("m4a", "m4b")*1     # This estimates the intercept of X4 at T2
+'
+lcs_swls_group_cg_config <- sem(mi_lcs_swls_group_cg_config, data=df_sbsa2_wide_wb, estimator='mlr', 
+                             fixed.x=FALSE, missing='fiml', group = "group_cg")
+
+# weak invariance
+mi_lcs_swls_group_cg_weak <- '
+swls_t1 =~ 1*sw06_01_t1 + c("lamb2", "lamb2")*sw06_02_t1 + c("lamb3", "lamb3")*sw06_03_t1 + c("lamb4", "lamb4")*sw06_04_t1 # This specifies the measurement model for swls_t1 
+swls_t2 =~ 1*sw06_01_t2 + c("lamb2", "lamb2")*sw06_02_t2 + c("lamb3", "lamb3")*sw06_03_t2 + c("lamb4", "lamb4")*sw06_04_t2 # This specifies the measurement model for swls_t2 with the equality constrained factor loadings
+
+swls_t2 ~ 1*swls_t1     # This parameter regresses swls_t2 perfectly on swls_t1
+d_swls_1 =~ 1*swls_t2   # This defines the latent change score factor as measured perfectly by scores on swls_t2
+swls_t2 ~ 0*1           # This line constrains the intercept of swls_t2 to 0
+swls_t2 ~~ 0*swls_t2    # This fixes the variance of swls_t2 to 0
+
+d_swls_1 ~ c("d_int_a", "d_int_b")*1           # This estimates the intercept of the change score 
+swls_t1 ~ c("wb_int_a", "wb_int_b")*1            # This estimates the intercept of swls_t1 
+d_swls_1 ~~ c("d_var_a", "d_var_b")*d_swls_1   # This estimates the variance of the change scores 
+swls_t1 ~~ c("wb_var_a", "wb_var_b")*swls_t1     # This estimates the variance of the swls_t1 
+d_swls_1 ~~ c("fb_a", "fb_b")*swls_t1     # This estimates the self-feedback parameter, as a covariance! -> therefore, the interpretation of the change score remains unconditional
+
+sw06_01_t1 ~~ c("cov1a", "cov1b")*sw06_01_t2   # This allows residual covariance on indicator X1 across T1 and T2
+sw06_02_t1 ~~ c("cov2a", "cov2b")*sw06_02_t2   # This allows residual covariance on indicator X2 across T1 and T2
+sw06_03_t1 ~~ c("cov3a", "cov3b")*sw06_03_t2   # This allows residual covariance on indicator X3 across T1 and T2
+sw06_04_t1 ~~ c("cov4a", "cov4b")*sw06_04_t2   # This allows residual covariance on indicator X4 across T1 and T2
+
+sw06_01_t1 ~~ c("res1a", "res1b")*sw06_01_t1   # This allows residual variance on indicator X1 at T1 
+sw06_02_t1 ~~ c("res2a", "res2b")*sw06_02_t1   # This allows residual variance on indicator X2 at T1
+sw06_03_t1 ~~ c("res3a", "res3b")*sw06_03_t1   # This allows residual variance on indicator X3 at T1
+sw06_04_t1 ~~ c("res4a", "res4b")*sw06_04_t1   # This allows residual variance on indicator X4 at T1
+
+sw06_01_t2 ~~ c("res1a", "res1b")*sw06_01_t2  # This allows residual variance on indicator X1 at T2 
+sw06_02_t2 ~~ c("res2a", "res2b")*sw06_02_t2  # This allows residual variance on indicator X2 at T2 
+sw06_03_t2 ~~ c("res3a", "res3b")*sw06_03_t2  # This allows residual variance on indicator X3 at T2
+sw06_04_t2 ~~ c("res4a", "res4b")*sw06_04_t2  # This allows residual variance on indicator X4 at T2
+
+sw06_01_t1 ~ 0*1      # This constrains the intercept of X1 to 0 at T1
+sw06_02_t1 ~ c("m2a", "m2b")*1     # This estimates the intercept of X2 at T1
+sw06_03_t1 ~ c("m3a", "m3b")*1     # This estimates the intercept of X3 at T1
+sw06_04_t1 ~ c("m4a", "m4b")*1     # This estimates the intercept of X4 at T1
+
+sw06_01_t2 ~ 0*1      # This constrains the intercept of X1 to 0 at T2
+sw06_02_t2 ~ c("m2a", "m2b")*1     # This estimates the intercept of X2 at T2
+sw06_03_t2 ~ c("m3a", "m3b")*1     # This estimates the intercept of X3 at T2
+sw06_04_t2 ~ c("m4a", "m4b")*1     # This estimates the intercept of X4 at T2
+'
+
+lcs_swls_group_cg_weak <- sem(mi_lcs_swls_group_cg_weak, data=df_sbsa2_wide_wb, estimator='mlr', fixed.x=FALSE, missing='fiml', 
+                           group = "group_cg", group.equal = "loadings")
+
+# strong invariance
+mi_lcs_swls_group_cg_strong <- '
+swls_t1 =~ 1*sw06_01_t1 + c("lamb2", "lamb2")*sw06_02_t1 + c("lamb3", "lamb3")*sw06_03_t1 + c("lamb4", "lamb4")*sw06_04_t1 # This specifies the measurement model for swls_t1 
+swls_t2 =~ 1*sw06_01_t2 + c("lamb2", "lamb2")*sw06_02_t2 + c("lamb3", "lamb3")*sw06_03_t2 + c("lamb4", "lamb4")*sw06_04_t2 # This specifies the measurement model for swls_t2 with the equality constrained factor loadings
+
+swls_t2 ~ 1*swls_t1     # This parameter regresses swls_t2 perfectly on swls_t1
+d_swls_1 =~ 1*swls_t2   # This defines the latent change score factor as measured perfectly by scores on swls_t2
+swls_t2 ~ 0*1           # This line constrains the intercept of swls_t2 to 0
+swls_t2 ~~ 0*swls_t2    # This fixes the variance of swls_t2 to 0
+
+d_swls_1 ~ c("d_int", "d_int")*1           # This estimates the intercept of the change score 
+swls_t1 ~ c("wb_int", "wb_int")*1            # This estimates the intercept of swls_t1 
+d_swls_1 ~~ c("d_var_a", "d_var_b")*d_swls_1   # This estimates the variance of the change scores 
+swls_t1 ~~ c("wb_var_a", "wb_var_b")*swls_t1     # This estimates the variance of the swls_t1 
+d_swls_1 ~~ c("fb_a", "fb_b")*swls_t1     # This estimates the self-feedback parameter, as a covariance! -> therefore, the interpretation of the change score remains unconditional
+
+sw06_01_t1 ~~ c("cov1a", "cov1b")*sw06_01_t2   # This allows residual covariance on indicator X1 across T1 and T2
+sw06_02_t1 ~~ c("cov2a", "cov2b")*sw06_02_t2   # This allows residual covariance on indicator X2 across T1 and T2
+sw06_03_t1 ~~ c("cov3a", "cov3b")*sw06_03_t2   # This allows residual covariance on indicator X3 across T1 and T2
+sw06_04_t1 ~~ c("cov4a", "cov4b")*sw06_04_t2   # This allows residual covariance on indicator X4 across T1 and T2
+
+sw06_01_t1 ~~ c("res1a", "res1b")*sw06_01_t1   # This allows residual variance on indicator X1 at T1 
+sw06_02_t1 ~~ c("res2a", "res2b")*sw06_02_t1   # This allows residual variance on indicator X2 at T1
+sw06_03_t1 ~~ c("res3a", "res3b")*sw06_03_t1   # This allows residual variance on indicator X3 at T1
+sw06_04_t1 ~~ c("res4a", "res4b")*sw06_04_t1   # This allows residual variance on indicator X4 at T1
+
+sw06_01_t2 ~~ c("res1a", "res1b")*sw06_01_t2  # This allows residual variance on indicator X1 at T2 
+sw06_02_t2 ~~ c("res2a", "res2b")*sw06_02_t2  # This allows residual variance on indicator X2 at T2 
+sw06_03_t2 ~~ c("res3a", "res3b")*sw06_03_t2  # This allows residual variance on indicator X3 at T2
+sw06_04_t2 ~~ c("res4a", "res4b")*sw06_04_t2  # This allows residual variance on indicator X4 at T2
+
+sw06_01_t1 ~ 0*1      # This constrains the intercept of X1 to 0 at T1
+sw06_02_t1 ~ c("m2", "m2")*1     # This estimates the intercept of X2 at T1
+sw06_03_t1 ~ c("m3", "m3")*1     # This estimates the intercept of X3 at T1
+sw06_04_t1 ~ c("m4", "m4")*1     # This estimates the intercept of X4 at T1
+
+sw06_01_t2 ~ 0*1      # This constrains the intercept of X1 to 0 at T2
+sw06_02_t2 ~ c("m2", "m2")*1     # This estimates the intercept of X2 at T2
+sw06_03_t2 ~ c("m3", "m3")*1     # This estimates the intercept of X3 at T2
+sw06_04_t2 ~ c("m4", "m4")*1     # This estimates the intercept of X4 at T2
+'
+
+lcs_swls_group_cg_strong <- sem(mi_lcs_swls_group_cg_strong, data=df_sbsa2_wide_wb, estimator='mlr', fixed.x=FALSE, missing='fiml', 
+                             group = "group_cg", group.equal = c("intercepts", "loadings"))
+```
+
+Life satisfaction: results
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+
+# model comparison tests for measurement invariance
+lavTestLRT(lcs_swls_group_cg_config, lcs_swls_group_cg_weak, lcs_swls_group_cg_strong)
+
+# show model with varying latent change parameters 
+# -> key parameter is "d_swls_1 ~1"
+# labelled parameter as "d_int_a" & "d_int_b" (a = Control group, b = Intervention groups)
+params_main_lcs_swls_cg <- broom::tidy(lcs_swls_group_cg_weak, conf.int = TRUE, conf.level = 0.999) %>% 
+        mutate(beta = estimate / 
+           (sd_wb_st2 %>% filter(trait=="swls" & time==1) %>% pull(sd_trait))) %>% 
+        select(term, label, estimate, beta, std.all, statistic, p.value) %>% 
+        filter(term %in% c("d_swls_1 ~1 "))
+kable(params_main_lcs_swls_cg, digits = 3) 
+
+# constrained to be equal in the strong measurement invariance model:
+kable(broom::tidy(lcs_swls_group_cg_strong, conf.int = TRUE, conf.level = 0.999) %>% 
+        mutate(beta = estimate / 
+           (sd_wb_st2 %>% filter(trait=="swls" & time==1) %>% pull(sd_trait))) %>% 
+        select(term, label, estimate, beta, std.all, statistic, p.value) %>% 
+        filter(term %in% c("d_swls_1 ~1 ")), digits = 3) 
+```
+
+::: {.callout-note appearance="minimal"}
+Slightly more positive change in life satisfaction in the intervention groups compared to the control group but no substantial differences according to the LRTs.
+:::
+
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+# whole model (weak invariance)
+summary(lcs_swls_group_cg_weak, fit.measures=TRUE, standardized=TRUE, rsquare=F)
+```
+
+##### Meaning in life
+
+Meaning in life: fitting multi-group models
+```{r}
+#| echo: true
+#| warning: false
+#| code-fold: true
+#| code-summary: "Show the code"
+#| output: false
+#| cache: true
+
+# adapt latent change score model from above and add grouping factor in estimation (also add vectorized equality constraints to the model)
+
+# configural invariance
+mi_lcs_meaning_group_cg_config <- '
+meaning_t1 =~ 1*meaning_par1_t1 + c("lamb2a", "lamb2b")*meaning_par2_t1 + c("lamb3a", "lamb3b")*meaning_par3_t1 # This specifies the measurement model for meaning_t1 
+meaning_t2 =~ 1*meaning_par1_t2 + c("lamb2a", "lamb2b")*meaning_par2_t2 + c("lamb3a", "lamb3b")*meaning_par3_t2 # This specifies the measurement model for meaning_t2 with the equality constrained factor loadings
+
+meaning_t2 ~ 1*meaning_t1     # This parameter regresses meaning_t2 perfectly on meaning_t1
+d_meaning_1 =~ 1*meaning_t2   # This defines the latent change score factor as measured perfectly by scores on meaning_t2
+meaning_t2 ~ 0*1           # This line constrains the intercept of meaning_t2 to 0
+meaning_t2 ~~ 0*meaning_t2    # This fixes the variance of meaning_t2 to 0
+
+d_meaning_1 ~ c("d_int_a", "d_int_b")*1           # This estimates the intercept of the change score 
+meaning_t1 ~ c("wb_int_a", "wb_int_b")*1            # This estimates the intercept of meaning_t1 
+d_meaning_1 ~~ c("d_var_a", "d_var_b")*d_meaning_1   # This estimates the variance of the change scores 
+meaning_t1 ~~ c("wb_var_a", "wb_var_b")*meaning_t1     # This estimates the variance of the meaning_t1 
+d_meaning_1 ~~ c("fb_a", "fb_b")*meaning_t1     # This estimates the self-feedback parameter, as a covariance! -> therefore, the interpretation of the change score remains unconditional
+
+meaning_par1_t1 ~~ c("cov1a", "cov1b")*meaning_par1_t2   # This allows residual covariance on indicator X1 across T1 and T2
+meaning_par2_t1 ~~ c("cov2a", "cov2b")*meaning_par2_t2   # This allows residual covariance on indicator X2 across T1 and T2
+meaning_par3_t1 ~~ c("cov3a", "cov3b")*meaning_par3_t2   # This allows residual covariance on indicator X3 across T1 and T2
+
+meaning_par1_t1 ~~ c("res1a", "res1b")*meaning_par1_t1   # This allows residual variance on indicator X1 at T1 
+meaning_par2_t1 ~~ c("res2a", "res2b")*meaning_par2_t1   # This allows residual variance on indicator X2 at T1
+meaning_par3_t1 ~~ c("res3a", "res3b")*meaning_par3_t1   # This allows residual variance on indicator X3 at T1
+
+meaning_par1_t2 ~~ c("res1a", "res1b")*meaning_par1_t2  # This allows residual variance on indicator X1 at T2 
+meaning_par2_t2 ~~ c("res2a", "res2b")*meaning_par2_t2  # This allows residual variance on indicator X2 at T2 
+meaning_par3_t2 ~~ c("res3a", "res3b")*meaning_par3_t2  # This allows residual variance on indicator X3 at T2
+
+meaning_par1_t1 ~ 0*1      # This constrains the intercept of X1 to 0 at T1
+meaning_par2_t1 ~ c("m2a", "m2b")*1     # This estimates the intercept of X2 at T1
+meaning_par3_t1 ~ c("m3a", "m3b")*1     # This estimates the intercept of X3 at T1
+
+meaning_par1_t2 ~ 0*1      # This constrains the intercept of X1 to 0 at T2
+meaning_par2_t2 ~ c("m2a", "m2b")*1     # This estimates the intercept of X2 at T2
+meaning_par3_t2 ~ c("m3a", "m3b")*1     # This estimates the intercept of X3 at T2
+'
+lcs_meaning_group_cg_config <- sem(mi_lcs_meaning_group_cg_config, data=df_sbsa2_wide_wb, estimator='mlr', 
+                                fixed.x=FALSE, missing='fiml', group = "group_cg")
+
+# weak invariance
+mi_lcs_meaning_group_cg_weak <- '
+meaning_t1 =~ 1*meaning_par1_t1 + c("lamb2", "lamb2")*meaning_par2_t1 + c("lamb3", "lamb3")*meaning_par3_t1 # This specifies the measurement model for meaning_t1 
+meaning_t2 =~ 1*meaning_par1_t2 + c("lamb2", "lamb2")*meaning_par2_t2 + c("lamb3", "lamb3")*meaning_par3_t2 # This specifies the measurement model for meaning_t2 with the equality constrained factor loadings
+
+meaning_t2 ~ 1*meaning_t1     # This parameter regresses meaning_t2 perfectly on meaning_t1
+d_meaning_1 =~ 1*meaning_t2   # This defines the latent change score factor as measured perfectly by scores on meaning_t2
+meaning_t2 ~ 0*1           # This line constrains the intercept of meaning_t2 to 0
+meaning_t2 ~~ 0*meaning_t2    # This fixes the variance of meaning_t2 to 0
+
+d_meaning_1 ~ c("d_int_a", "d_int_b")*1           # This estimates the intercept of the change score 
+meaning_t1 ~ c("wb_int_a", "wb_int_b")*1            # This estimates the intercept of meaning_t1 
+d_meaning_1 ~~ c("d_var_a", "d_var_b")*d_meaning_1   # This estimates the variance of the change scores 
+meaning_t1 ~~ c("wb_var_a", "wb_var_b")*meaning_t1     # This estimates the variance of the meaning_t1 
+d_meaning_1 ~~ c("fb_a", "fb_b")*meaning_t1     # This estimates the self-feedback parameter, as a covariance! -> therefore, the interpretation of the change score remains unconditional
+
+meaning_par1_t1 ~~ c("cov1a", "cov1b")*meaning_par1_t2   # This allows residual covariance on indicator X1 across T1 and T2
+meaning_par2_t1 ~~ c("cov2a", "cov2b")*meaning_par2_t2   # This allows residual covariance on indicator X2 across T1 and T2
+meaning_par3_t1 ~~ c("cov3a", "cov3b")*meaning_par3_t2   # This allows residual covariance on indicator X3 across T1 and T2
+
+meaning_par1_t1 ~~ c("res1a", "res1b")*meaning_par1_t1   # This allows residual variance on indicator X1 at T1 
+meaning_par2_t1 ~~ c("res2a", "res2b")*meaning_par2_t1   # This allows residual variance on indicator X2 at T1
+meaning_par3_t1 ~~ c("res3a", "res3b")*meaning_par3_t1   # This allows residual variance on indicator X3 at T1
+
+meaning_par1_t2 ~~ c("res1a", "res1b")*meaning_par1_t2  # This allows residual variance on indicator X1 at T2 
+meaning_par2_t2 ~~ c("res2a", "res2b")*meaning_par2_t2  # This allows residual variance on indicator X2 at T2 
+meaning_par3_t2 ~~ c("res3a", "res3b")*meaning_par3_t2  # This allows residual variance on indicator X3 at T2
+
+meaning_par1_t1 ~ 0*1      # This constrains the intercept of X1 to 0 at T1
+meaning_par2_t1 ~ c("m2a", "m2b")*1     # This estimates the intercept of X2 at T1
+meaning_par3_t1 ~ c("m3a", "m3b")*1     # This estimates the intercept of X3 at T1
+
+meaning_par1_t2 ~ 0*1      # This constrains the intercept of X1 to 0 at T2
+meaning_par2_t2 ~ c("m2a", "m2b")*1     # This estimates the intercept of X2 at T2
+meaning_par3_t2 ~ c("m3a", "m3b")*1     # This estimates the intercept of X3 at T2
+'
+
+lcs_meaning_group_cg_weak <- sem(mi_lcs_meaning_group_cg_weak, data=df_sbsa2_wide_wb, estimator='mlr', fixed.x=FALSE, missing='fiml', 
+                           group = "group_cg", group.equal = "loadings")
+
+# strong invariance
+mi_lcs_meaning_group_cg_strong <- '
+meaning_t1 =~ 1*meaning_par1_t1 + c("lamb2", "lamb2")*meaning_par2_t1 + c("lamb3", "lamb3")*meaning_par3_t1 # This specifies the measurement model for meaning_t1 
+meaning_t2 =~ 1*meaning_par1_t2 + c("lamb2", "lamb2")*meaning_par2_t2 + c("lamb3", "lamb3")*meaning_par3_t2 # This specifies the measurement model for meaning_t2 with the equality constrained factor loadings
+
+meaning_t2 ~ 1*meaning_t1     # This parameter regresses meaning_t2 perfectly on meaning_t1
+d_meaning_1 =~ 1*meaning_t2   # This defines the latent change score factor as measured perfectly by scores on meaning_t2
+meaning_t2 ~ 0*1           # This line constrains the intercept of meaning_t2 to 0
+meaning_t2 ~~ 0*meaning_t2    # This fixes the variance of meaning_t2 to 0
+
+d_meaning_1 ~ c("d_int", "d_int")*1           # This estimates the intercept of the change score 
+meaning_t1 ~ c("wb_int", "wb_int")*1            # This estimates the intercept of meaning_t1 
+d_meaning_1 ~~ c("d_var_a", "d_var_b")*d_meaning_1   # This estimates the variance of the change scores 
+meaning_t1 ~~ c("wb_var_a", "wb_var_b")*meaning_t1     # This estimates the variance of the meaning_t1 
+d_meaning_1 ~~ c("fb_a", "fb_b")*meaning_t1     # This estimates the self-feedback parameter, as a covariance! -> therefore, the interpretation of the change score remains unconditional
+
+meaning_par1_t1 ~~ c("cov1a", "cov1b")*meaning_par1_t2   # This allows residual covariance on indicator X1 across T1 and T2
+meaning_par2_t1 ~~ c("cov2a", "cov2b")*meaning_par2_t2   # This allows residual covariance on indicator X2 across T1 and T2
+meaning_par3_t1 ~~ c("cov3a", "cov3b")*meaning_par3_t2   # This allows residual covariance on indicator X3 across T1 and T2
+
+meaning_par1_t1 ~~ c("res1a", "res1b")*meaning_par1_t1   # This allows residual variance on indicator X1 at T1 
+meaning_par2_t1 ~~ c("res2a", "res2b")*meaning_par2_t1   # This allows residual variance on indicator X2 at T1
+meaning_par3_t1 ~~ c("res3a", "res3b")*meaning_par3_t1   # This allows residual variance on indicator X3 at T1
+
+meaning_par1_t2 ~~ c("res1a", "res1b")*meaning_par1_t2  # This allows residual variance on indicator X1 at T2 
+meaning_par2_t2 ~~ c("res2a", "res2b")*meaning_par2_t2  # This allows residual variance on indicator X2 at T2 
+meaning_par3_t2 ~~ c("res3a", "res3b")*meaning_par3_t2  # This allows residual variance on indicator X3 at T2
+
+meaning_par1_t1 ~ 0*1      # This constrains the intercept of X1 to 0 at T1
+meaning_par2_t1 ~ c("m2", "m2")*1     # This estimates the intercept of X2 at T1
+meaning_par3_t1 ~ c("m3", "m3")*1     # This estimates the intercept of X3 at T1
+
+meaning_par1_t2 ~ 0*1      # This constrains the intercept of X1 to 0 at T2
+meaning_par2_t2 ~ c("m2", "m2")*1     # This estimates the intercept of X2 at T2
+meaning_par3_t2 ~ c("m3", "m3")*1     # This estimates the intercept of X3 at T2
+'
+
+lcs_meaning_group_cg_strong <- sem(mi_lcs_meaning_group_cg_strong, data=df_sbsa2_wide_wb, estimator='mlr', fixed.x=FALSE, missing='fiml', 
+                             group = "group_cg", group.equal = c("intercepts", "loadings"))
+```
+
+Meaning in life: results
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+
+# model comparison tests for measurement invariance
+lavTestLRT(lcs_meaning_group_cg_config, lcs_meaning_group_cg_weak, lcs_meaning_group_cg_strong)
+
+# show model with varying latent change parameters 
+# -> key parameter is "d_meaning_1 ~1"
+# labelled parameter as "d_int_a" & "d_int_b" (a = Control group, b = Intervention groups)
+params_main_lcs_meaning_cg <- broom::tidy(lcs_meaning_group_cg_weak, conf.int = TRUE, conf.level = 0.999) %>% 
+        mutate(beta = estimate / 
+           (sd_wb_st2 %>% filter(trait=="meaning" & time==1) %>% pull(sd_trait))) %>% 
+        select(term, label, estimate, beta, std.all, statistic, p.value) %>% 
+        filter(term %in% c("d_meaning_1 ~1 "))
+kable(params_main_lcs_meaning_cg, digits = 3) 
+
+# constrained to be equal in the strong measurement invariance model:
+kable(broom::tidy(lcs_meaning_group_cg_strong, conf.int = TRUE, conf.level = 0.999) %>% 
+        mutate(beta = estimate / 
+           (sd_wb_st2 %>% filter(trait=="meaning" & time==1) %>% pull(sd_trait))) %>% 
+        select(term, label, estimate, beta, std.all, statistic, p.value) %>% 
+        filter(term %in% c("d_meaning_1 ~1 ")), digits = 3) 
+```
+
+::: {.callout-note appearance="minimal"}
+Somewhat more positive change in meaning in life in the control group compared to the intervention groups but no substantial differences according to the LRTs.
+:::
+
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+# whole model (weak invariance)
+summary(lcs_meaning_group_cg_weak, fit.measures=TRUE, standardized=TRUE, rsquare=F)
+```
+
+##### Self-esteem 
+
+Self-esteem: fitting multi-group models
+```{r}
+#| echo: true
+#| warning: false
+#| code-fold: true
+#| code-summary: "Show the code"
+#| output: false
+#| cache: true
+
+# adapt latent change score model from above and add grouping factor in estimation (also add vectorized equality constraints to the model)
+
+# configural invariance
+mi_lcs_selfes_group_cg_config <- '
+selfes_t1 =~ 1*selfes_par1_t1 + c("lamb2a", "lamb2b")*selfes_par2_t1 + c("lamb3a", "lamb3b")*selfes_par3_t1 # This specifies the measurement model for selfes_t1 
+selfes_t2 =~ 1*selfes_par1_t2 + c("lamb2a", "lamb2b")*selfes_par2_t2 + c("lamb3a", "lamb3b")*selfes_par3_t2 # This specifies the measurement model for selfes_t2 with the equality constrained factor loadings
+
+selfes_t2 ~ 1*selfes_t1     # This parameter regresses selfes_t2 perfectly on selfes_t1
+d_selfes_1 =~ 1*selfes_t2   # This defines the latent change score factor as measured perfectly by scores on selfes_t2
+selfes_t2 ~ 0*1           # This line constrains the intercept of selfes_t2 to 0
+selfes_t2 ~~ 0*selfes_t2    # This fixes the variance of selfes_t2 to 0
+
+d_selfes_1 ~ c("d_int_a", "d_int_b")*1           # This estimates the intercept of the change score 
+selfes_t1 ~ c("wb_int_a", "wb_int_b")*1            # This estimates the intercept of selfes_t1 
+d_selfes_1 ~~ c("d_var_a", "d_var_b")*d_selfes_1   # This estimates the variance of the change scores 
+selfes_t1 ~~ c("wb_var_a", "wb_var_b")*selfes_t1     # This estimates the variance of the selfes_t1 
+d_selfes_1 ~~ c("fb_a", "fb_b")*selfes_t1     # This estimates the self-feedback parameter, as a covariance! -> therefore, the interpretation of the change score remains unconditional
+
+selfes_par1_t1 ~~ c("cov1a", "cov1b")*selfes_par1_t2   # This allows residual covariance on indicator X1 across T1 and T2
+selfes_par2_t1 ~~ c("cov2a", "cov2b")*selfes_par2_t2   # This allows residual covariance on indicator X2 across T1 and T2
+selfes_par3_t1 ~~ c("cov3a", "cov3b")*selfes_par3_t2   # This allows residual covariance on indicator X3 across T1 and T2
+
+selfes_par1_t1 ~~ c("res1a", "res1b")*selfes_par1_t1   # This allows residual variance on indicator X1 at T1 
+selfes_par2_t1 ~~ c("res2a", "res2b")*selfes_par2_t1   # This allows residual variance on indicator X2 at T1
+selfes_par3_t1 ~~ c("res3a", "res3b")*selfes_par3_t1   # This allows residual variance on indicator X3 at T1
+
+selfes_par1_t2 ~~ c("res1a", "res1b")*selfes_par1_t2  # This allows residual variance on indicator X1 at T2 
+selfes_par2_t2 ~~ c("res2a", "res2b")*selfes_par2_t2  # This allows residual variance on indicator X2 at T2 
+selfes_par3_t2 ~~ c("res3a", "res3b")*selfes_par3_t2  # This allows residual variance on indicator X3 at T2
+
+selfes_par1_t1 ~ 0*1      # This constrains the intercept of X1 to 0 at T1
+selfes_par2_t1 ~ c("m2a", "m2b")*1     # This estimates the intercept of X2 at T1
+selfes_par3_t1 ~ c("m3a", "m3b")*1     # This estimates the intercept of X3 at T1
+
+selfes_par1_t2 ~ 0*1      # This constrains the intercept of X1 to 0 at T2
+selfes_par2_t2 ~ c("m2a", "m2b")*1     # This estimates the intercept of X2 at T2
+selfes_par3_t2 ~ c("m3a", "m3b")*1     # This estimates the intercept of X3 at T2
+'
+lcs_selfes_group_cg_config <- sem(mi_lcs_selfes_group_cg_config, data=df_sbsa2_wide_wb, estimator='mlr', 
+                                fixed.x=FALSE, missing='fiml', group = "group_cg")
+
+# weak invariance
+mi_lcs_selfes_group_cg_weak <- '
+selfes_t1 =~ 1*selfes_par1_t1 + c("lamb2", "lamb2")*selfes_par2_t1 + c("lamb3", "lamb3")*selfes_par3_t1 # This specifies the measurement model for selfes_t1 
+selfes_t2 =~ 1*selfes_par1_t2 + c("lamb2", "lamb2")*selfes_par2_t2 + c("lamb3", "lamb3")*selfes_par3_t2 # This specifies the measurement model for selfes_t2 with the equality constrained factor loadings
+
+selfes_t2 ~ 1*selfes_t1     # This parameter regresses selfes_t2 perfectly on selfes_t1
+d_selfes_1 =~ 1*selfes_t2   # This defines the latent change score factor as measured perfectly by scores on selfes_t2
+selfes_t2 ~ 0*1           # This line constrains the intercept of selfes_t2 to 0
+selfes_t2 ~~ 0*selfes_t2    # This fixes the variance of selfes_t2 to 0
+
+d_selfes_1 ~ c("d_int_a", "d_int_b")*1           # This estimates the intercept of the change score 
+selfes_t1 ~ c("wb_int_a", "wb_int_b")*1            # This estimates the intercept of selfes_t1 
+d_selfes_1 ~~ c("d_var_a", "d_var_b")*d_selfes_1   # This estimates the variance of the change scores 
+selfes_t1 ~~ c("wb_var_a", "wb_var_b")*selfes_t1     # This estimates the variance of the selfes_t1 
+d_selfes_1 ~~ c("fb_a", "fb_b")*selfes_t1     # This estimates the self-feedback parameter, as a covariance! -> therefore, the interpretation of the change score remains unconditional
+
+selfes_par1_t1 ~~ c("cov1a", "cov1b")*selfes_par1_t2   # This allows residual covariance on indicator X1 across T1 and T2
+selfes_par2_t1 ~~ c("cov2a", "cov2b")*selfes_par2_t2   # This allows residual covariance on indicator X2 across T1 and T2
+selfes_par3_t1 ~~ c("cov3a", "cov3b")*selfes_par3_t2   # This allows residual covariance on indicator X3 across T1 and T2
+
+selfes_par1_t1 ~~ c("res1a", "res1b")*selfes_par1_t1   # This allows residual variance on indicator X1 at T1 
+selfes_par2_t1 ~~ c("res2a", "res2b")*selfes_par2_t1   # This allows residual variance on indicator X2 at T1
+selfes_par3_t1 ~~ c("res3a", "res3b")*selfes_par3_t1   # This allows residual variance on indicator X3 at T1
+
+selfes_par1_t2 ~~ c("res1a", "res1b")*selfes_par1_t2  # This allows residual variance on indicator X1 at T2 
+selfes_par2_t2 ~~ c("res2a", "res2b")*selfes_par2_t2  # This allows residual variance on indicator X2 at T2 
+selfes_par3_t2 ~~ c("res3a", "res3b")*selfes_par3_t2  # This allows residual variance on indicator X3 at T2
+
+selfes_par1_t1 ~ 0*1      # This constrains the intercept of X1 to 0 at T1
+selfes_par2_t1 ~ c("m2a", "m2b")*1     # This estimates the intercept of X2 at T1
+selfes_par3_t1 ~ c("m3a", "m3b")*1     # This estimates the intercept of X3 at T1
+
+selfes_par1_t2 ~ 0*1      # This constrains the intercept of X1 to 0 at T2
+selfes_par2_t2 ~ c("m2a", "m2b")*1     # This estimates the intercept of X2 at T2
+selfes_par3_t2 ~ c("m3a", "m3b")*1     # This estimates the intercept of X3 at T2
+'
+
+lcs_selfes_group_cg_weak <- sem(mi_lcs_selfes_group_cg_weak, data=df_sbsa2_wide_wb, estimator='mlr', fixed.x=FALSE, missing='fiml', 
+                           group = "group_cg", group.equal = "loadings")
+
+# strong invariance
+mi_lcs_selfes_group_cg_strong <- '
+selfes_t1 =~ 1*selfes_par1_t1 + c("lamb2", "lamb2")*selfes_par2_t1 + c("lamb3", "lamb3")*selfes_par3_t1 # This specifies the measurement model for selfes_t1 
+selfes_t2 =~ 1*selfes_par1_t2 + c("lamb2", "lamb2")*selfes_par2_t2 + c("lamb3", "lamb3")*selfes_par3_t2 # This specifies the measurement model for selfes_t2 with the equality constrained factor loadings
+
+selfes_t2 ~ 1*selfes_t1     # This parameter regresses selfes_t2 perfectly on selfes_t1
+d_selfes_1 =~ 1*selfes_t2   # This defines the latent change score factor as measured perfectly by scores on selfes_t2
+selfes_t2 ~ 0*1           # This line constrains the intercept of selfes_t2 to 0
+selfes_t2 ~~ 0*selfes_t2    # This fixes the variance of selfes_t2 to 0
+
+d_selfes_1 ~ c("d_int", "d_int")*1           # This estimates the intercept of the change score 
+selfes_t1 ~ c("wb_int", "wb_int")*1            # This estimates the intercept of selfes_t1 
+d_selfes_1 ~~ c("d_var_a", "d_var_b")*d_selfes_1   # This estimates the variance of the change scores 
+selfes_t1 ~~ c("wb_var_a", "wb_var_b")*selfes_t1     # This estimates the variance of the selfes_t1 
+d_selfes_1 ~~ c("fb_a", "fb_b")*selfes_t1     # This estimates the self-feedback parameter, as a covariance! -> therefore, the interpretation of the change score remains unconditional
+
+selfes_par1_t1 ~~ c("cov1a", "cov1b")*selfes_par1_t2   # This allows residual covariance on indicator X1 across T1 and T2
+selfes_par2_t1 ~~ c("cov2a", "cov2b")*selfes_par2_t2   # This allows residual covariance on indicator X2 across T1 and T2
+selfes_par3_t1 ~~ c("cov3a", "cov3b")*selfes_par3_t2   # This allows residual covariance on indicator X3 across T1 and T2
+
+selfes_par1_t1 ~~ c("res1a", "res1b")*selfes_par1_t1   # This allows residual variance on indicator X1 at T1 
+selfes_par2_t1 ~~ c("res2a", "res2b")*selfes_par2_t1   # This allows residual variance on indicator X2 at T1
+selfes_par3_t1 ~~ c("res3a", "res3b")*selfes_par3_t1   # This allows residual variance on indicator X3 at T1
+
+selfes_par1_t2 ~~ c("res1a", "res1b")*selfes_par1_t2  # This allows residual variance on indicator X1 at T2 
+selfes_par2_t2 ~~ c("res2a", "res2b")*selfes_par2_t2  # This allows residual variance on indicator X2 at T2 
+selfes_par3_t2 ~~ c("res3a", "res3b")*selfes_par3_t2  # This allows residual variance on indicator X3 at T2
+
+selfes_par1_t1 ~ 0*1      # This constrains the intercept of X1 to 0 at T1
+selfes_par2_t1 ~ c("m2", "m2")*1     # This estimates the intercept of X2 at T1
+selfes_par3_t1 ~ c("m3", "m3")*1     # This estimates the intercept of X3 at T1
+
+selfes_par1_t2 ~ 0*1      # This constrains the intercept of X1 to 0 at T2
+selfes_par2_t2 ~ c("m2", "m2")*1     # This estimates the intercept of X2 at T2
+selfes_par3_t2 ~ c("m3", "m3")*1     # This estimates the intercept of X3 at T2
+'
+
+lcs_selfes_group_cg_strong <- sem(mi_lcs_selfes_group_cg_strong, data=df_sbsa2_wide_wb, estimator='mlr', fixed.x=FALSE, missing='fiml', 
+                             group = "group_cg", group.equal = c("intercepts", "loadings"))
+```
+
+Self-esteem: results
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+
+# model comparison tests for measurement invariance
+lavTestLRT(lcs_selfes_group_cg_config, lcs_selfes_group_cg_weak, lcs_selfes_group_cg_strong)
+
+# show model with varying latent change parameters 
+# -> key parameter is "d_selfes_1 ~1"
+# labelled parameter as "d_int_a" & "d_int_b" (a = Control group, b = Intervention groups)
+params_main_lcs_selfes_cg <- broom::tidy(lcs_selfes_group_cg_weak, conf.int = TRUE, conf.level = 0.999) %>% 
+        mutate(beta = estimate / 
+           (sd_wb_st2 %>% filter(trait=="selfes" & time==1) %>% pull(sd_trait))) %>% 
+        select(term, label, estimate, beta, std.all, statistic, p.value) %>% 
+        filter(term %in% c("d_selfes_1 ~1 "))
+kable(params_main_lcs_selfes_cg, digits = 3) 
+
+# constrained to be equal in the strong measurement invariance model:
+kable(broom::tidy(lcs_selfes_group_cg_strong, conf.int = TRUE, conf.level = 0.999) %>% 
+        mutate(beta = estimate / 
+           (sd_wb_st2 %>% filter(trait=="selfes" & time==1) %>% pull(sd_trait))) %>% 
+        select(term, label, estimate, beta, std.all, statistic, p.value) %>% 
+        filter(term %in% c("d_selfes_1 ~1 ")), digits = 3) 
+```
+
+::: {.callout-note appearance="minimal"}
+Somewhat more positive change in self-esteem in the intervention groups compared to the control group but no substantial differences according to the LRTs.
+:::
+
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+# whole model (weak invariance)
+summary(lcs_selfes_group_cg_weak, fit.measures=TRUE, standardized=TRUE, rsquare=F)
+```
+
+##### Self-concept clarity 
+
+Self-concept clarity: fitting multi-group models
+```{r}
+#| echo: true
+#| warning: false
+#| code-fold: true
+#| code-summary: "Show the code"
+#| output: false
+#| cache: true
+
+# adapt latent change score model from above and add grouping factor in estimation (also add vectorized equality constraints to the model)
+
+# configural invariance
+mi_lcs_concept_group_cg_config <- '
+concept_t1 =~ 1*concept_par1_t1 + c("lamb2a", "lamb2b")*concept_par2_t1 + c("lamb3a", "lamb3b")*concept_par3_t1 # This specifies the measurement model for concept_t1 
+concept_t2 =~ 1*concept_par1_t2 + c("lamb2a", "lamb2b")*concept_par2_t2 + c("lamb3a", "lamb3b")*concept_par3_t2 # This specifies the measurement model for concept_t2 with the equality constrained factor loadings
+
+concept_t2 ~ 1*concept_t1     # This parameter regresses concept_t2 perfectly on concept_t1
+d_concept_1 =~ 1*concept_t2   # This defines the latent change score factor as measured perfectly by scores on concept_t2
+concept_t2 ~ 0*1           # This line constrains the intercept of concept_t2 to 0
+concept_t2 ~~ 0*concept_t2    # This fixes the variance of concept_t2 to 0
+
+d_concept_1 ~ c("d_int_a", "d_int_b")*1           # This estimates the intercept of the change score 
+concept_t1 ~ c("wb_int_a", "wb_int_b")*1            # This estimates the intercept of concept_t1 
+d_concept_1 ~~ c("d_var_a", "d_var_b")*d_concept_1   # This estimates the variance of the change scores 
+concept_t1 ~~ c("wb_var_a", "wb_var_b")*concept_t1     # This estimates the variance of the concept_t1 
+d_concept_1 ~~ c("fb_a", "fb_b")*concept_t1     # This estimates the self-feedback parameter, as a covariance! -> therefore, the interpretation of the change score remains unconditional
+
+concept_par1_t1 ~~ c("cov1a", "cov1b")*concept_par1_t2   # This allows residual covariance on indicator X1 across T1 and T2
+concept_par2_t1 ~~ c("cov2a", "cov2b")*concept_par2_t2   # This allows residual covariance on indicator X2 across T1 and T2
+concept_par3_t1 ~~ c("cov3a", "cov3b")*concept_par3_t2   # This allows residual covariance on indicator X3 across T1 and T2
+
+concept_par1_t1 ~~ c("res1a", "res1b")*concept_par1_t1   # This allows residual variance on indicator X1 at T1 
+concept_par2_t1 ~~ c("res2a", "res2b")*concept_par2_t1   # This allows residual variance on indicator X2 at T1
+concept_par3_t1 ~~ c("res3a", "res3b")*concept_par3_t1   # This allows residual variance on indicator X3 at T1
+
+concept_par1_t2 ~~ c("res1a", "res1b")*concept_par1_t2  # This allows residual variance on indicator X1 at T2 
+concept_par2_t2 ~~ c("res2a", "res2b")*concept_par2_t2  # This allows residual variance on indicator X2 at T2 
+concept_par3_t2 ~~ c("res3a", "res3b")*concept_par3_t2  # This allows residual variance on indicator X3 at T2
+
+concept_par1_t1 ~ 0*1      # This constrains the intercept of X1 to 0 at T1
+concept_par2_t1 ~ c("m2a", "m2b")*1     # This estimates the intercept of X2 at T1
+concept_par3_t1 ~ c("m3a", "m3b")*1     # This estimates the intercept of X3 at T1
+
+concept_par1_t2 ~ 0*1      # This constrains the intercept of X1 to 0 at T2
+concept_par2_t2 ~ c("m2a", "m2b")*1     # This estimates the intercept of X2 at T2
+concept_par3_t2 ~ c("m3a", "m3b")*1     # This estimates the intercept of X3 at T2
+'
+lcs_concept_group_cg_config <- sem(mi_lcs_concept_group_cg_config, data=df_sbsa2_wide_wb, estimator='mlr', 
+                                fixed.x=FALSE, missing='fiml', group = "group_cg")
+
+# weak invariance
+mi_lcs_concept_group_cg_weak <- '
+concept_t1 =~ 1*concept_par1_t1 + c("lamb2", "lamb2")*concept_par2_t1 + c("lamb3", "lamb3")*concept_par3_t1 # This specifies the measurement model for concept_t1 
+concept_t2 =~ 1*concept_par1_t2 + c("lamb2", "lamb2")*concept_par2_t2 + c("lamb3", "lamb3")*concept_par3_t2 # This specifies the measurement model for concept_t2 with the equality constrained factor loadings
+
+concept_t2 ~ 1*concept_t1     # This parameter regresses concept_t2 perfectly on concept_t1
+d_concept_1 =~ 1*concept_t2   # This defines the latent change score factor as measured perfectly by scores on concept_t2
+concept_t2 ~ 0*1           # This line constrains the intercept of concept_t2 to 0
+concept_t2 ~~ 0*concept_t2    # This fixes the variance of concept_t2 to 0
+
+d_concept_1 ~ c("d_int_a", "d_int_b")*1           # This estimates the intercept of the change score 
+concept_t1 ~ c("wb_int_a", "wb_int_b")*1            # This estimates the intercept of concept_t1 
+d_concept_1 ~~ c("d_var_a", "d_var_b")*d_concept_1   # This estimates the variance of the change scores 
+concept_t1 ~~ c("wb_var_a", "wb_var_b")*concept_t1     # This estimates the variance of the concept_t1 
+d_concept_1 ~~ c("fb_a", "fb_b")*concept_t1     # This estimates the self-feedback parameter, as a covariance! -> therefore, the interpretation of the change score remains unconditional
+
+concept_par1_t1 ~~ c("cov1a", "cov1b")*concept_par1_t2   # This allows residual covariance on indicator X1 across T1 and T2
+concept_par2_t1 ~~ c("cov2a", "cov2b")*concept_par2_t2   # This allows residual covariance on indicator X2 across T1 and T2
+concept_par3_t1 ~~ c("cov3a", "cov3b")*concept_par3_t2   # This allows residual covariance on indicator X3 across T1 and T2
+
+concept_par1_t1 ~~ c("res1a", "res1b")*concept_par1_t1   # This allows residual variance on indicator X1 at T1 
+concept_par2_t1 ~~ c("res2a", "res2b")*concept_par2_t1   # This allows residual variance on indicator X2 at T1
+concept_par3_t1 ~~ c("res3a", "res3b")*concept_par3_t1   # This allows residual variance on indicator X3 at T1
+
+concept_par1_t2 ~~ c("res1a", "res1b")*concept_par1_t2  # This allows residual variance on indicator X1 at T2 
+concept_par2_t2 ~~ c("res2a", "res2b")*concept_par2_t2  # This allows residual variance on indicator X2 at T2 
+concept_par3_t2 ~~ c("res3a", "res3b")*concept_par3_t2  # This allows residual variance on indicator X3 at T2
+
+concept_par1_t1 ~ 0*1      # This constrains the intercept of X1 to 0 at T1
+concept_par2_t1 ~ c("m2a", "m2b")*1     # This estimates the intercept of X2 at T1
+concept_par3_t1 ~ c("m3a", "m3b")*1     # This estimates the intercept of X3 at T1
+
+concept_par1_t2 ~ 0*1      # This constrains the intercept of X1 to 0 at T2
+concept_par2_t2 ~ c("m2a", "m2b")*1     # This estimates the intercept of X2 at T2
+concept_par3_t2 ~ c("m3a", "m3b")*1     # This estimates the intercept of X3 at T2
+'
+
+lcs_concept_group_cg_weak <- sem(mi_lcs_concept_group_cg_weak, data=df_sbsa2_wide_wb, estimator='mlr', fixed.x=FALSE, missing='fiml', 
+                           group = "group_cg", group.equal = "loadings")
+
+# strong invariance
+mi_lcs_concept_group_cg_strong <- '
+concept_t1 =~ 1*concept_par1_t1 + c("lamb2", "lamb2")*concept_par2_t1 + c("lamb3", "lamb3")*concept_par3_t1 # This specifies the measurement model for concept_t1 
+concept_t2 =~ 1*concept_par1_t2 + c("lamb2", "lamb2")*concept_par2_t2 + c("lamb3", "lamb3")*concept_par3_t2 # This specifies the measurement model for concept_t2 with the equality constrained factor loadings
+
+concept_t2 ~ 1*concept_t1     # This parameter regresses concept_t2 perfectly on concept_t1
+d_concept_1 =~ 1*concept_t2   # This defines the latent change score factor as measured perfectly by scores on concept_t2
+concept_t2 ~ 0*1           # This line constrains the intercept of concept_t2 to 0
+concept_t2 ~~ 0*concept_t2    # This fixes the variance of concept_t2 to 0
+
+d_concept_1 ~ c("d_int", "d_int")*1           # This estimates the intercept of the change score 
+concept_t1 ~ c("wb_int", "wb_int")*1            # This estimates the intercept of concept_t1 
+d_concept_1 ~~ c("d_var_a", "d_var_b")*d_concept_1   # This estimates the variance of the change scores 
+concept_t1 ~~ c("wb_var_a", "wb_var_b")*concept_t1     # This estimates the variance of the concept_t1 
+d_concept_1 ~~ c("fb_a", "fb_b")*concept_t1     # This estimates the self-feedback parameter, as a covariance! -> therefore, the interpretation of the change score remains unconditional
+
+concept_par1_t1 ~~ c("cov1a", "cov1b")*concept_par1_t2   # This allows residual covariance on indicator X1 across T1 and T2
+concept_par2_t1 ~~ c("cov2a", "cov2b")*concept_par2_t2   # This allows residual covariance on indicator X2 across T1 and T2
+concept_par3_t1 ~~ c("cov3a", "cov3b")*concept_par3_t2   # This allows residual covariance on indicator X3 across T1 and T2
+
+concept_par1_t1 ~~ c("res1a", "res1b")*concept_par1_t1   # This allows residual variance on indicator X1 at T1 
+concept_par2_t1 ~~ c("res2a", "res2b")*concept_par2_t1   # This allows residual variance on indicator X2 at T1
+concept_par3_t1 ~~ c("res3a", "res3b")*concept_par3_t1   # This allows residual variance on indicator X3 at T1
+
+concept_par1_t2 ~~ c("res1a", "res1b")*concept_par1_t2  # This allows residual variance on indicator X1 at T2 
+concept_par2_t2 ~~ c("res2a", "res2b")*concept_par2_t2  # This allows residual variance on indicator X2 at T2 
+concept_par3_t2 ~~ c("res3a", "res3b")*concept_par3_t2  # This allows residual variance on indicator X3 at T2
+
+concept_par1_t1 ~ 0*1      # This constrains the intercept of X1 to 0 at T1
+concept_par2_t1 ~ c("m2", "m2")*1     # This estimates the intercept of X2 at T1
+concept_par3_t1 ~ c("m3", "m3")*1     # This estimates the intercept of X3 at T1
+
+concept_par1_t2 ~ 0*1      # This constrains the intercept of X1 to 0 at T2
+concept_par2_t2 ~ c("m2", "m2")*1     # This estimates the intercept of X2 at T2
+concept_par3_t2 ~ c("m3", "m3")*1     # This estimates the intercept of X3 at T2
+'
+
+lcs_concept_group_cg_strong <- sem(mi_lcs_concept_group_cg_strong, data=df_sbsa2_wide_wb, estimator='mlr', fixed.x=FALSE, missing='fiml', 
+                             group = "group_cg", group.equal = c("intercepts", "loadings"))
+```
+
+Self-concept clarity: results
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+
+# model comparison tests for measurement invariance
+lavTestLRT(lcs_concept_group_cg_config, lcs_concept_group_cg_weak, lcs_concept_group_cg_strong)
+
+# show model with varying latent change parameters 
+# -> key parameter is "d_concept_1 ~1"
+# labelled parameter as "d_int_a" & "d_int_b" (a = Control group, b = Intervention groups)
+params_main_lcs_concept_cg <- broom::tidy(lcs_concept_group_cg_weak, conf.int = TRUE, conf.level = 0.999) %>% 
+        mutate(beta = estimate / 
+           (sd_wb_st2 %>% filter(trait=="concept" & time==1) %>% pull(sd_trait))) %>% 
+        select(term, label, estimate, beta, std.all, statistic, p.value) %>% 
+        filter(term %in% c("d_concept_1 ~1 "))
+kable(params_main_lcs_concept_cg, digits = 3) 
+
+# constrained to be equal in the strong measurement invariance model:
+kable(broom::tidy(lcs_concept_group_cg_strong, conf.int = TRUE, conf.level = 0.999) %>% 
+        mutate(beta = estimate / 
+           (sd_wb_st2 %>% filter(trait=="concept" & time==1) %>% pull(sd_trait))) %>% 
+        select(term, label, estimate, beta, std.all, statistic, p.value) %>% 
+        filter(term %in% c("d_concept_1 ~1 ")), digits = 3) 
+```
+
+::: {.callout-note appearance="minimal"}
+Somewhat more positive change in self-concept clarity in the intervention groups compared to the control group but no substantial differences according to the LRTs.
+:::
+
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+# whole model (weak invariance)
+summary(lcs_concept_group_cg_weak, fit.measures=TRUE, standardized=TRUE, rsquare=F)
+```
+
+##### Summary of latent main effects
+
+```{r}
+#| echo: true
+#| warning: false
+
+params_main_wb_summary_cg <- bind_rows(
+  params_main_lcs_swls_cg %>% mutate(trait = "Life satisfaction") %>% select(trait, group = label, estimate, beta, p.value),
+  params_main_lcs_meaning_cg %>% mutate(trait = "Meaning in life") %>% select(trait, group = label, estimate, beta, p.value),
+  params_main_lcs_selfes_cg %>% mutate(trait = "Self-esteem") %>% select(trait, group = label, estimate, beta, p.value),
+  params_main_lcs_concept_cg %>% mutate(trait = "Self-concept clarity") %>% select(trait, group = label, estimate, beta, p.value)) %>% mutate(group = ifelse(group=="d_int_a", "Control", "Intervention"))
+
+kable(params_main_wb_summary_cg, digits = 3)
+```
+
+#### Profile correlations / squared diffs: acceptance vs. improvement (MLMs)
+
+Profile correlations by group and measurement occasion (multilevel regression models) - results:
 ```{r}
 #| echo: true
 #| warning: false
@@ -25620,7 +26430,7 @@ lm_profile_corr_facet <- lmerTest::lmer(profile_corr_facet_z ~ time_d * rando + 
 kable(bind_rows(as.data.frame(summary(lm_profile_corr_item)$coefficients), as.data.frame(summary(lm_profile_corr_facet)$coefficients)) %>% as_tibble() %>% mutate(outcome = c(rep("Item-level profile corr.", 4), rep("Facet-level profile corr.", 4)), term = c(rep(c("Intercept", "time", "group", "time*group"), 2))) %>% select(outcome, term, everything()) %>% rename(p = `Pr(>|t|)`), digits = 3)
 ```
 
-Squared trait-/facet-differences by group and measurement occasion (mixed effects models) - results:
+Squared trait-/facet-differences by group and measurement occasion (multilevel regression models) - results:
 ```{r}
 #| echo: true
 #| warning: false
@@ -25658,7 +26468,7 @@ With both conceptualizations of the similarity / difference of current- and idea
 :::
 
 
-#### Latent change: differences in personality change
+#### Latent personality change: acceptance vs. improvement
 
 ##### Run models 
 
@@ -25860,7 +26670,7 @@ for (i in 1:5) {
 }
 ```
 
-##### Current personality personality traits
+##### Current personality traits
 
 Extraversion (current personality): results  
 ```{r}
@@ -25874,13 +26684,17 @@ lavTestLRT(fit_lcs_extra_main_config_current, fit_lcs_extra_main_weak_current, f
 # -> key parameter is "d_extra_1 ~1"
 # labelled parameter as "d_int_a" & "d_int_b" (a = Self-Acceptance group, b = Self-Improvement group)
 params_main_lcs_extra_current <- broom::tidy(fit_lcs_extra_main_weak_current, conf.int = TRUE, conf.level = 0.999) %>% 
-        select(term, label, estimate, std.all, statistic, p.value) %>% 
+  mutate(beta = estimate / 
+           (sd_pers_st2 %>% filter(trait=="extra" & reference=="current" & time==1) %>% pull(sd_trait))) %>% 
+        select(term, label, estimate, beta, std.all, statistic, p.value) %>% 
         filter(term %in% c("d_extra_1 ~1 ")) %>% mutate(sig_diff = " ")
 kable(params_main_lcs_extra_current, digits = 3) 
 
 # constrained to be equal in the strong measurement invariance model:
 kable(broom::tidy(fit_lcs_extra_main_strong_current, conf.int = TRUE, conf.level = 0.999) %>% 
-        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        mutate(beta = estimate / 
+           (sd_pers_st2 %>% filter(trait=="extra" & reference=="current" & time==1) %>% pull(sd_trait))) %>% 
+        select(term, label, estimate, beta, std.all, statistic, p.value) %>% 
         filter(term %in% c("d_extra_1 ~1 ")), digits = 3) 
 
 # model fit
@@ -25904,13 +26718,17 @@ lavTestLRT(fit_lcs_agree_main_config_current, fit_lcs_agree_main_weak_current, f
 # -> key parameter is "d_agree_1 ~1"
 # labelled parameter as "d_int_a" & "d_int_b" (a = Self-Acceptance group, b = Self-Improvement group)
 params_main_lcs_agree_current <- broom::tidy(fit_lcs_agree_main_weak_current, conf.int = TRUE, conf.level = 0.999) %>% 
-        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        mutate(beta = estimate / 
+           (sd_pers_st2 %>% filter(trait=="agree" & reference=="current" & time==1) %>% pull(sd_trait))) %>% 
+        select(term, label, estimate, beta, std.all, statistic, p.value) %>% 
         filter(term %in% c("d_agree_1 ~1 ")) %>% mutate(sig_diff = " ")
 kable(params_main_lcs_agree_current, digits = 3) 
 
 # constrained to be equal in the strong measurement invariance model:
 kable(broom::tidy(fit_lcs_agree_main_strong_current, conf.int = TRUE, conf.level = 0.999) %>% 
-        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        mutate(beta = estimate / 
+           (sd_pers_st2 %>% filter(trait=="agree" & reference=="current" & time==1) %>% pull(sd_trait))) %>% 
+        select(term, label, estimate, beta, std.all, statistic, p.value) %>% 
         filter(term %in% c("d_agree_1 ~1 ")), digits = 3) 
 
 # model fit
@@ -25934,13 +26752,17 @@ lavTestLRT(fit_lcs_consc_main_config_current, fit_lcs_consc_main_weak_current, f
 # -> key parameter is "d_consc_1 ~1"
 # labelled parameter as "d_int_a" & "d_int_b" (a = Self-Acceptance group, b = Self-Improvement group)
 params_main_lcs_consc_current <- broom::tidy(fit_lcs_consc_main_weak_current, conf.int = TRUE, conf.level = 0.999) %>% 
-        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        mutate(beta = estimate / 
+           (sd_pers_st2 %>% filter(trait=="consc" & reference=="current" & time==1) %>% pull(sd_trait))) %>% 
+        select(term, label, estimate, beta, std.all, statistic, p.value) %>% 
         filter(term %in% c("d_consc_1 ~1 ")) %>% mutate(sig_diff = " ")
 kable(params_main_lcs_consc_current, digits = 3) 
 
 # constrained to be equal in the strong measurement invariance model:
 kable(broom::tidy(fit_lcs_consc_main_strong_current, conf.int = TRUE, conf.level = 0.999) %>% 
-        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        mutate(beta = estimate / 
+           (sd_pers_st2 %>% filter(trait=="consc" & reference=="current" & time==1) %>% pull(sd_trait))) %>% 
+        select(term, label, estimate, beta, std.all, statistic, p.value) %>% 
         filter(term %in% c("d_consc_1 ~1 ")), digits = 3) 
 
 # model fit
@@ -25964,13 +26786,17 @@ lavTestLRT(fit_lcs_neuro_main_config_current, fit_lcs_neuro_main_weak_current, f
 # -> key parameter is "d_neuro_1 ~1"
 # labelled parameter as "d_int_a" & "d_int_b" (a = Self-Acceptance group, b = Self-Improvement group)
 params_main_lcs_neuro_current <- broom::tidy(fit_lcs_neuro_main_weak_current, conf.int = TRUE, conf.level = 0.999) %>% 
-        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        mutate(beta = estimate / 
+           (sd_pers_st2 %>% filter(trait=="neuro" & reference=="current" & time==1) %>% pull(sd_trait))) %>% 
+        select(term, label, estimate, beta, std.all, statistic, p.value) %>% 
         filter(term %in% c("d_neuro_1 ~1 ")) %>% mutate(sig_diff = " ")
 kable(params_main_lcs_neuro_current, digits = 3) 
 
 # constrained to be equal in the strong measurement invariance model:
 kable(broom::tidy(fit_lcs_neuro_main_strong_current, conf.int = TRUE, conf.level = 0.999) %>% 
-        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        mutate(beta = estimate / 
+           (sd_pers_st2 %>% filter(trait=="neuro" & reference=="current" & time==1) %>% pull(sd_trait))) %>% 
+        select(term, label, estimate, beta, std.all, statistic, p.value) %>% 
         filter(term %in% c("d_neuro_1 ~1 ")), digits = 3) 
 
 # model fit
@@ -25994,13 +26820,17 @@ lavTestLRT(fit_lcs_openn_main_config_current, fit_lcs_openn_main_weak_current, f
 # -> key parameter is "d_openn_1 ~1"
 # labelled parameter as "d_int_a" & "d_int_b" (a = Self-Acceptance group, b = Self-Improvement group)
 params_main_lcs_openn_current <- broom::tidy(fit_lcs_openn_main_weak_current, conf.int = TRUE, conf.level = 0.999) %>% 
-        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        mutate(beta = estimate / 
+           (sd_pers_st2 %>% filter(trait=="openn" & reference=="current" & time==1) %>% pull(sd_trait))) %>% 
+        select(term, label, estimate, beta, std.all, statistic, p.value) %>% 
         filter(term %in% c("d_openn_1 ~1 ")) %>% mutate(sig_diff = " ")
 kable(params_main_lcs_openn_current, digits = 3) 
 
 # constrained to be equal in the strong measurement invariance model:
 kable(broom::tidy(fit_lcs_openn_main_strong_current, conf.int = TRUE, conf.level = 0.999) %>% 
-        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        mutate(beta = estimate / 
+           (sd_pers_st2 %>% filter(trait=="openn" & reference=="current" & time==1) %>% pull(sd_trait))) %>% 
+        select(term, label, estimate, beta, std.all, statistic, p.value) %>% 
         filter(term %in% c("d_openn_1 ~1 ")), digits = 3) 
 
 # model fit
@@ -26012,7 +26842,7 @@ kable(broom::glance(fit_lcs_openn_main_weak_current) %>%
 Similar (quite small) change in openness in both groups (increase is slightly larger in self-acceptance group). No significant differences according to the LRTs.
 :::
 
-##### Ideal personality personality traits
+##### Ideal personality traits
 
 Extraversion (ideal personality): results  
 ```{r}
@@ -26026,13 +26856,17 @@ lavTestLRT(fit_lcs_extra_main_config_ideal, fit_lcs_extra_main_weak_ideal, fit_l
 # -> key parameter is "d_extra_1 ~1"
 # labelled parameter as "d_int_a" & "d_int_b" (a = Self-Acceptance group, b = Self-Improvement group)
 params_main_lcs_extra_ideal <- broom::tidy(fit_lcs_extra_main_weak_ideal, conf.int = TRUE, conf.level = 0.999) %>% 
-        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        mutate(beta = estimate / 
+           (sd_pers_st2 %>% filter(trait=="extra" & reference=="ideal" & time==1) %>% pull(sd_trait))) %>% 
+        select(term, label, estimate, beta, std.all, statistic, p.value) %>% 
         filter(term %in% c("d_extra_1 ~1 ")) %>% mutate(sig_diff = " ")
 kable(params_main_lcs_extra_ideal, digits = 3) 
 
 # constrained to be equal in the strong measurement invariance model:
 kable(broom::tidy(fit_lcs_extra_main_strong_ideal, conf.int = TRUE, conf.level = 0.999) %>% 
-        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        mutate(beta = estimate / 
+           (sd_pers_st2 %>% filter(trait=="extra" & reference=="ideal" & time==1) %>% pull(sd_trait))) %>% 
+        select(term, label, estimate, beta, std.all, statistic, p.value) %>% 
         filter(term %in% c("d_extra_1 ~1 ")), digits = 3) 
 
 # model fit
@@ -26056,13 +26890,17 @@ lavTestLRT(fit_lcs_agree_main_config_ideal, fit_lcs_agree_main_weak_ideal, fit_l
 # -> key parameter is "d_agree_1 ~1"
 # labelled parameter as "d_int_a" & "d_int_b" (a = Self-Acceptance group, b = Self-Improvement group)
 params_main_lcs_agree_ideal <- broom::tidy(fit_lcs_agree_main_weak_ideal, conf.int = TRUE, conf.level = 0.999) %>% 
-        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        mutate(beta = estimate / 
+           (sd_pers_st2 %>% filter(trait=="agree" & reference=="ideal" & time==1) %>% pull(sd_trait))) %>% 
+        select(term, label, estimate, beta, std.all, statistic, p.value) %>% 
         filter(term %in% c("d_agree_1 ~1 ")) %>% mutate(sig_diff = " ")
 kable(params_main_lcs_agree_ideal, digits = 3) 
 
 # constrained to be equal in the strong measurement invariance model:
 kable(broom::tidy(fit_lcs_agree_main_strong_ideal, conf.int = TRUE, conf.level = 0.999) %>% 
-        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        mutate(beta = estimate / 
+           (sd_pers_st2 %>% filter(trait=="agree" & reference=="ideal" & time==1) %>% pull(sd_trait))) %>% 
+        select(term, label, estimate, beta, std.all, statistic, p.value) %>% 
         filter(term %in% c("d_agree_1 ~1 ")), digits = 3) 
 
 # model fit
@@ -26086,13 +26924,17 @@ lavTestLRT(fit_lcs_consc_main_config_ideal, fit_lcs_consc_main_weak_ideal, fit_l
 # -> key parameter is "d_consc_1 ~1"
 # labelled parameter as "d_int_a" & "d_int_b" (a = Self-Acceptance group, b = Self-Improvement group)
 params_main_lcs_consc_ideal <- broom::tidy(fit_lcs_consc_main_weak_ideal, conf.int = TRUE, conf.level = 0.999) %>% 
-        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        mutate(beta = estimate / 
+           (sd_pers_st2 %>% filter(trait=="consc" & reference=="ideal" & time==1) %>% pull(sd_trait))) %>% 
+        select(term, label, estimate, beta, std.all, statistic, p.value) %>% 
         filter(term %in% c("d_consc_1 ~1 ")) %>% mutate(sig_diff = " ")
 kable(params_main_lcs_consc_ideal, digits = 3) 
 
 # constrained to be equal in the strong measurement invariance model:
 kable(broom::tidy(fit_lcs_consc_main_strong_ideal, conf.int = TRUE, conf.level = 0.999) %>% 
-        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        mutate(beta = estimate / 
+           (sd_pers_st2 %>% filter(trait=="consc" & reference=="ideal" & time==1) %>% pull(sd_trait))) %>% 
+        select(term, label, estimate, beta, std.all, statistic, p.value) %>% 
         filter(term %in% c("d_consc_1 ~1 ")), digits = 3) 
 
 # model fit
@@ -26116,13 +26958,17 @@ lavTestLRT(fit_lcs_neuro_main_config_ideal, fit_lcs_neuro_main_weak_ideal, fit_l
 # -> key parameter is "d_neuro_1 ~1"
 # labelled parameter as "d_int_a" & "d_int_b" (a = Self-Acceptance group, b = Self-Improvement group)
 params_main_lcs_neuro_ideal <- broom::tidy(fit_lcs_neuro_main_weak_ideal, conf.int = TRUE, conf.level = 0.999) %>% 
-        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        mutate(beta = estimate / 
+           (sd_pers_st2 %>% filter(trait=="neuro" & reference=="ideal" & time==1) %>% pull(sd_trait))) %>% 
+        select(term, label, estimate, beta, std.all, statistic, p.value) %>% 
         filter(term %in% c("d_neuro_1 ~1 ")) %>% mutate(sig_diff = " ")
 kable(params_main_lcs_neuro_ideal, digits = 3) 
 
 # constrained to be equal in the strong measurement invariance model:
 kable(broom::tidy(fit_lcs_neuro_main_strong_ideal, conf.int = TRUE, conf.level = 0.999) %>% 
-        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        mutate(beta = estimate / 
+           (sd_pers_st2 %>% filter(trait=="neuro" & reference=="ideal" & time==1) %>% pull(sd_trait))) %>% 
+        select(term, label, estimate, beta, std.all, statistic, p.value) %>% 
         filter(term %in% c("d_neuro_1 ~1 ")), digits = 3) 
 
 # model fit
@@ -26146,13 +26992,17 @@ lavTestLRT(fit_lcs_openn_main_config_ideal, fit_lcs_openn_main_weak_ideal, fit_l
 # -> key parameter is "d_openn_1 ~1"
 # labelled parameter as "d_int_a" & "d_int_b" (a = Self-Acceptance group, b = Self-Improvement group)
 params_main_lcs_openn_ideal <- broom::tidy(fit_lcs_openn_main_weak_ideal, conf.int = TRUE, conf.level = 0.999) %>% 
-        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        mutate(beta = estimate / 
+           (sd_pers_st2 %>% filter(trait=="openn" & reference=="ideal" & time==1) %>% pull(sd_trait))) %>% 
+        select(term, label, estimate, beta, std.all, statistic, p.value) %>% 
         filter(term %in% c("d_openn_1 ~1 ")) %>% mutate(sig_diff = " ")
 kable(params_main_lcs_openn_ideal, digits = 3) 
 
 # constrained to be equal in the strong measurement invariance model:
 kable(broom::tidy(fit_lcs_openn_main_strong_ideal, conf.int = TRUE, conf.level = 0.999) %>% 
-        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        mutate(beta = estimate / 
+           (sd_pers_st2 %>% filter(trait=="openn" & reference=="ideal" & time==1) %>% pull(sd_trait))) %>% 
+        select(term, label, estimate, beta, std.all, statistic, p.value) %>% 
         filter(term %in% c("d_openn_1 ~1 ")), digits = 3) 
 
 # model fit
@@ -26171,22 +27021,22 @@ Similar change in ideal-personality openness in both groups (slight decrease in 
 #| warning: false
 
 params_main_summary <- bind_rows(
-  params_main_lcs_extra_current %>% mutate(trait = names(b5_vars)[1], self = "current") %>% select(trait, self, group = label, beta = std.all, p.value, sig_diff),
-  params_main_lcs_extra_ideal %>% mutate(trait = names(b5_vars)[1], self = "ideal") %>% select(trait, self, group = label, beta = std.all, p.value, sig_diff),
-  params_main_lcs_agree_current %>% mutate(trait = names(b5_vars)[2], self = "current") %>% select(trait, self, group = label, beta = std.all, p.value, sig_diff),
-  params_main_lcs_agree_ideal %>% mutate(trait = names(b5_vars)[2], self = "ideal") %>% select(trait, self, group = label, beta = std.all, p.value, sig_diff),
-  params_main_lcs_consc_current %>% mutate(trait = names(b5_vars)[3], self = "current") %>% select(trait, self, group = label, beta = std.all, p.value, sig_diff),
-  params_main_lcs_consc_ideal %>% mutate(trait = names(b5_vars)[3], self = "ideal") %>% select(trait, self, group = label, beta = std.all, p.value, sig_diff),
-  params_main_lcs_neuro_current %>% mutate(trait = names(b5_vars)[4], self = "current") %>% select(trait, self, group = label, beta = std.all, p.value, sig_diff),
-  params_main_lcs_neuro_ideal %>% mutate(trait = names(b5_vars)[4], self = "ideal") %>% select(trait, self, group = label, beta = std.all, p.value, sig_diff),
-  params_main_lcs_openn_current %>% mutate(trait = names(b5_vars)[5], self = "current") %>% select(trait, self, group = label, beta = std.all, p.value, sig_diff),
-  params_main_lcs_openn_ideal %>% mutate(trait = names(b5_vars)[5], self = "ideal") %>% select(trait, self, group = label, beta = std.all, p.value, sig_diff)
+  params_main_lcs_extra_current %>% mutate(trait = names(b5_vars)[1], self = "current") %>% select(trait, self, group = label, estimate, beta, p.value, sig_diff),
+  params_main_lcs_extra_ideal %>% mutate(trait = names(b5_vars)[1], self = "ideal") %>% select(trait, self, group = label, estimate, beta, p.value, sig_diff),
+  params_main_lcs_agree_current %>% mutate(trait = names(b5_vars)[2], self = "current") %>% select(trait, self, group = label, estimate, beta, p.value, sig_diff),
+  params_main_lcs_agree_ideal %>% mutate(trait = names(b5_vars)[2], self = "ideal") %>% select(trait, self, group = label, estimate, beta, p.value, sig_diff),
+  params_main_lcs_consc_current %>% mutate(trait = names(b5_vars)[3], self = "current") %>% select(trait, self, group = label, estimate, beta, p.value, sig_diff),
+  params_main_lcs_consc_ideal %>% mutate(trait = names(b5_vars)[3], self = "ideal") %>% select(trait, self, group = label, estimate, beta, p.value, sig_diff),
+  params_main_lcs_neuro_current %>% mutate(trait = names(b5_vars)[4], self = "current") %>% select(trait, self, group = label, estimate, beta, p.value, sig_diff),
+  params_main_lcs_neuro_ideal %>% mutate(trait = names(b5_vars)[4], self = "ideal") %>% select(trait, self, group = label, estimate, beta, p.value, sig_diff),
+  params_main_lcs_openn_current %>% mutate(trait = names(b5_vars)[5], self = "current") %>% select(trait, self, group = label, estimate, beta, p.value, sig_diff),
+  params_main_lcs_openn_ideal %>% mutate(trait = names(b5_vars)[5], self = "ideal") %>% select(trait, self, group = label, estimate, beta, p.value, sig_diff)
 ) %>% mutate(group = ifelse(group=="d_int_a", "accept", "improve"))
 
 kable(params_main_summary, digits = 3)
 ```
 
-#### Latent change: intervention groups vs. control group
+#### Latent personality change: intervention vs. control
 
 ##### Run models 
 
@@ -26290,7 +27140,7 @@ for (i in 1:5) {
 Control group comes first in the multigroup SEM:  
 *a* = waitlist control group (*N* = 175), *b* = both intervention groups (*N* = 674) 
 
-##### Current personality personality traits
+##### Current personality traits
 
 Extraversion (current personality): results  
 ```{r}
@@ -26304,13 +27154,17 @@ lavTestLRT(fit_lcs_extra_main_config_current_cg, fit_lcs_extra_main_weak_current
 # -> key parameter is "d_extra_1 ~1"
 # labelled parameter as "d_int_a" & "d_int_b" (a = waitlist control group, b = both intervention groups)
 params_main_lcs_extra_current_cg <- broom::tidy(fit_lcs_extra_main_weak_current_cg, conf.int = TRUE, conf.level = 0.999) %>% 
-        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        mutate(beta = estimate / 
+           (sd_pers_st2 %>% filter(trait=="extra" & reference=="current" & time==1) %>% pull(sd_trait))) %>% 
+        select(term, label, estimate, beta, std.all, statistic, p.value) %>% 
         filter(term %in% c("d_extra_1 ~1 ")) %>% mutate(sig_diff = " ")
 kable(params_main_lcs_extra_current_cg, digits = 3) 
 
 # constrained to be equal in the strong measurement invariance model:
 kable(broom::tidy(fit_lcs_extra_main_strong_current_cg, conf.int = TRUE, conf.level = 0.999) %>% 
-        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        mutate(beta = estimate / 
+           (sd_pers_st2 %>% filter(trait=="extra" & reference=="current" & time==1) %>% pull(sd_trait))) %>% 
+        select(term, label, estimate, beta, std.all, statistic, p.value) %>% 
         filter(term %in% c("d_extra_1 ~1 ")), digits = 3) 
 
 # model fit
@@ -26334,13 +27188,17 @@ lavTestLRT(fit_lcs_agree_main_config_current_cg, fit_lcs_agree_main_weak_current
 # -> key parameter is "d_agree_1 ~1"
 # labelled parameter as "d_int_a" & "d_int_b" (a = waitlist control group, b = both intervention groups)
 params_main_lcs_agree_current_cg <- broom::tidy(fit_lcs_agree_main_weak_current_cg, conf.int = TRUE, conf.level = 0.999) %>% 
-        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        mutate(beta = estimate / 
+           (sd_pers_st2 %>% filter(trait=="agree" & reference=="current" & time==1) %>% pull(sd_trait))) %>% 
+        select(term, label, estimate, beta, std.all, statistic, p.value) %>% 
         filter(term %in% c("d_agree_1 ~1 ")) %>% mutate(sig_diff = " ")
 kable(params_main_lcs_agree_current_cg, digits = 3) 
 
 # constrained to be equal in the strong measurement invariance model:
 kable(broom::tidy(fit_lcs_agree_main_strong_current_cg, conf.int = TRUE, conf.level = 0.999) %>% 
-        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        mutate(beta = estimate / 
+           (sd_pers_st2 %>% filter(trait=="agree" & reference=="current" & time==1) %>% pull(sd_trait))) %>% 
+        select(term, label, estimate, beta, std.all, statistic, p.value) %>% 
         filter(term %in% c("d_agree_1 ~1 ")), digits = 3) 
 
 # model fit
@@ -26364,13 +27222,17 @@ lavTestLRT(fit_lcs_consc_main_config_current_cg, fit_lcs_consc_main_weak_current
 # -> key parameter is "d_consc_1 ~1"
 # labelled parameter as "d_int_a" & "d_int_b" (a = waitlist control group, b = both intervention groups)
 params_main_lcs_consc_current_cg <- broom::tidy(fit_lcs_consc_main_weak_current_cg, conf.int = TRUE, conf.level = 0.999) %>% 
-        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        mutate(beta = estimate / 
+           (sd_pers_st2 %>% filter(trait=="consc" & reference=="current" & time==1) %>% pull(sd_trait))) %>% 
+        select(term, label, estimate, beta, std.all, statistic, p.value) %>% 
         filter(term %in% c("d_consc_1 ~1 ")) %>% mutate(sig_diff = " ")
 kable(params_main_lcs_consc_current_cg, digits = 3) 
 
 # constrained to be equal in the strong measurement invariance model:
 kable(broom::tidy(fit_lcs_consc_main_strong_current_cg, conf.int = TRUE, conf.level = 0.999) %>% 
-        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        mutate(beta = estimate / 
+           (sd_pers_st2 %>% filter(trait=="consc" & reference=="current" & time==1) %>% pull(sd_trait))) %>% 
+        select(term, label, estimate, beta, std.all, statistic, p.value) %>% 
         filter(term %in% c("d_consc_1 ~1 ")), digits = 3) 
 
 # model fit
@@ -26394,13 +27256,17 @@ lavTestLRT(fit_lcs_neuro_main_config_current_cg, fit_lcs_neuro_main_weak_current
 # -> key parameter is "d_neuro_1 ~1"
 # labelled parameter as "d_int_a" & "d_int_b" (a = waitlist control group, b = both intervention groups)
 params_main_lcs_neuro_current_cg <- broom::tidy(fit_lcs_neuro_main_weak_current_cg, conf.int = TRUE, conf.level = 0.999) %>% 
-        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        mutate(beta = estimate / 
+           (sd_pers_st2 %>% filter(trait=="neuro" & reference=="current" & time==1) %>% pull(sd_trait))) %>% 
+        select(term, label, estimate, beta, std.all, statistic, p.value) %>% 
         filter(term %in% c("d_neuro_1 ~1 ")) %>% mutate(sig_diff = " ")
 kable(params_main_lcs_neuro_current_cg, digits = 3) 
 
 # constrained to be equal in the strong measurement invariance model:
 kable(broom::tidy(fit_lcs_neuro_main_strong_current_cg, conf.int = TRUE, conf.level = 0.999) %>% 
-        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        mutate(beta = estimate / 
+           (sd_pers_st2 %>% filter(trait=="neuro" & reference=="current" & time==1) %>% pull(sd_trait))) %>% 
+        select(term, label, estimate, beta, std.all, statistic, p.value) %>% 
         filter(term %in% c("d_neuro_1 ~1 ")), digits = 3) 
 
 # model fit
@@ -26424,13 +27290,17 @@ lavTestLRT(fit_lcs_openn_main_config_current_cg, fit_lcs_openn_main_weak_current
 # -> key parameter is "d_openn_1 ~1"
 # labelled parameter as "d_int_a" & "d_int_b" (a = waitlist control group, b = both intervention groups)
 params_main_lcs_openn_current_cg <- broom::tidy(fit_lcs_openn_main_weak_current_cg, conf.int = TRUE, conf.level = 0.999) %>% 
-        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        mutate(beta = estimate / 
+           (sd_pers_st2 %>% filter(trait=="openn" & reference=="current" & time==1) %>% pull(sd_trait))) %>% 
+        select(term, label, estimate, beta, std.all, statistic, p.value) %>% 
         filter(term %in% c("d_openn_1 ~1 ")) %>% mutate(sig_diff = " ")
 kable(params_main_lcs_openn_current_cg, digits = 3) 
 
 # constrained to be equal in the strong measurement invariance model:
 kable(broom::tidy(fit_lcs_openn_main_strong_current_cg, conf.int = TRUE, conf.level = 0.999) %>% 
-        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        mutate(beta = estimate / 
+           (sd_pers_st2 %>% filter(trait=="openn" & reference=="current" & time==1) %>% pull(sd_trait))) %>% 
+        select(term, label, estimate, beta, std.all, statistic, p.value) %>% 
         filter(term %in% c("d_openn_1 ~1 ")), digits = 3) 
 
 # model fit
@@ -26442,7 +27312,7 @@ kable(broom::glance(fit_lcs_openn_main_weak_current_cg) %>%
 No significant differences according to the LRTs but difference visible, with stronger openness increase in intervention groups. Latent change score only significant in the intervention groups.
 :::
 
-##### Ideal personality personality traits
+##### Ideal personality traits
 
 Extraversion (ideal personality): results  
 ```{r}
@@ -26456,13 +27326,17 @@ lavTestLRT(fit_lcs_extra_main_config_ideal_cg, fit_lcs_extra_main_weak_ideal_cg,
 # -> key parameter is "d_extra_1 ~1"
 # labelled parameter as "d_int_a" & "d_int_b" (a = waitlist control group, b = both intervention groups)
 params_main_lcs_extra_ideal_cg <- broom::tidy(fit_lcs_extra_main_weak_ideal_cg, conf.int = TRUE, conf.level = 0.999) %>% 
-        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        mutate(beta = estimate / 
+           (sd_pers_st2 %>% filter(trait=="extra" & reference=="ideal" & time==1) %>% pull(sd_trait))) %>% 
+        select(term, label, estimate, beta, std.all, statistic, p.value) %>% 
         filter(term %in% c("d_extra_1 ~1 ")) %>% mutate(sig_diff = " ")
 kable(params_main_lcs_extra_ideal_cg, digits = 3) 
 
 # constrained to be equal in the strong measurement invariance model:
 kable(broom::tidy(fit_lcs_extra_main_strong_ideal_cg, conf.int = TRUE, conf.level = 0.999) %>% 
-        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        mutate(beta = estimate / 
+           (sd_pers_st2 %>% filter(trait=="extra" & reference=="ideal" & time==1) %>% pull(sd_trait))) %>% 
+        select(term, label, estimate, beta, std.all, statistic, p.value) %>% 
         filter(term %in% c("d_extra_1 ~1 ")), digits = 3) 
 
 # model fit
@@ -26486,13 +27360,17 @@ lavTestLRT(fit_lcs_agree_main_config_ideal_cg, fit_lcs_agree_main_weak_ideal_cg,
 # -> key parameter is "d_agree_1 ~1"
 # labelled parameter as "d_int_a" & "d_int_b" (a = waitlist control group, b = both intervention groups)
 params_main_lcs_agree_ideal_cg <- broom::tidy(fit_lcs_agree_main_weak_ideal_cg, conf.int = TRUE, conf.level = 0.999) %>% 
-        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        mutate(beta = estimate / 
+           (sd_pers_st2 %>% filter(trait=="agree" & reference=="ideal" & time==1) %>% pull(sd_trait))) %>% 
+        select(term, label, estimate, beta, std.all, statistic, p.value) %>% 
         filter(term %in% c("d_agree_1 ~1 ")) %>% mutate(sig_diff = " ")
 kable(params_main_lcs_agree_ideal_cg, digits = 3) 
 
 # constrained to be equal in the strong measurement invariance model:
 kable(broom::tidy(fit_lcs_agree_main_strong_ideal_cg, conf.int = TRUE, conf.level = 0.999) %>% 
-        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        mutate(beta = estimate / 
+           (sd_pers_st2 %>% filter(trait=="agree" & reference=="ideal" & time==1) %>% pull(sd_trait))) %>% 
+        select(term, label, estimate, beta, std.all, statistic, p.value) %>% 
         filter(term %in% c("d_agree_1 ~1 ")), digits = 3) 
 
 # model fit
@@ -26516,13 +27394,17 @@ lavTestLRT(fit_lcs_consc_main_config_ideal_cg, fit_lcs_consc_main_weak_ideal_cg,
 # -> key parameter is "d_consc_1 ~1"
 # labelled parameter as "d_int_a" & "d_int_b" (a = waitlist control group, b = both intervention groups)
 params_main_lcs_consc_ideal_cg <- broom::tidy(fit_lcs_consc_main_weak_ideal_cg, conf.int = TRUE, conf.level = 0.999) %>% 
-        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        mutate(beta = estimate / 
+           (sd_pers_st2 %>% filter(trait=="consc" & reference=="ideal" & time==1) %>% pull(sd_trait))) %>% 
+        select(term, label, estimate, beta, std.all, statistic, p.value) %>% 
         filter(term %in% c("d_consc_1 ~1 ")) %>% mutate(sig_diff = " ")
 kable(params_main_lcs_consc_ideal_cg, digits = 3) 
 
 # constrained to be equal in the strong measurement invariance model:
 kable(broom::tidy(fit_lcs_consc_main_strong_ideal_cg, conf.int = TRUE, conf.level = 0.999) %>% 
-        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        mutate(beta = estimate / 
+           (sd_pers_st2 %>% filter(trait=="consc" & reference=="ideal" & time==1) %>% pull(sd_trait))) %>% 
+        select(term, label, estimate, beta, std.all, statistic, p.value) %>% 
         filter(term %in% c("d_consc_1 ~1 ")), digits = 3) 
 
 # model fit
@@ -26546,13 +27428,17 @@ lavTestLRT(fit_lcs_neuro_main_config_ideal_cg, fit_lcs_neuro_main_weak_ideal_cg,
 # -> key parameter is "d_neuro_1 ~1"
 # labelled parameter as "d_int_a" & "d_int_b" (a = waitlist control group, b = both intervention groups)
 params_main_lcs_neuro_ideal_cg <- broom::tidy(fit_lcs_neuro_main_weak_ideal_cg, conf.int = TRUE, conf.level = 0.999) %>% 
-        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        mutate(beta = estimate / 
+           (sd_pers_st2 %>% filter(trait=="neuro" & reference=="ideal" & time==1) %>% pull(sd_trait))) %>% 
+        select(term, label, estimate, beta, std.all, statistic, p.value) %>% 
         filter(term %in% c("d_neuro_1 ~1 ")) %>% mutate(sig_diff = " ")
 kable(params_main_lcs_neuro_ideal_cg, digits = 3) 
 
 # constrained to be equal in the strong measurement invariance model:
 kable(broom::tidy(fit_lcs_neuro_main_strong_ideal_cg, conf.int = TRUE, conf.level = 0.999) %>% 
-        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        mutate(beta = estimate / 
+           (sd_pers_st2 %>% filter(trait=="neuro" & reference=="ideal" & time==1) %>% pull(sd_trait))) %>% 
+        select(term, label, estimate, beta, std.all, statistic, p.value) %>% 
         filter(term %in% c("d_neuro_1 ~1 ")), digits = 3) 
 
 # model fit
@@ -26561,7 +27447,7 @@ kable(broom::glance(fit_lcs_neuro_main_weak_ideal_cg) %>%
 ```
 
 ::: {.callout-note appearance="minimal"}
-Very similar change in neuroticism in both groups. No significant differences according to the LRTs (at *p* < .001). Some evidence for significant increase in model fit when constraining factor structures to be equal (weak MI), but this does not concern the latent change score yet. 
+Similar change in neuroticism in both groups. No significant differences according to the LRTs (at *p* < .001). Some evidence for significant increase in model fit when constraining factor structures to be equal (weak MI), but this does not concern the latent change score yet. 
 :::
 
 Openness (ideal personality): results  
@@ -26576,13 +27462,17 @@ lavTestLRT(fit_lcs_openn_main_config_ideal_cg, fit_lcs_openn_main_weak_ideal_cg,
 # -> key parameter is "d_openn_1 ~1"
 # labelled parameter as "d_int_a" & "d_int_b" (a = waitlist control group, b = both intervention groups)
 params_main_lcs_openn_ideal_cg <- broom::tidy(fit_lcs_openn_main_weak_ideal_cg, conf.int = TRUE, conf.level = 0.999) %>% 
-        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        mutate(beta = estimate / 
+           (sd_pers_st2 %>% filter(trait=="openn" & reference=="ideal" & time==1) %>% pull(sd_trait))) %>% 
+        select(term, label, estimate, beta, std.all, statistic, p.value) %>% 
         filter(term %in% c("d_openn_1 ~1 ")) %>% mutate(sig_diff = " ")
 kable(params_main_lcs_openn_ideal_cg, digits = 3) 
 
 # constrained to be equal in the strong measurement invariance model:
 kable(broom::tidy(fit_lcs_openn_main_strong_ideal_cg, conf.int = TRUE, conf.level = 0.999) %>% 
-        select(term, label, estimate, std.all, statistic, p.value) %>% 
+        mutate(beta = estimate / 
+           (sd_pers_st2 %>% filter(trait=="openn" & reference=="ideal" & time==1) %>% pull(sd_trait))) %>% 
+        select(term, label, estimate, beta, std.all, statistic, p.value) %>% 
         filter(term %in% c("d_openn_1 ~1 ")), digits = 3) 
 
 # model fit
@@ -26601,20 +27491,201 @@ Similar change in ideal-personality openness in both groups. No significant diff
 #| warning: false
 
 params_main_summary_cg <- bind_rows(
-  params_main_lcs_extra_current_cg %>% mutate(trait = names(b5_vars)[1], self = "current") %>% select(trait, self, group = label, beta = std.all, p.value, sig_diff),
-  params_main_lcs_extra_ideal_cg %>% mutate(trait = names(b5_vars)[1], self = "ideal") %>% select(trait, self, group = label, beta = std.all, p.value, sig_diff),
-  params_main_lcs_agree_current_cg %>% mutate(trait = names(b5_vars)[2], self = "current") %>% select(trait, self, group = label, beta = std.all, p.value, sig_diff),
-  params_main_lcs_agree_ideal_cg %>% mutate(trait = names(b5_vars)[2], self = "ideal") %>% select(trait, self, group = label, beta = std.all, p.value, sig_diff),
-  params_main_lcs_consc_current_cg %>% mutate(trait = names(b5_vars)[3], self = "current") %>% select(trait, self, group = label, beta = std.all, p.value, sig_diff),
-  params_main_lcs_consc_ideal_cg %>% mutate(trait = names(b5_vars)[3], self = "ideal") %>% select(trait, self, group = label, beta = std.all, p.value, sig_diff),
-  params_main_lcs_neuro_current_cg %>% mutate(trait = names(b5_vars)[4], self = "current") %>% select(trait, self, group = label, beta = std.all, p.value, sig_diff),
-  params_main_lcs_neuro_ideal_cg %>% mutate(trait = names(b5_vars)[4], self = "ideal") %>% select(trait, self, group = label, beta = std.all, p.value, sig_diff),
-  params_main_lcs_openn_current_cg %>% mutate(trait = names(b5_vars)[5], self = "current") %>% select(trait, self, group = label, beta = std.all, p.value, sig_diff),
-  params_main_lcs_openn_ideal_cg %>% mutate(trait = names(b5_vars)[5], self = "ideal") %>% select(trait, self, group = label, beta = std.all, p.value, sig_diff)
+  params_main_lcs_extra_current_cg %>% mutate(trait = names(b5_vars)[1], self = "current") %>% select(trait, self, group = label, estimate, beta, p.value, sig_diff),
+  params_main_lcs_extra_ideal_cg %>% mutate(trait = names(b5_vars)[1], self = "ideal") %>% select(trait, self, group = label, estimate, beta, p.value, sig_diff),
+  params_main_lcs_agree_current_cg %>% mutate(trait = names(b5_vars)[2], self = "current") %>% select(trait, self, group = label, estimate, beta, p.value, sig_diff),
+  params_main_lcs_agree_ideal_cg %>% mutate(trait = names(b5_vars)[2], self = "ideal") %>% select(trait, self, group = label, estimate, beta, p.value, sig_diff),
+  params_main_lcs_consc_current_cg %>% mutate(trait = names(b5_vars)[3], self = "current") %>% select(trait, self, group = label, estimate, beta, p.value, sig_diff),
+  params_main_lcs_consc_ideal_cg %>% mutate(trait = names(b5_vars)[3], self = "ideal") %>% select(trait, self, group = label, estimate, beta, p.value, sig_diff),
+  params_main_lcs_neuro_current_cg %>% mutate(trait = names(b5_vars)[4], self = "current") %>% select(trait, self, group = label, estimate, beta, p.value, sig_diff),
+  params_main_lcs_neuro_ideal_cg %>% mutate(trait = names(b5_vars)[4], self = "ideal") %>% select(trait, self, group = label, estimate, beta, p.value, sig_diff),
+  params_main_lcs_openn_current_cg %>% mutate(trait = names(b5_vars)[5], self = "current") %>% select(trait, self, group = label, estimate, beta, p.value, sig_diff),
+  params_main_lcs_openn_ideal_cg %>% mutate(trait = names(b5_vars)[5], self = "ideal") %>% select(trait, self, group = label, estimate, beta, p.value, sig_diff)
 ) %>% mutate(group = ifelse(group=="d_int_a", "Control", "Intervention"))
 
 kable(params_main_summary_cg, digits = 3)
 ```
+
+#### Multilevel models: intervention groups vs. control group
+
+Does it look differently if we test the control group vs. the two intervention groups (all from T1 to T2) using multilevel models instead of the multigroup SEM comparison?  
+
+We'll do this for current personality, ideal personality, and well-being.  
+
+##### Run models 
+
+Create data frame:
+```{r}
+#| echo: true
+#| warning: false
+#| code-fold: true
+#| code-summary: "Show the code"
+#| output: false
+#| cache: true
+
+df_mlm_check_curr <- df_sbsa2 %>% 
+  filter(time %in% c(1,2)) %>% 
+  mutate(time_d = time - 1,
+         intv = ifelse(rando!="Waitlist-Control", 1, 0)) %>% 
+  select(pid, time_d, rando, intv, 
+         paste0(str_trunc(names(b5_vars), 5, ellipsis = ""), "_comb_curr"))
+
+df_mlm_check_ideal <- df_sbsa2 %>% 
+  filter(time %in% c(1,2)) %>% 
+  mutate(time_d = time - 1,
+         intv = ifelse(rando!="Waitlist-Control", 1, 0)) %>% 
+  select(pid, time_d, rando, intv, 
+         paste0(str_trunc(names(b5_vars), 5, ellipsis = ""), "_comb_ideal"))
+
+df_mlm_check_wb <- df_sbsa2 %>% 
+  filter(time %in% c(1,2)) %>% 
+  mutate(time_d = time - 1,
+         intv = ifelse(rando!="Waitlist-Control", 1, 0)) %>% 
+  select(pid, time_d, rando, intv, 
+         swls, meaning, selfes, concept)
+
+df_mlm_check_curr %>% group_by(intv, time_d) %>% tally()
+```
+
+Convert to long format and run model across all domains and facets:
+```{r}
+#| echo: true
+#| warning: false
+#| code-fold: true
+#| code-summary: "Show the code"
+#| output: false
+#| cache: true
+df_mlm_check_curr <- df_mlm_check_curr %>% 
+  pivot_longer(ends_with("_comb_curr"), 
+               names_to = "test", names_prefix = "facet", values_to = "score", values_drop_na = TRUE) %>% 
+  group_nest(test) %>% 
+  mutate(lmer_mods = map(data, ~lmerTest::lmer(score ~ time_d * intv + (1 | pid), data = .x))) %>% 
+  pull(lmer_mods) %>% 
+  purrr::set_names(sort(names(b5_vars))) # ordered alphabetically
+
+df_mlm_check_ideal <- df_mlm_check_ideal %>% 
+  pivot_longer(ends_with("_comb_ideal"), 
+               names_to = "test", names_prefix = "facet", values_to = "score", values_drop_na = TRUE) %>% 
+  group_nest(test) %>% 
+  mutate(lmer_mods = map(data, ~lmerTest::lmer(score ~ time_d * intv + (1 | pid), data = .x))) %>% 
+  pull(lmer_mods) %>% 
+  purrr::set_names(sort(names(b5_vars))) # ordered alphabetically
+
+df_mlm_check_wb <- df_mlm_check_wb %>% 
+  pivot_longer(c(swls, meaning, selfes, concept), 
+               names_to = "test", names_prefix = "facet", values_to = "score", values_drop_na = TRUE) %>% 
+  group_nest(test) %>% 
+  mutate(lmer_mods = map(data, ~lmerTest::lmer(score ~ time_d * intv + (1 | pid), data = .x))) %>% 
+  pull(lmer_mods) %>% 
+  purrr::set_names(c("Self-concept clarity", "Meaning in life", "Self-esteem", "Life satisfaction"))
+```
+
+##### Results: current personality 
+
+Just the domains for now (not the facets): 
+```{r}
+#| echo: true
+#| warning: false
+#| code-fold: true
+#| code-summary: "Show the code"
+#| cache: true
+
+# unlist
+df_mlm_check_curr_unlist <- as.data.frame(summary(df_mlm_check_curr[[1]])$coefficients) %>% as_tibble()
+for (i in 2:length(df_mlm_check_curr)) {
+  df_mlm_check_curr_unlist <- bind_rows(df_mlm_check_curr_unlist, 
+                                          as.data.frame(summary(df_mlm_check_curr[[i]])$coefficients) %>% as_tibble())
+}
+
+# label etc.
+df_mlm_check_curr_unlist <- df_mlm_check_curr_unlist %>% # order by BFI traits
+        mutate(outcome = rep(sort(names(b5_vars)), each=4), 
+               term = c(rep(c("Intercept", "time (1 vs. 2)", 
+                              "group (control vs. intv.)", "time*group"), 20))) %>% 
+        rename(p = `Pr(>|t|)`, std_err = `Std. Error`, est = Estimate) %>% 
+  select(outcome, term, est, std_err, p) %>% 
+        mutate(sig = ifelse(p < .05, ifelse(p < .01, ifelse(p < .001, "***", "**"), "*"), " ")) %>% 
+        arrange(factor(outcome, levels = (names(b5_vars))))
+
+# display -> only for domains for now
+kable(df_mlm_check_curr_unlist[1:20, ] , 
+      digits = 3)
+```
+
+These are unstandardized effect sizes, interpretable on the original scale.  
+
+Control group comes first: 0 = waitlist control group (*N* = 175), 1 = both intervention groups (*N* = 674) 
+
+##### Results: ideal personality 
+
+Just the domains for now (not the facets): 
+```{r}
+#| echo: true
+#| warning: false
+#| code-fold: true
+#| code-summary: "Show the code"
+#| cache: true
+
+# unlist
+df_mlm_check_ideal_unlist <- as.data.frame(summary(df_mlm_check_ideal[[1]])$coefficients) %>% as_tibble()
+for (i in 2:length(df_mlm_check_ideal)) {
+  df_mlm_check_ideal_unlist <- bind_rows(df_mlm_check_ideal_unlist, 
+                                          as.data.frame(summary(df_mlm_check_ideal[[i]])$coefficients) %>% as_tibble())
+}
+
+# label etc.
+df_mlm_check_ideal_unlist <- df_mlm_check_ideal_unlist %>% # order by BFI traits
+        mutate(outcome = rep(sort(names(b5_vars)), each=4), 
+               term = c(rep(c("Intercept", "time (1 vs. 2)", 
+                              "group (control vs. intv.)", "time*group"), 20))) %>% 
+        rename(p = `Pr(>|t|)`, std_err = `Std. Error`, est = Estimate) %>% 
+  select(outcome, term, est, std_err, p) %>% 
+        mutate(sig = ifelse(p < .05, ifelse(p < .01, ifelse(p < .001, "***", "**"), "*"), " ")) %>% 
+        arrange(factor(outcome, levels = (names(b5_vars))))
+
+# display -> only for domains for now
+kable(df_mlm_check_ideal_unlist[1:20, ] , 
+      digits = 3)
+```
+
+These are unstandardized effect sizes, interpretable on the original scale.  
+
+Control group comes first: 0 = waitlist control group (*N* = 175), 1 = both intervention groups (*N* = 674) 
+
+##### Results: well-being
+
+```{r}
+#| echo: true
+#| warning: false
+#| code-fold: true
+#| code-summary: "Show the code"
+#| cache: true
+
+# unlist
+df_mlm_check_wb_unlist <- as.data.frame(summary(df_mlm_check_wb[[1]])$coefficients) %>% as_tibble()
+for (i in 2:length(df_mlm_check_wb)) {
+  df_mlm_check_wb_unlist <- bind_rows(df_mlm_check_wb_unlist, 
+                                          as.data.frame(summary(df_mlm_check_wb[[i]])$coefficients) %>% as_tibble())
+}
+
+# label etc.
+df_mlm_check_wb_unlist <- df_mlm_check_wb_unlist %>% # order by BFI traits
+        mutate(outcome = rep(c("Self-concept clarity", "Meaning in life", 
+                               "Self-esteem", "Life satisfaction"), each=4), 
+               term = c(rep(c("Intercept", "time (1 vs. 2)", 
+                              "group (control vs. intv.)", "time*group"), 4))) %>% 
+        rename(p = `Pr(>|t|)`, std_err = `Std. Error`, est = Estimate) %>% 
+  select(outcome, term, est, std_err, p) %>% 
+        mutate(sig = ifelse(p < .05, ifelse(p < .01, ifelse(p < .001, "***", "**"), "*"), " ")) %>% 
+        arrange(factor(outcome, levels = (names(b5_vars))))
+
+# display -> only for domains for now
+kable(df_mlm_check_wb_unlist, digits = 3)
+```
+
+These are unstandardized effect sizes, interpretable on the original scale.  
+
+Control group comes first: 0 = waitlist control group (*N* = 175), 1 = both intervention groups (*N* = 674) 
 
 ## Exploratory findings
 
