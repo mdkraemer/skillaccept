@@ -210,31 +210,21 @@ Check CFA item loadings at T1
 #| warning: false
 cfa_meaning <- '
 # Define the latent factors
-meaning1 =~ NA*ml01_01_t1 + lambda1*ml01_01_t1 + lambda2*ml01_02_t1 + lambda3*ml01_03_t1 + lambda4*ml01_04_t1 + lambda5*ml01_05_t1 + lambda6*ml01_06_t1 + lambda7*ml01_07_t1 + lambda8*ml01_08_t1 + lambda9*ml01_09_t1 + lambda10*ml01_10_t1
+meaning1 =~ NA*ml01_01_t1 + lambda1*ml01_01_t1 + lambda4*ml01_04_t1 + lambda5*ml01_05_t1 + lambda6*ml01_06_t1 + lambda9*ml01_09_t1
 
 # Intercepts
 ml01_01_t1 ~ i1*1
-ml01_02_t1 ~ 1
-ml01_03_t1 ~ 1
 ml01_04_t1 ~ 1
 ml01_05_t1 ~ 1
 ml01_06_t1 ~ 1
-ml01_07_t1 ~ 1
-ml01_08_t1 ~ 1
 ml01_09_t1 ~ 1
-ml01_10_t1 ~ 1
 
 # Unique Variances
 ml01_01_t1 ~~ ml01_01_t1
-ml01_02_t1 ~~ ml01_02_t1
-ml01_03_t1 ~~ ml01_03_t1
 ml01_04_t1 ~~ ml01_04_t1
 ml01_05_t1 ~~ ml01_05_t1
 ml01_06_t1 ~~ ml01_06_t1
-ml01_07_t1 ~~ ml01_07_t1
-ml01_08_t1 ~~ ml01_08_t1
 ml01_09_t1 ~~ ml01_09_t1
-ml01_10_t1 ~~ ml01_10_t1
 
 # Latent Variable Means
 meaning1 ~ 0*1
@@ -247,40 +237,42 @@ summary(fit_cfa_meaning, fit.measures = TRUE)
 tidy(fit_cfa_meaning) %>% filter(str_detect(label, "lambda")) %>% mutate(abs_loading = abs(estimate)) %>% arrange(desc(abs_loading)) %>% select(1:5, std.all)
 ```
 
-Reverse-code and form parcels:
+Fit is good! We don't need item parcels for meaning in life (5-item presence of meaning subscale).  
+
+Also check search for meaning subscale:  
 ```{r}
 #| echo: true
-df_sbsa2_wide_wb <- df_sbsa2_wide_wb %>% 
-  mutate(ml01_09_t1_r = ml01_09_t1,
-         ml01_10_t1_r = ml01_10_t1,
-         ml01_02_t1_r = ml01_02_t1,
-         ml01_08_t1_r = ml01_08_t1,
-         ml01_07_t1_r = ml01_07_t1,
-         ml01_03_t1_r = ml01_03_t1,
-         ml01_09_t2_r = ml01_09_t2,
-         ml01_10_t2_r = ml01_10_t2,
-         ml01_02_t2_r = ml01_02_t2,
-         ml01_08_t2_r = ml01_08_t2,
-         ml01_07_t2_r = ml01_07_t2,
-         ml01_03_t2_r = ml01_03_t2,
-         ml01_09_t3_r = ml01_09_t3,
-         ml01_10_t3_r = ml01_10_t3,
-         ml01_02_t3_r = ml01_02_t3,
-         ml01_08_t3_r = ml01_08_t3,
-         ml01_07_t3_r = ml01_07_t3,
-         ml01_03_t3_r = ml01_03_t3) %>% 
-  mutate(across(intersect(starts_with("ml01"), ends_with("_r")), 
-                ~ recode(.x, `1` = 7L, `2` = 6L, `3` = 5L, `4` = 4L, `5` = 3L, `6` = 2L, `7` = 1L, .default = NA_integer_))) %>% 
-  mutate(meaning_par1_t1 = rowMeans(across(c(ml01_04_t1, ml01_10_t1_r, ml01_03_t1_r, ml01_07_t1_r)), na.rm=T),
-         meaning_par2_t1 = rowMeans(across(c(ml01_06_t1, ml01_05_t1, ml01_08_t1_r)), na.rm=T),
-         meaning_par3_t1 = rowMeans(across(c(ml01_01_t1, ml01_09_t1_r, ml01_02_t1_r)), na.rm=T),
-         meaning_par1_t2 = rowMeans(across(c(ml01_04_t2, ml01_10_t2_r, ml01_03_t2_r, ml01_07_t2_r)), na.rm=T),
-         meaning_par2_t2 = rowMeans(across(c(ml01_06_t2, ml01_05_t2, ml01_08_t2_r)), na.rm=T),
-         meaning_par3_t2 = rowMeans(across(c(ml01_01_t2, ml01_09_t2_r, ml01_02_t2_r)), na.rm=T),
-         meaning_par1_t3 = rowMeans(across(c(ml01_04_t3, ml01_10_t3_r, ml01_03_t3_r, ml01_07_t3_r)), na.rm=T),
-         meaning_par2_t3 = rowMeans(across(c(ml01_06_t3, ml01_05_t3, ml01_08_t3_r)), na.rm=T),
-         meaning_par3_t3 = rowMeans(across(c(ml01_01_t3, ml01_09_t3_r, ml01_02_t3_r)), na.rm=T))
+#| warning: false
+cfa_search <- '
+# Define the latent factors
+search1 =~ NA*ml01_02_t1 + lambda1*ml01_02_t1 + lambda4*ml01_03_t1 + lambda5*ml01_07_t1 + lambda6*ml01_08_t1 + lambda9*ml01_10_t1
+
+# Intercepts
+ml01_02_t1 ~ i1*1
+ml01_03_t1 ~ 1
+ml01_07_t1 ~ 1
+ml01_08_t1 ~ 1
+ml01_10_t1 ~ 1
+
+# Unique Variances
+ml01_02_t1 ~~ ml01_02_t1
+ml01_03_t1 ~~ ml01_03_t1
+ml01_07_t1 ~~ ml01_07_t1
+ml01_08_t1 ~~ ml01_08_t1
+ml01_10_t1 ~~ ml01_10_t1
+
+# Latent Variable Means
+search1 ~ 0*1
+
+# Latent Variable Variances and Covariance
+search1 ~~ 1*search1
+'
+fit_cfa_search <- cfa(cfa_search, data = df_sbsa2_wide_wb, mimic = "mplus", missing="ML")
+summary(fit_cfa_search, fit.measures = TRUE)
+tidy(fit_cfa_search) %>% filter(str_detect(label, "lambda")) %>% mutate(abs_loading = abs(estimate)) %>% arrange(desc(abs_loading)) %>% select(1:5, std.all)
 ```
+
+Also good fit (a bit worse in terms of RMSEA...).  
 
 #### Self-esteem
 
@@ -1648,6 +1640,8 @@ Model fit relatively similar across model specifications. Chi^2 tests indicate t
 
 #### Meaning in life
 
+For the 5-item subscale presence of meaning in life.  
+
 Fit model:
 ```{r}
 #| echo: true
@@ -1662,48 +1656,43 @@ Fit model:
 # Configural invariance model
 configural_meaning <- '
 # Define the latent factors
-meaning1 =~ NA*meaning_par1_t1 + lambda1*meaning_par1_t1 + meaning_par2_t1 + meaning_par3_t1
-meaning2 =~ NA*meaning_par1_t2 + lambda1*meaning_par1_t2 + meaning_par2_t2 + meaning_par3_t2
-meaning3 =~ NA*meaning_par1_t3 + lambda1*meaning_par1_t3 + meaning_par2_t3 + meaning_par3_t3
+meaning1 =~ NA*ml01_01_t1 + lambda1*ml01_01_t1 + ml01_04_t1 + ml01_05_t1 + ml01_06_t1 + ml01_09_t1
+meaning2 =~ NA*ml01_01_t2 + lambda1*ml01_01_t2 + ml01_04_t2 + ml01_05_t2 + ml01_06_t2 + ml01_09_t2
 
 # Intercepts
-meaning_par1_t1 ~ i1*1
-meaning_par2_t1 ~ 1
-meaning_par3_t1 ~ 1
+ml01_01_t1 ~ i1*1
+ml01_04_t1 ~ 1
+ml01_05_t1 ~ 1
+ml01_06_t1 ~ 1
+ml01_09_t1 ~ 1
 
-meaning_par1_t2 ~ i1*1
-meaning_par2_t2 ~ 1
-meaning_par3_t2 ~ 1
-
-meaning_par1_t3 ~ i1*1
-meaning_par2_t3 ~ 1
-meaning_par3_t3 ~ 1
+ml01_01_t2 ~ i1*1
+ml01_04_t2 ~ 1
+ml01_05_t2 ~ 1
+ml01_06_t2 ~ 1
+ml01_09_t2 ~ 1
 
 # Unique Variances
-meaning_par1_t1 ~~ meaning_par1_t1
-meaning_par2_t1 ~~ meaning_par2_t1
-meaning_par3_t1 ~~ meaning_par3_t1
+ml01_01_t1 ~~ ml01_01_t1
+ml01_04_t1 ~~ ml01_04_t1
+ml01_05_t1 ~~ ml01_05_t1
+ml01_06_t1 ~~ ml01_06_t1
+ml01_09_t1 ~~ ml01_09_t1
 
-meaning_par1_t2 ~~ meaning_par1_t2
-meaning_par2_t2 ~~ meaning_par2_t2
-meaning_par3_t2 ~~ meaning_par3_t2
-
-meaning_par1_t3 ~~ meaning_par1_t3
-meaning_par2_t3 ~~ meaning_par2_t3
-meaning_par3_t3 ~~ meaning_par3_t3
+ml01_01_t2 ~~ ml01_01_t2
+ml01_04_t2 ~~ ml01_04_t2
+ml01_05_t2 ~~ ml01_05_t2
+ml01_06_t2 ~~ ml01_06_t2
+ml01_09_t2 ~~ ml01_09_t2
 
 # Latent Variable Means
 meaning1 ~ 0*1
 meaning2 ~ 1
-meaning3 ~ 1
 
 # Latent Variable Variances and Covariance
 meaning1 ~~ 1*meaning1
 meaning2 ~~ meaning2
-meaning3 ~~ meaning3
 meaning1 ~~ meaning2
-meaning2 ~~ meaning3
-meaning1 ~~ meaning3
 '
 fit_configural_meaning <- cfa(configural_meaning, data = df_sbsa2_wide_wb, mimic = "mplus", missing="ML")
 summary(fit_configural_meaning, fit.measures = TRUE)
@@ -1711,48 +1700,43 @@ summary(fit_configural_meaning, fit.measures = TRUE)
 # Weak invariance model
 weak_meaning <- '
 # Define the latent factors
-meaning1 =~ NA*meaning_par1_t1 + lambda1*meaning_par1_t1 + lambda2*meaning_par2_t1 + lambda3*meaning_par3_t1
-meaning2 =~ NA*meaning_par1_t2 + lambda1*meaning_par1_t2 + lambda2*meaning_par2_t2 + lambda3*meaning_par3_t2
-meaning3 =~ NA*meaning_par1_t3 + lambda1*meaning_par1_t3 + lambda2*meaning_par2_t3 + lambda3*meaning_par3_t3
+meaning1 =~ NA*ml01_01_t1 + lambda1*ml01_01_t1 + lambda4*ml01_04_t1 + lambda5*ml01_05_t1 + lambda6*ml01_06_t1 + lambda9*ml01_09_t1
+meaning2 =~ NA*ml01_01_t2 + lambda1*ml01_01_t2 + lambda4*ml01_04_t2 + lambda5*ml01_05_t2 + lambda6*ml01_06_t2 + lambda9*ml01_09_t2
 
 # Intercepts
-meaning_par1_t1 ~ i1*1
-meaning_par2_t1 ~ 1
-meaning_par3_t1 ~ 1
+ml01_01_t1 ~ i1*1
+ml01_04_t1 ~ 1
+ml01_05_t1 ~ 1
+ml01_06_t1 ~ 1
+ml01_09_t1 ~ 1
 
-meaning_par1_t2 ~ i1*1
-meaning_par2_t2 ~ 1
-meaning_par3_t2 ~ 1
-
-meaning_par1_t3 ~ i1*1
-meaning_par2_t3 ~ 1
-meaning_par3_t3 ~ 1
+ml01_01_t2 ~ i1*1
+ml01_04_t2 ~ 1
+ml01_05_t2 ~ 1
+ml01_06_t2 ~ 1
+ml01_09_t2 ~ 1
 
 # Unique Variances
-meaning_par1_t1 ~~ meaning_par1_t1
-meaning_par2_t1 ~~ meaning_par2_t1
-meaning_par3_t1 ~~ meaning_par3_t1
+ml01_01_t1 ~~ ml01_01_t1
+ml01_04_t1 ~~ ml01_04_t1
+ml01_05_t1 ~~ ml01_05_t1
+ml01_06_t1 ~~ ml01_06_t1
+ml01_09_t1 ~~ ml01_09_t1
 
-meaning_par1_t2 ~~ meaning_par1_t2
-meaning_par2_t2 ~~ meaning_par2_t2
-meaning_par3_t2 ~~ meaning_par3_t2
-
-meaning_par1_t3 ~~ meaning_par1_t3
-meaning_par2_t3 ~~ meaning_par2_t3
-meaning_par3_t3 ~~ meaning_par3_t3
+ml01_01_t2 ~~ ml01_01_t2
+ml01_04_t2 ~~ ml01_04_t2
+ml01_05_t2 ~~ ml01_05_t2
+ml01_06_t2 ~~ ml01_06_t2
+ml01_09_t2 ~~ ml01_09_t2
 
 # Latent Variable Means
 meaning1 ~ 0*1
 meaning2 ~ 1
-meaning3 ~ 1
 
 # Latent Variable Variances and Covariance
 meaning1 ~~ 1*meaning1
 meaning2 ~~ meaning2
-meaning3 ~~ meaning3
 meaning1 ~~ meaning2
-meaning2 ~~ meaning3
-meaning1 ~~ meaning3
 '
 fit_weak_meaning <- cfa(weak_meaning, data = df_sbsa2_wide_wb, mimic = "mplus", missing="ML")
 summary(fit_weak_meaning, fit.measures = TRUE)
@@ -1760,48 +1744,43 @@ summary(fit_weak_meaning, fit.measures = TRUE)
 # Strong invariance model (additional constraints on manifest intercepts)
 strong_meaning <- '
 # Define the latent factors
-meaning1 =~ NA*meaning_par1_t1 + lambda1*meaning_par1_t1 + lambda2*meaning_par2_t1 + lambda3*meaning_par3_t1
-meaning2 =~ NA*meaning_par1_t2 + lambda1*meaning_par1_t2 + lambda2*meaning_par2_t2 + lambda3*meaning_par3_t2
-meaning3 =~ NA*meaning_par1_t3 + lambda1*meaning_par1_t3 + lambda2*meaning_par2_t3 + lambda3*meaning_par3_t3
+meaning1 =~ NA*ml01_01_t1 + lambda1*ml01_01_t1 + lambda4*ml01_04_t1 + lambda5*ml01_05_t1 + lambda6*ml01_06_t1 + lambda9*ml01_09_t1
+meaning2 =~ NA*ml01_01_t2 + lambda1*ml01_01_t2 + lambda4*ml01_04_t2 + lambda5*ml01_05_t2 + lambda6*ml01_06_t2 + lambda9*ml01_09_t2
 
 # Intercepts
-meaning_par1_t1 ~ i1*1
-meaning_par2_t1 ~ i2*1
-meaning_par3_t1 ~ i3*1
+ml01_01_t1 ~ i1*1
+ml01_04_t1 ~ i2*1
+ml01_05_t1 ~ i3*1
+ml01_06_t1 ~ i4*1
+ml01_09_t1 ~ i5*1
 
-meaning_par1_t2 ~ i1*1
-meaning_par2_t2 ~ i2*1
-meaning_par3_t2 ~ i3*1
-
-meaning_par1_t3 ~ i1*1
-meaning_par2_t3 ~ i2*1
-meaning_par3_t3 ~ i3*1
+ml01_01_t2 ~ i1*1
+ml01_04_t2 ~ i2*1
+ml01_05_t2 ~ i3*1
+ml01_06_t2 ~ i4*1
+ml01_09_t2 ~ i5*1
 
 # Unique Variances
-meaning_par1_t1 ~~ meaning_par1_t1
-meaning_par2_t1 ~~ meaning_par2_t1
-meaning_par3_t1 ~~ meaning_par3_t1
+ml01_01_t1 ~~ ml01_01_t1
+ml01_04_t1 ~~ ml01_04_t1
+ml01_05_t1 ~~ ml01_05_t1
+ml01_06_t1 ~~ ml01_06_t1
+ml01_09_t1 ~~ ml01_09_t1
 
-meaning_par1_t2 ~~ meaning_par1_t2
-meaning_par2_t2 ~~ meaning_par2_t2
-meaning_par3_t2 ~~ meaning_par3_t2
-
-meaning_par1_t3 ~~ meaning_par1_t3
-meaning_par2_t3 ~~ meaning_par2_t3
-meaning_par3_t3 ~~ meaning_par3_t3
+ml01_01_t2 ~~ ml01_01_t2
+ml01_04_t2 ~~ ml01_04_t2
+ml01_05_t2 ~~ ml01_05_t2
+ml01_06_t2 ~~ ml01_06_t2
+ml01_09_t2 ~~ ml01_09_t2
 
 # Latent Variable Means
 meaning1 ~ 0*1
 meaning2 ~ 1
-meaning3 ~ 1
 
 # Latent Variable Variances and Covariance
 meaning1 ~~ 1*meaning1
 meaning2 ~~ meaning2
-meaning3 ~~ meaning3
 meaning1 ~~ meaning2
-meaning1 ~~ meaning3
-meaning2 ~~ meaning3
 '
 fit_strong_meaning <- cfa(strong_meaning, data = df_sbsa2_wide_wb, mimic = "mplus", missing="ML")
 summary(fit_strong_meaning, fit.measures = TRUE)
@@ -1809,48 +1788,43 @@ summary(fit_strong_meaning, fit.measures = TRUE)
 # Strict invariance model (additional constraints on manifest variances)
 strict_meaning <- '
 # Define the latent factors
-meaning1 =~ NA*meaning_par1_t1 + lambda1*meaning_par1_t1 + lambda2*meaning_par2_t1 + lambda3*meaning_par3_t1
-meaning2 =~ NA*meaning_par1_t2 + lambda1*meaning_par1_t2 + lambda2*meaning_par2_t2 + lambda3*meaning_par3_t2
-meaning3 =~ NA*meaning_par1_t3 + lambda1*meaning_par1_t3 + lambda2*meaning_par2_t3 + lambda3*meaning_par3_t3
+meaning1 =~ NA*ml01_01_t1 + lambda1*ml01_01_t1 + lambda4*ml01_04_t1 + lambda5*ml01_05_t1 + lambda6*ml01_06_t1 + lambda9*ml01_09_t1
+meaning2 =~ NA*ml01_01_t2 + lambda1*ml01_01_t2 + lambda4*ml01_04_t2 + lambda5*ml01_05_t2 + lambda6*ml01_06_t2 + lambda9*ml01_09_t2
 
 # Intercepts
-meaning_par1_t1 ~ i1*1
-meaning_par2_t1 ~ i2*1
-meaning_par3_t1 ~ i3*1
+ml01_01_t1 ~ i1*1
+ml01_04_t1 ~ i2*1
+ml01_05_t1 ~ i3*1
+ml01_06_t1 ~ i4*1
+ml01_09_t1 ~ i5*1
 
-meaning_par1_t2 ~ i1*1
-meaning_par2_t2 ~ i2*1
-meaning_par3_t2 ~ i3*1
-
-meaning_par1_t3 ~ i1*1
-meaning_par2_t3 ~ i2*1
-meaning_par3_t3 ~ i3*1
+ml01_01_t2 ~ i1*1
+ml01_04_t2 ~ i2*1
+ml01_05_t2 ~ i3*1
+ml01_06_t2 ~ i4*1
+ml01_09_t2 ~ i5*1
 
 # Unique Variances
-meaning_par1_t1 ~~ u1*meaning_par1_t1
-meaning_par2_t1 ~~ u2*meaning_par2_t1
-meaning_par3_t1 ~~ u3*meaning_par3_t1
+ml01_01_t1 ~~ u1*ml01_01_t1
+ml01_04_t1 ~~ u2*ml01_04_t1
+ml01_05_t1 ~~ u3*ml01_05_t1
+ml01_06_t1 ~~ u4*ml01_06_t1
+ml01_09_t1 ~~ u5*ml01_09_t1
 
-meaning_par1_t2 ~~ u1*meaning_par1_t2
-meaning_par2_t2 ~~ u2*meaning_par2_t2
-meaning_par3_t2 ~~ u3*meaning_par3_t2
-
-meaning_par1_t3 ~~ u1*meaning_par1_t3
-meaning_par2_t3 ~~ u2*meaning_par2_t3
-meaning_par3_t3 ~~ u3*meaning_par3_t3
+ml01_01_t2 ~~ u1*ml01_01_t2
+ml01_04_t2 ~~ u2*ml01_04_t2
+ml01_05_t2 ~~ u3*ml01_05_t2
+ml01_06_t2 ~~ u4*ml01_06_t2
+ml01_09_t2 ~~ u5*ml01_09_t2
 
 # Latent Variable Means
 meaning1 ~ 0*1
 meaning2 ~ 1
-meaning3 ~ 1
 
 # Latent Variable Variances and Covariance
 meaning1 ~~ 1*meaning1
 meaning2 ~~ meaning2
-meaning3 ~~ meaning3
 meaning1 ~~ meaning2
-meaning1 ~~ meaning3
-meaning2 ~~ meaning3
 '
 fit_strict_meaning <- cfa(strict_meaning, data = df_sbsa2_wide_wb, mimic = "mplus", missing="ML")
 summary(fit_strict_meaning, fit.measures = TRUE)
@@ -1883,7 +1857,229 @@ anova(fit_strong_meaning, fit_strict_meaning)
 ```
 
 ::: {.callout-note appearance="minimal"}
-Good model fit across all model specifications (except for RMSEA). Chi^2 tests indicate that strong measurement invariance is given.
+Good model fit across all model specifications. Chi^2 tests indicate that strict measurement invariance is given.
+:::
+
+##### Search for Meaning
+
+For the 5-item subscale search for meaning in life.  
+
+Fit model:
+```{r}
+#| echo: true
+#| warning: false
+#| code-fold: true
+#| code-summary: "Show the code"
+#| output: false
+#| cache: true
+
+# Code snippets adapted from https://quantdev.ssri.psu.edu/sites/qdev/files/LongitudinalMeasurementInvariance_2017_1108.html
+
+# Configural invariance model
+configural_search <- '
+# Define the latent factors
+search1 =~ NA*ml01_02_t1 + lambda1*ml01_02_t1 + ml01_03_t1 + ml01_07_t1 + ml01_08_t1 + ml01_10_t1
+search2 =~ NA*ml01_02_t2 + lambda1*ml01_02_t2 + ml01_03_t2 + ml01_07_t2 + ml01_08_t2 + ml01_10_t2
+
+# Intercepts
+ml01_02_t1 ~ i1*1
+ml01_03_t1 ~ 1
+ml01_07_t1 ~ 1
+ml01_08_t1 ~ 1
+ml01_10_t1 ~ 1
+
+ml01_02_t2 ~ i1*1
+ml01_03_t2 ~ 1
+ml01_07_t2 ~ 1
+ml01_08_t2 ~ 1
+ml01_10_t2 ~ 1
+
+# Unique Variances
+ml01_02_t1 ~~ ml01_02_t1
+ml01_03_t1 ~~ ml01_03_t1
+ml01_07_t1 ~~ ml01_07_t1
+ml01_08_t1 ~~ ml01_08_t1
+ml01_10_t1 ~~ ml01_10_t1
+
+ml01_02_t2 ~~ ml01_02_t2
+ml01_03_t2 ~~ ml01_03_t2
+ml01_07_t2 ~~ ml01_07_t2
+ml01_08_t2 ~~ ml01_08_t2
+ml01_10_t2 ~~ ml01_10_t2
+
+# Latent Variable Means
+search1 ~ 0*1
+search2 ~ 1
+
+# Latent Variable Variances and Covariance
+search1 ~~ 1*search1
+search2 ~~ search2
+search1 ~~ search2
+'
+fit_configural_search <- cfa(configural_search, data = df_sbsa2_wide_wb, mimic = "mplus", missing="ML")
+summary(fit_configural_search, fit.measures = TRUE)
+
+# Weak invariance model
+weak_search <- '
+# Define the latent factors
+search1 =~ NA*ml01_02_t1 + lambda1*ml01_02_t1 + lambda4*ml01_03_t1 + lambda5*ml01_07_t1 + lambda6*ml01_08_t1 + lambda9*ml01_10_t1
+search2 =~ NA*ml01_02_t2 + lambda1*ml01_02_t2 + lambda4*ml01_03_t2 + lambda5*ml01_07_t2 + lambda6*ml01_08_t2 + lambda9*ml01_10_t2
+
+# Intercepts
+ml01_02_t1 ~ i1*1
+ml01_03_t1 ~ 1
+ml01_07_t1 ~ 1
+ml01_08_t1 ~ 1
+ml01_10_t1 ~ 1
+
+ml01_02_t2 ~ i1*1
+ml01_03_t2 ~ 1
+ml01_07_t2 ~ 1
+ml01_08_t2 ~ 1
+ml01_10_t2 ~ 1
+
+# Unique Variances
+ml01_02_t1 ~~ ml01_02_t1
+ml01_03_t1 ~~ ml01_03_t1
+ml01_07_t1 ~~ ml01_07_t1
+ml01_08_t1 ~~ ml01_08_t1
+ml01_10_t1 ~~ ml01_10_t1
+
+ml01_02_t2 ~~ ml01_02_t2
+ml01_03_t2 ~~ ml01_03_t2
+ml01_07_t2 ~~ ml01_07_t2
+ml01_08_t2 ~~ ml01_08_t2
+ml01_10_t2 ~~ ml01_10_t2
+
+# Latent Variable Means
+search1 ~ 0*1
+search2 ~ 1
+
+# Latent Variable Variances and Covariance
+search1 ~~ 1*search1
+search2 ~~ search2
+search1 ~~ search2
+'
+fit_weak_search <- cfa(weak_search, data = df_sbsa2_wide_wb, mimic = "mplus", missing="ML")
+summary(fit_weak_search, fit.measures = TRUE)
+
+# Strong invariance model (additional constraints on manifest intercepts)
+strong_search <- '
+# Define the latent factors
+search1 =~ NA*ml01_02_t1 + lambda1*ml01_02_t1 + lambda4*ml01_03_t1 + lambda5*ml01_07_t1 + lambda6*ml01_08_t1 + lambda9*ml01_10_t1
+search2 =~ NA*ml01_02_t2 + lambda1*ml01_02_t2 + lambda4*ml01_03_t2 + lambda5*ml01_07_t2 + lambda6*ml01_08_t2 + lambda9*ml01_10_t2
+
+# Intercepts
+ml01_02_t1 ~ i1*1
+ml01_03_t1 ~ i2*1
+ml01_07_t1 ~ i3*1
+ml01_08_t1 ~ i4*1
+ml01_10_t1 ~ i5*1
+
+ml01_02_t2 ~ i1*1
+ml01_03_t2 ~ i2*1
+ml01_07_t2 ~ i3*1
+ml01_08_t2 ~ i4*1
+ml01_10_t2 ~ i5*1
+
+# Unique Variances
+ml01_02_t1 ~~ ml01_02_t1
+ml01_03_t1 ~~ ml01_03_t1
+ml01_07_t1 ~~ ml01_07_t1
+ml01_08_t1 ~~ ml01_08_t1
+ml01_10_t1 ~~ ml01_10_t1
+
+ml01_02_t2 ~~ ml01_02_t2
+ml01_03_t2 ~~ ml01_03_t2
+ml01_07_t2 ~~ ml01_07_t2
+ml01_08_t2 ~~ ml01_08_t2
+ml01_10_t2 ~~ ml01_10_t2
+
+# Latent Variable Means
+search1 ~ 0*1
+search2 ~ 1
+
+# Latent Variable Variances and Covariance
+search1 ~~ 1*search1
+search2 ~~ search2
+search1 ~~ search2
+'
+fit_strong_search <- cfa(strong_search, data = df_sbsa2_wide_wb, mimic = "mplus", missing="ML")
+summary(fit_strong_search, fit.measures = TRUE)
+
+# Strict invariance model (additional constraints on manifest variances)
+strict_search <- '
+# Define the latent factors
+search1 =~ NA*ml01_02_t1 + lambda1*ml01_02_t1 + lambda4*ml01_03_t1 + lambda5*ml01_07_t1 + lambda6*ml01_08_t1 + lambda9*ml01_10_t1
+search2 =~ NA*ml01_02_t2 + lambda1*ml01_02_t2 + lambda4*ml01_03_t2 + lambda5*ml01_07_t2 + lambda6*ml01_08_t2 + lambda9*ml01_10_t2
+
+# Intercepts
+ml01_02_t1 ~ i1*1
+ml01_03_t1 ~ i2*1
+ml01_07_t1 ~ i3*1
+ml01_08_t1 ~ i4*1
+ml01_10_t1 ~ i5*1
+
+ml01_02_t2 ~ i1*1
+ml01_03_t2 ~ i2*1
+ml01_07_t2 ~ i3*1
+ml01_08_t2 ~ i4*1
+ml01_10_t2 ~ i5*1
+
+# Unique Variances
+ml01_02_t1 ~~ u1*ml01_02_t1
+ml01_03_t1 ~~ u2*ml01_03_t1
+ml01_07_t1 ~~ u3*ml01_07_t1
+ml01_08_t1 ~~ u4*ml01_08_t1
+ml01_10_t1 ~~ u5*ml01_10_t1
+
+ml01_02_t2 ~~ u1*ml01_02_t2
+ml01_03_t2 ~~ u2*ml01_03_t2
+ml01_07_t2 ~~ u3*ml01_07_t2
+ml01_08_t2 ~~ u4*ml01_08_t2
+ml01_10_t2 ~~ u5*ml01_10_t2
+
+# Latent Variable Means
+search1 ~ 0*1
+search2 ~ 1
+
+# Latent Variable Variances and Covariance
+search1 ~~ 1*search1
+search2 ~~ search2
+search1 ~~ search2
+'
+fit_strict_search <- cfa(strict_search, data = df_sbsa2_wide_wb, mimic = "mplus", missing="ML")
+summary(fit_strict_search, fit.measures = TRUE)
+```
+
+Results summary:
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+
+# compare model fit
+bind_rows(broom::glance(fit_configural_search) %>% 
+            select(nobs, npar, chisq, AIC, BIC, cfi, tli, rmsea, srmr),
+          broom::glance(fit_weak_search) %>% 
+            select(nobs, npar, chisq, AIC, BIC, cfi, tli, rmsea, srmr),
+          broom::glance(fit_strong_search) %>% 
+            select(nobs, npar, chisq, AIC, BIC, cfi, tli, rmsea, srmr),
+          broom::glance(fit_strict_search) %>% 
+            select(nobs, npar, chisq, AIC, BIC, cfi, tli, rmsea, srmr)) %>% 
+  mutate(model = c("configural", "weak", "strong", "strict")) %>% 
+  select(model, everything())
+
+# chi-square difference test for nested models 
+anova(fit_configural_search, fit_weak_search)
+
+anova(fit_weak_search, fit_strong_search)
+
+anova(fit_strong_search, fit_strict_search)
+```
+
+::: {.callout-note appearance="minimal"}
+Good model fit across all model specifications (except for RMSEA but almost...). Chi^2 tests indicate that only configural measurement invariance is given (but it is relatively close in two cases ...).
 :::
 
 #### Self-esteem
@@ -6666,12 +6862,13 @@ Well-being
 #| warning: false
 
 sd_wb_st2 <- df_sbsa2 %>% 
-  select(pid, time, rando, swls, meaning, selfes, concept) %>% 
+  select(pid, time, rando, swls, meaning, search, selfes, concept) %>% 
   pivot_longer(-c(pid, time, rando), 
                cols_vary = "slowest",
                names_to = c("trait"),
                values_to = "score") %>% 
   mutate(long = case_when(trait=="swls" ~ "Life Satisfaction", trait=="meaning" ~ "Meaning in Life", 
+                          trait=="search" ~ "Search for Meaning", 
                            trait=="selfes" ~ "Self-Esteem", trait=="concept" ~ "Self-Concept Clarity")) %>% 
   filter(!is.na(score)) %>% 
   group_by(long, trait, time) %>% 
@@ -6700,12 +6897,14 @@ Computations:
 #| code-fold: true
 #| code-summary: "Show the code"
 
-cormat_profile <- cor((df_sbsa2 %>% filter(rando!="Waitlist-Control"))[, c("swls", "meaning", "selfes", "concept",
+cormat_profile <- cor((df_sbsa2 %>% filter(rando!="Waitlist-Control"))[, c("swls", "meaning", "search",  "selfes", "concept",
                                   "profile_corr_item_z", "profile_corr_facet_z")], use = "pairwise.complete.obs")
 
-rownames(cormat_profile) <- c("Life Satisfaction", "Meaning in Life", "Self-Esteem" , "Self Concept Clarity", 
+rownames(cormat_profile) <- c("Life Satisfaction", "Meaning in Life", "Search for Meaning", 
+                              "Self-Esteem" , "Self Concept Clarity", 
                               "Item-Level Profile Corr (z)", "Facet-Level Profile Corr (z)")
-colnames(cormat_profile) <- c("Life Satisfaction", "Meaning in Life", "Self-Esteem" , "Self Concept Clarity", 
+colnames(cormat_profile) <- c("Life Satisfaction", "Meaning in Life", "Search for Meaning", 
+                              "Self-Esteem" , "Self Concept Clarity", 
                               "Item-Level Profile Corr (z)", "Facet-Level Profile Corr (z)")
 ```
 
@@ -6717,6 +6916,8 @@ corrplot(cormat_profile, type = "lower", order = "original", tl.col = "black", t
 
 ::: {.callout-note appearance="minimal"}
 Positive correlations of well-being indicators with profile similarity between current personality and ideal personality personality. Especially high correlation with self-esteem. High congruence of item-level and facet-level profile similarity.
+
+An exception to this pattern is the "search for meaning" subscale (see deviations from preregistration).  
 :::
 
 As a table with confidence intervals - profile similarity:  
@@ -6728,27 +6929,29 @@ As a table with confidence intervals - profile similarity:
 
 bind_rows(
   bind_cols(
-  cormat_profile[5, c(1:4)] %>% as_tibble() %>% 
-    mutate(wellbeing = c("swls", "meaning", "selfes", "concept"),
-           profile_sim = rep("item-level", 4)) %>% 
+  cormat_profile[6, c(1:5)] %>% as_tibble() %>% 
+    mutate(wellbeing = c("swls", "meaning", "search", "selfes", "concept"),
+           profile_sim = rep("item-level", 5)) %>% 
     select(profile_sim, wellbeing, corr = value),
-  correlation::cor_to_ci(cormat_profile[5, c(1:4)], n = (df_sbsa2 %>% filter(!is.na(swls) & rando!="Waitlist-Control") 
+  correlation::cor_to_ci(cormat_profile[6, c(1:5)], n = (df_sbsa2 %>% filter(!is.na(swls) & rando!="Waitlist-Control") 
                                         %>% tally() %>% pull()), ci = 0.999) %>% as_tibble(),
-  correlation::cor_to_p(cormat_profile[5, c(1:4)], n = (df_sbsa2 %>% filter(!is.na(swls) & rando!="Waitlist-Control") 
+  correlation::cor_to_p(cormat_profile[6, c(1:5)], n = (df_sbsa2 %>% filter(!is.na(swls) & rando!="Waitlist-Control") 
                                       %>% tally() %>% pull())) %>% as_tibble() %>% select(p) 
   ),
 bind_cols(
-  cormat_profile[6, c(1:4)] %>% as_tibble() %>% 
-    mutate(wellbeing = c("swls", "meaning", "selfes", "concept"),
-           profile_sim = rep("facet-level", 4)) %>% 
+  cormat_profile[7, c(1:5)] %>% as_tibble() %>% 
+    mutate(wellbeing = c("swls", "meaning", "search", "selfes", "concept"),
+           profile_sim = rep("facet-level", 5)) %>% 
     select(profile_sim, wellbeing, corr = value),
-  correlation::cor_to_ci(cormat_profile[6, c(1:4)], n = (df_sbsa2 %>% filter(!is.na(swls) & rando!="Waitlist-Control") 
+  correlation::cor_to_ci(cormat_profile[7, c(1:5)], n = (df_sbsa2 %>% filter(!is.na(swls) & rando!="Waitlist-Control") 
                                         %>% tally() %>% pull()), ci = 0.999) %>% as_tibble(),
-  correlation::cor_to_p(cormat_profile[6, c(1:4)], n = (df_sbsa2 %>% filter(!is.na(swls) & rando!="Waitlist-Control") 
+  correlation::cor_to_p(cormat_profile[7, c(1:5)], n = (df_sbsa2 %>% filter(!is.na(swls) & rando!="Waitlist-Control") 
                                       %>% tally() %>% pull())) %>% as_tibble() %>% select(p)
   )
 ) %>% kable(digits = 3)
 ```
+
+(*search* = search for meaning in life subscale, see deviations from preregistration)  
 
 ##### Change in this relation over time and across intervention groups
 
@@ -6760,42 +6963,42 @@ Computations:
 #| code-summary: "Show the code"
 
 # T1
-cormat_profile_sb_t1 <- cor((df_sbsa2 %>% filter(rando=="Self-Improvement" & time==1))[, c("swls", "meaning", "selfes", "concept",                                  "profile_corr_item_z", "profile_corr_facet_z")], use = "pairwise.complete.obs")
-rownames(cormat_profile_sb_t1) <- c("Life Satisfaction", "Meaning in Life", "Self-Esteem" , "Self Concept Clarity", 
+cormat_profile_sb_t1 <- cor((df_sbsa2 %>% filter(rando=="Self-Improvement" & time==1))[, c("swls", "meaning", "search", "selfes", "concept",                                  "profile_corr_item_z", "profile_corr_facet_z")], use = "pairwise.complete.obs")
+rownames(cormat_profile_sb_t1) <- c("Life Satisfaction", "Meaning in Life", "Search for Meaning", "Self-Esteem" , "Self Concept Clarity", 
                               "Item-Level Profile Corr (z)", "Facet-Level Profile Corr (z)")
-colnames(cormat_profile_sb_t1) <- c("Life Satisfaction", "Meaning in Life", "Self-Esteem" , "Self Concept Clarity", 
+colnames(cormat_profile_sb_t1) <- c("Life Satisfaction", "Meaning in Life", "Search for Meaning", "Self-Esteem" , "Self Concept Clarity", 
                               "Item-Level Profile Corr (z)", "Facet-Level Profile Corr (z)")
 
-cormat_profile_sa_t1 <- cor((df_sbsa2 %>% filter(rando=="Self-Acceptance" & time==1))[, c("swls", "meaning", "selfes", "concept",                                  "profile_corr_item_z", "profile_corr_facet_z")], use = "pairwise.complete.obs")
-rownames(cormat_profile_sa_t1) <- c("Life Satisfaction", "Meaning in Life", "Self-Esteem" , "Self Concept Clarity", 
+cormat_profile_sa_t1 <- cor((df_sbsa2 %>% filter(rando=="Self-Acceptance" & time==1))[, c("swls", "meaning", "search", "selfes", "concept",                                  "profile_corr_item_z", "profile_corr_facet_z")], use = "pairwise.complete.obs")
+rownames(cormat_profile_sa_t1) <- c("Life Satisfaction", "Meaning in Life", "Search for Meaning", "Self-Esteem" , "Self Concept Clarity", 
                               "Item-Level Profile Corr (z)", "Facet-Level Profile Corr (z)")
-colnames(cormat_profile_sa_t1) <- c("Life Satisfaction", "Meaning in Life", "Self-Esteem" , "Self Concept Clarity", 
+colnames(cormat_profile_sa_t1) <- c("Life Satisfaction", "Meaning in Life", "Search for Meaning", "Self-Esteem" , "Self Concept Clarity", 
                               "Item-Level Profile Corr (z)", "Facet-Level Profile Corr (z)")
 
 # T2
-cormat_profile_sb_t2 <- cor((df_sbsa2 %>% filter(rando=="Self-Improvement" & time==2))[, c("swls", "meaning", "selfes", "concept",                                  "profile_corr_item_z", "profile_corr_facet_z")], use = "pairwise.complete.obs")
-rownames(cormat_profile_sb_t2) <- c("Life Satisfaction", "Meaning in Life", "Self-Esteem" , "Self Concept Clarity", 
+cormat_profile_sb_t2 <- cor((df_sbsa2 %>% filter(rando=="Self-Improvement" & time==2))[, c("swls", "meaning", "search", "selfes", "concept",                                  "profile_corr_item_z", "profile_corr_facet_z")], use = "pairwise.complete.obs")
+rownames(cormat_profile_sb_t2) <- c("Life Satisfaction", "Meaning in Life", "Search for Meaning", "Self-Esteem" , "Self Concept Clarity", 
                               "Item-Level Profile Corr (z)", "Facet-Level Profile Corr (z)")
-colnames(cormat_profile_sb_t2) <- c("Life Satisfaction", "Meaning in Life", "Self-Esteem" , "Self Concept Clarity", 
+colnames(cormat_profile_sb_t2) <- c("Life Satisfaction", "Meaning in Life", "Search for Meaning", "Self-Esteem" , "Self Concept Clarity", 
                               "Item-Level Profile Corr (z)", "Facet-Level Profile Corr (z)")
 
-cormat_profile_sa_t2 <- cor((df_sbsa2 %>% filter(rando=="Self-Acceptance" & time==2))[, c("swls", "meaning", "selfes", "concept",                                  "profile_corr_item_z", "profile_corr_facet_z")], use = "pairwise.complete.obs")
-rownames(cormat_profile_sa_t2) <- c("Life Satisfaction", "Meaning in Life", "Self-Esteem" , "Self Concept Clarity", 
+cormat_profile_sa_t2 <- cor((df_sbsa2 %>% filter(rando=="Self-Acceptance" & time==2))[, c("swls", "meaning", "search", "selfes", "concept",                                  "profile_corr_item_z", "profile_corr_facet_z")], use = "pairwise.complete.obs")
+rownames(cormat_profile_sa_t2) <- c("Life Satisfaction", "Meaning in Life", "Search for Meaning", "Self-Esteem" , "Self Concept Clarity", 
                               "Item-Level Profile Corr (z)", "Facet-Level Profile Corr (z)")
-colnames(cormat_profile_sa_t2) <- c("Life Satisfaction", "Meaning in Life", "Self-Esteem" , "Self Concept Clarity", 
+colnames(cormat_profile_sa_t2) <- c("Life Satisfaction", "Meaning in Life", "Search for Meaning", "Self-Esteem" , "Self Concept Clarity", 
                               "Item-Level Profile Corr (z)", "Facet-Level Profile Corr (z)")
 
 # T3
-cormat_profile_sb_t3 <- cor((df_sbsa2 %>% filter(rando=="Self-Improvement" & time==3))[, c("swls", "meaning", "selfes", "concept",                                  "profile_corr_item_z", "profile_corr_facet_z")], use = "pairwise.complete.obs")
-rownames(cormat_profile_sb_t3) <- c("Life Satisfaction", "Meaning in Life", "Self-Esteem" , "Self Concept Clarity", 
+cormat_profile_sb_t3 <- cor((df_sbsa2 %>% filter(rando=="Self-Improvement" & time==3))[, c("swls", "meaning", "search", "selfes", "concept",                                  "profile_corr_item_z", "profile_corr_facet_z")], use = "pairwise.complete.obs")
+rownames(cormat_profile_sb_t3) <- c("Life Satisfaction", "Meaning in Life", "Search for Meaning", "Self-Esteem" , "Self Concept Clarity", 
                               "Item-Level Profile Corr (z)", "Facet-Level Profile Corr (z)")
-colnames(cormat_profile_sb_t3) <- c("Life Satisfaction", "Meaning in Life", "Self-Esteem" , "Self Concept Clarity", 
+colnames(cormat_profile_sb_t3) <- c("Life Satisfaction", "Meaning in Life", "Search for Meaning", "Self-Esteem" , "Self Concept Clarity", 
                               "Item-Level Profile Corr (z)", "Facet-Level Profile Corr (z)")
 
-cormat_profile_sa_t3 <- cor((df_sbsa2 %>% filter(rando=="Self-Acceptance" & time==3))[, c("swls", "meaning", "selfes", "concept",                                  "profile_corr_item_z", "profile_corr_facet_z")], use = "pairwise.complete.obs")
-rownames(cormat_profile_sa_t3) <- c("Life Satisfaction", "Meaning in Life", "Self-Esteem" , "Self Concept Clarity", 
+cormat_profile_sa_t3 <- cor((df_sbsa2 %>% filter(rando=="Self-Acceptance" & time==3))[, c("swls", "meaning", "search", "selfes", "concept",                                  "profile_corr_item_z", "profile_corr_facet_z")], use = "pairwise.complete.obs")
+rownames(cormat_profile_sa_t3) <- c("Life Satisfaction", "Meaning in Life", "Search for Meaning", "Self-Esteem" , "Self Concept Clarity", 
                               "Item-Level Profile Corr (z)", "Facet-Level Profile Corr (z)")
-colnames(cormat_profile_sa_t3) <- c("Life Satisfaction", "Meaning in Life", "Self-Esteem" , "Self Concept Clarity", 
+colnames(cormat_profile_sa_t3) <- c("Life Satisfaction", "Meaning in Life", "Search for Meaning", "Self-Esteem" , "Self Concept Clarity", 
                               "Item-Level Profile Corr (z)", "Facet-Level Profile Corr (z)")
 ```
 
@@ -6860,22 +7063,22 @@ Computations:
 #| code-fold: true
 #| code-summary: "Show the code"
 
-cormat_sqtraits <- cor((df_sbsa2 %>% filter(rando!="Waitlist-Control"))[, c("swls", "meaning", "selfes", "concept",
+cormat_sqtraits <- cor((df_sbsa2 %>% filter(rando!="Waitlist-Control"))[, c("swls", "meaning", "search", "selfes", "concept",
                                    paste0(str_trunc(names(b5_vars)[1:5], 5, ellipsis = ""), "_sqdiff"))], 
                        use = "pairwise.complete.obs")
 
-rownames(cormat_sqtraits) <- c("Life Satisfaction", "Meaning in Life", "Self-Esteem" , "Self Concept Clarity", 
+rownames(cormat_sqtraits) <- c("Life Satisfaction", "Meaning in Life", "Search for Meaning", "Self-Esteem" , "Self Concept Clarity", 
                                str_to_title(names(b5_vars)[1:5]))
-colnames(cormat_sqtraits) <- c("Life Satisfaction", "Meaning in Life", "Self-Esteem" , "Self Concept Clarity", 
+colnames(cormat_sqtraits) <- c("Life Satisfaction", "Meaning in Life", "Search for Meaning", "Self-Esteem" , "Self Concept Clarity", 
                                str_to_title(names(b5_vars)[1:5]))
 
-cormat_sqfacets <- cor(df_sbsa2[, c("swls", "meaning", "selfes", "concept",
+cormat_sqfacets <- cor(df_sbsa2[, c("swls", "meaning", "search", "selfes", "concept",
                                    paste0(str_trunc(names(b5_vars)[6:20], 5, ellipsis = ""), "_sqdiff"))], 
                        use = "pairwise.complete.obs")
 
-rownames(cormat_sqfacets) <- c("Life Satisfaction", "Meaning in Life", "Self-Esteem" , "Self Concept Clarity", 
+rownames(cormat_sqfacets) <- c("Life Satisfaction", "Meaning in Life", "Search for Meaning", "Self-Esteem" , "Self Concept Clarity", 
                                str_to_title(names(b5_vars)[6:20]))
-colnames(cormat_sqfacets) <- c("Life Satisfaction", "Meaning in Life", "Self-Esteem" , "Self Concept Clarity", 
+colnames(cormat_sqfacets) <- c("Life Satisfaction", "Meaning in Life", "Search for Meaning", "Self-Esteem" , "Self Concept Clarity", 
                                str_to_title(names(b5_vars)[6:20]))
 ```
 
@@ -6893,11 +7096,11 @@ As a table with confidence intervals - squared differences:
 #| code-fold: true
 #| code-summary: "Show the code"
 
-cormat_sqtraits[c(5:9), c(1:4)] %>% as_tibble() %>% 
+cormat_sqtraits[c(6:10), c(1:5)] %>% as_tibble() %>% 
     mutate(personality = names(b5_vars)[1:5]) %>% 
-    rename(swls = `Life Satisfaction`, meaning = `Meaning in Life`, 
+    rename(swls = `Life Satisfaction`, meaning = `Meaning in Life`, search = `Search for Meaning`,
            selfes = `Self-Esteem`, concept = `Self Concept Clarity`) %>% 
-    pivot_longer(1:4, names_to = "wellbeing", values_to = "corr") %>% 
+    pivot_longer(1:5, names_to = "wellbeing", values_to = "corr") %>% 
     mutate(CI_low = correlation::cor_to_ci(corr, n = (df_sbsa2 %>% 
                                                         filter(!is.na(swls) & rando!="Waitlist-Control") 
                                         %>% tally() %>% pull()), ci = 0.999) %>% 
@@ -6938,54 +7141,54 @@ Computations:
 #| code-summary: "Show the code"
 
 # T1
-cormat_sqtraits_sb_t1 <- cor((df_sbsa2 %>% filter(rando=="Self-Improvement" & time==1))[, c("swls", "meaning", "selfes", "concept",
+cormat_sqtraits_sb_t1 <- cor((df_sbsa2 %>% filter(rando=="Self-Improvement" & time==1))[, c("swls", "meaning", "search", "selfes", "concept",
                                    paste0(str_trunc(names(b5_vars)[1:5], 5, ellipsis = ""), "_sqdiff"))], 
                        use = "pairwise.complete.obs")
-rownames(cormat_sqtraits_sb_t1) <- c("Life Satisfaction", "Meaning in Life", "Self-Esteem" , "Self Concept Clarity", 
+rownames(cormat_sqtraits_sb_t1) <- c("Life Satisfaction", "Meaning in Life", "Search for Meaning", "Self-Esteem" , "Self Concept Clarity", 
                                str_to_title(names(b5_vars)[1:5]))
-colnames(cormat_sqtraits_sb_t1) <- c("Life Satisfaction", "Meaning in Life", "Self-Esteem" , "Self Concept Clarity", 
+colnames(cormat_sqtraits_sb_t1) <- c("Life Satisfaction", "Meaning in Life", "Search for Meaning", "Self-Esteem" , "Self Concept Clarity", 
                                str_to_title(names(b5_vars)[1:5]))
 
-cormat_sqtraits_sa_t1 <- cor((df_sbsa2 %>% filter(rando=="Self-Acceptance" & time==1))[, c("swls", "meaning", "selfes", "concept",
+cormat_sqtraits_sa_t1 <- cor((df_sbsa2 %>% filter(rando=="Self-Acceptance" & time==1))[, c("swls", "meaning", "search", "selfes", "concept",
                                    paste0(str_trunc(names(b5_vars)[1:5], 5, ellipsis = ""), "_sqdiff"))], 
                        use = "pairwise.complete.obs")
-rownames(cormat_sqtraits_sa_t1) <- c("Life Satisfaction", "Meaning in Life", "Self-Esteem" , "Self Concept Clarity", 
+rownames(cormat_sqtraits_sa_t1) <- c("Life Satisfaction", "Meaning in Life", "Search for Meaning", "Self-Esteem" , "Self Concept Clarity", 
                                str_to_title(names(b5_vars)[1:5]))
-colnames(cormat_sqtraits_sa_t1) <- c("Life Satisfaction", "Meaning in Life", "Self-Esteem" , "Self Concept Clarity", 
+colnames(cormat_sqtraits_sa_t1) <- c("Life Satisfaction", "Meaning in Life", "Search for Meaning", "Self-Esteem" , "Self Concept Clarity", 
                                str_to_title(names(b5_vars)[1:5]))
 
 # T2
-cormat_sqtraits_sb_t2 <- cor((df_sbsa2 %>% filter(rando=="Self-Improvement" & time==2))[, c("swls", "meaning", "selfes", "concept",
+cormat_sqtraits_sb_t2 <- cor((df_sbsa2 %>% filter(rando=="Self-Improvement" & time==2))[, c("swls", "meaning", "search", "selfes", "concept",
                                    paste0(str_trunc(names(b5_vars)[1:5], 5, ellipsis = ""), "_sqdiff"))], 
                        use = "pairwise.complete.obs")
-rownames(cormat_sqtraits_sb_t2) <- c("Life Satisfaction", "Meaning in Life", "Self-Esteem" , "Self Concept Clarity", 
+rownames(cormat_sqtraits_sb_t2) <- c("Life Satisfaction", "Meaning in Life", "Search for Meaning", "Self-Esteem" , "Self Concept Clarity", 
                                str_to_title(names(b5_vars)[1:5]))
-colnames(cormat_sqtraits_sb_t2) <- c("Life Satisfaction", "Meaning in Life", "Self-Esteem" , "Self Concept Clarity", 
+colnames(cormat_sqtraits_sb_t2) <- c("Life Satisfaction", "Meaning in Life", "Search for Meaning", "Self-Esteem" , "Self Concept Clarity", 
                                str_to_title(names(b5_vars)[1:5]))
 
-cormat_sqtraits_sa_t2 <- cor((df_sbsa2 %>% filter(rando=="Self-Acceptance" & time==2))[, c("swls", "meaning", "selfes", "concept",
+cormat_sqtraits_sa_t2 <- cor((df_sbsa2 %>% filter(rando=="Self-Acceptance" & time==2))[, c("swls", "meaning", "search", "selfes", "concept",
                                    paste0(str_trunc(names(b5_vars)[1:5], 5, ellipsis = ""), "_sqdiff"))], 
                        use = "pairwise.complete.obs")
-rownames(cormat_sqtraits_sa_t2) <- c("Life Satisfaction", "Meaning in Life", "Self-Esteem" , "Self Concept Clarity", 
+rownames(cormat_sqtraits_sa_t2) <- c("Life Satisfaction", "Meaning in Life", "Search for Meaning", "Self-Esteem" , "Self Concept Clarity", 
                                str_to_title(names(b5_vars)[1:5]))
-colnames(cormat_sqtraits_sa_t2) <- c("Life Satisfaction", "Meaning in Life", "Self-Esteem" , "Self Concept Clarity", 
+colnames(cormat_sqtraits_sa_t2) <- c("Life Satisfaction", "Meaning in Life", "Search for Meaning", "Self-Esteem" , "Self Concept Clarity", 
                                str_to_title(names(b5_vars)[1:5]))
 
 # T3
-cormat_sqtraits_sb_t3 <- cor((df_sbsa2 %>% filter(rando=="Self-Improvement" & time==3))[, c("swls", "meaning", "selfes", "concept",
+cormat_sqtraits_sb_t3 <- cor((df_sbsa2 %>% filter(rando=="Self-Improvement" & time==3))[, c("swls", "meaning", "search", "selfes", "concept",
                                    paste0(str_trunc(names(b5_vars)[1:5], 5, ellipsis = ""), "_sqdiff"))], 
                        use = "pairwise.complete.obs")
-rownames(cormat_sqtraits_sb_t3) <- c("Life Satisfaction", "Meaning in Life", "Self-Esteem" , "Self Concept Clarity", 
+rownames(cormat_sqtraits_sb_t3) <- c("Life Satisfaction", "Meaning in Life", "Search for Meaning", "Self-Esteem" , "Self Concept Clarity", 
                                str_to_title(names(b5_vars)[1:5]))
-colnames(cormat_sqtraits_sb_t3) <- c("Life Satisfaction", "Meaning in Life", "Self-Esteem" , "Self Concept Clarity", 
+colnames(cormat_sqtraits_sb_t3) <- c("Life Satisfaction", "Meaning in Life", "Search for Meaning", "Self-Esteem" , "Self Concept Clarity", 
                                str_to_title(names(b5_vars)[1:5]))
 
-cormat_sqtraits_sa_t3 <- cor((df_sbsa2 %>% filter(rando=="Self-Acceptance" & time==3))[, c("swls", "meaning", "selfes", "concept",
+cormat_sqtraits_sa_t3 <- cor((df_sbsa2 %>% filter(rando=="Self-Acceptance" & time==3))[, c("swls", "meaning", "search", "selfes", "concept",
                                    paste0(str_trunc(names(b5_vars)[1:5], 5, ellipsis = ""), "_sqdiff"))], 
                        use = "pairwise.complete.obs")
-rownames(cormat_sqtraits_sa_t3) <- c("Life Satisfaction", "Meaning in Life", "Self-Esteem" , "Self Concept Clarity", 
+rownames(cormat_sqtraits_sa_t3) <- c("Life Satisfaction", "Meaning in Life", "Search for Meaning", "Self-Esteem" , "Self Concept Clarity", 
                                str_to_title(names(b5_vars)[1:5]))
-colnames(cormat_sqtraits_sa_t3) <- c("Life Satisfaction", "Meaning in Life", "Self-Esteem" , "Self Concept Clarity", 
+colnames(cormat_sqtraits_sa_t3) <- c("Life Satisfaction", "Meaning in Life", "Search for Meaning", "Self-Esteem" , "Self Concept Clarity", 
                                str_to_title(names(b5_vars)[1:5]))
 ```
 
@@ -7515,6 +7718,8 @@ Life satisfaction changes in the control group significantly at positively (at *
 
 ##### Meaning in life
 
+For the 5-item subscale presence of meaning in life.  
+
 Fit model:
 ```{r}
 #| echo: true
@@ -7528,8 +7733,8 @@ Fit model:
 
 # Fit the multiple indicator Univariate Latent Change Score model
 mi_lcs_meaning_hyp2 <- '
-meaning_t1 =~ 1*meaning_par1_t1 + lamb2*meaning_par2_t1 + lamb3*meaning_par3_t1 # This specifies the measurement model for meaning_t1 
-meaning_t2 =~ 1*meaning_par1_t2 + lamb2*meaning_par2_t2 + lamb3*meaning_par3_t2 # This specifies the measurement model for meaning_t2 with the equality constrained factor loadings
+meaning_t1 =~ 1*ml01_01_t1 + lamb2*ml01_04_t1 + lamb3*ml01_05_t1 + lamb4*ml01_06_t1 + lamb5*ml01_09_t1 # This specifies the measurement model for meaning_t1 
+meaning_t2 =~ 1*ml01_01_t2 + lamb2*ml01_04_t2 + lamb3*ml01_05_t2 + lamb4*ml01_06_t2 + lamb5*ml01_09_t2 # This specifies the measurement model for meaning_t2 with the equality constrained factor loadings
 
 meaning_t2 ~ 1*meaning_t1     # This parameter regresses meaning_t2 perfectly on meaning_t1
 d_meaning_1 =~ 1*meaning_t2   # This defines the latent change score factor as measured perfectly by scores on meaning_t2
@@ -7540,29 +7745,39 @@ d_meaning_1 ~ 1              # This estimates the intercept of the change score
 meaning_t1 ~ 1               # This estimates the intercept of meaning_t1 
 d_meaning_1 ~~ d_meaning_1   # This estimates the variance of the change scores 
 meaning_t1 ~~ meaning_t1     # This estimates the variance of the meaning_t1 
-meaning_t1 ~~ d_meaning_1     # This estimates the self-feedback parameter, as a covariance! -> therefore, the interpretation of the change score remains unconditional
+d_meaning_1 ~~ meaning_t1     # This estimates the self-feedback parameter, as a covariance! -> therefore, the interpretation of the change score remains unconditional
 
-meaning_par1_t1 ~~ meaning_par1_t2   # This allows residual covariance on indicator X1 across T1 and T2
-meaning_par2_t1 ~~ meaning_par2_t2   # This allows residual covariance on indicator X2 across T1 and T2
-meaning_par3_t1 ~~ meaning_par3_t2   # This allows residual covariance on indicator X3 across T1 and T2
+ml01_01_t1 ~~ ml01_01_t2   # This allows residual covariance on indicator X1 across T1 and T2
+ml01_04_t1 ~~ ml01_04_t2   # This allows residual covariance on indicator X2 across T1 and T2
+ml01_05_t1 ~~ ml01_05_t2   # This allows residual covariance on indicator X3 across T1 and T2
+ml01_06_t1 ~~ ml01_06_t2   # This allows residual covariance on indicator X4 across T1 and T2
+ml01_09_t1 ~~ ml01_09_t2   # This allows residual covariance on indicator X5 across T1 and T2
 
-meaning_par1_t1 ~~ res1*meaning_par1_t1   # This allows residual variance on indicator X1 at T1 
-meaning_par2_t1 ~~ res2*meaning_par2_t1   # This allows residual variance on indicator X2 at T1
-meaning_par3_t1 ~~ res3*meaning_par3_t1   # This allows residual variance on indicator X3 at T1
+ml01_01_t1 ~~ res1*ml01_01_t1   # This allows residual variance on indicator X1 at T1 
+ml01_04_t1 ~~ res2*ml01_04_t1   # This allows residual variance on indicator X2 at T1
+ml01_05_t1 ~~ res3*ml01_05_t1   # This allows residual variance on indicator X3 at T1
+ml01_06_t1 ~~ res4*ml01_06_t1   # This allows residual variance on indicator X4 at T1
+ml01_09_t1 ~~ res5*ml01_09_t1   # This allows residual variance on indicator X5 at T1
 
-meaning_par1_t2 ~~ res1*meaning_par1_t2  # This allows residual variance on indicator X1 at T2 
-meaning_par2_t2 ~~ res2*meaning_par2_t2  # This allows residual variance on indicator X2 at T2 
-meaning_par3_t2 ~~ res3*meaning_par3_t2  # This allows residual variance on indicator X3 at T2
+ml01_01_t2 ~~ res1*ml01_01_t2  # This allows residual variance on indicator X1 at T2 
+ml01_04_t2 ~~ res2*ml01_04_t2  # This allows residual variance on indicator X2 at T2 
+ml01_05_t2 ~~ res3*ml01_05_t2  # This allows residual variance on indicator X3 at T2
+ml01_06_t2 ~~ res4*ml01_06_t2  # This allows residual variance on indicator X4 at T2
+ml01_09_t2 ~~ res5*ml01_09_t2  # This allows residual variance on indicator X5 at T2
 
-meaning_par1_t1 ~ 0*1      # This constrains the intercept of X1 to 0 at T1
-meaning_par2_t1 ~ m2*1     # This estimates the intercept of X2 at T1
-meaning_par3_t1 ~ m3*1     # This estimates the intercept of X3 at T1
+ml01_01_t1 ~ 0*1      # This constrains the intercept of X1 to 0 at T1
+ml01_04_t1 ~ m2*1     # This estimates the intercept of X2 at T1
+ml01_05_t1 ~ m3*1     # This estimates the intercept of X3 at T1
+ml01_06_t1 ~ m4*1     # This estimates the intercept of X4 at T1
+ml01_09_t1 ~ m5*1     # This estimates the intercept of X5 at T1
 
-meaning_par1_t2 ~ 0*1      # This constrains the intercept of X1 to 0 at T2
-meaning_par2_t2 ~ m2*1     # This estimates the intercept of X2 at T2
-meaning_par3_t2 ~ m3*1     # This estimates the intercept of X3 at T2
+ml01_01_t2 ~ 0*1      # This constrains the intercept of X1 to 0 at T2
+ml01_04_t2 ~ m2*1     # This estimates the intercept of X2 at T2
+ml01_05_t2 ~ m3*1     # This estimates the intercept of X3 at T2
+ml01_06_t2 ~ m4*1     # This estimates the intercept of X4 at T2
+ml01_09_t2 ~ m5*1     # This estimates the intercept of X5 at T2
 '
-fit_mi_lcs_meaning_hyp2 <- lavaan(mi_lcs_meaning_hyp2, data=df_sbsa2_wide_wb %>% filter(rando!="Waitlist-Control"), estimator='mlr', fixed.x=FALSE, missing='fiml')
+fit_mi_lcs_meaning_hyp2 <- lavaan(mi_lcs_meaning_hyp2, data=df_sbsa2_wide_wb, estimator='mlr', fixed.x=FALSE, missing='fiml')
 summary(fit_mi_lcs_meaning_hyp2, fit.measures=TRUE, standardized=TRUE, rsquare=F)
 ```
 
@@ -7587,7 +7802,7 @@ kable(params_lcs_meaning_hyp2, digits = 3)
 ```
 
 ::: {.callout-note appearance="minimal"}
-Participants improved significantly in meaning in life across time, *b* = `r round(params_lcs_meaning_hyp2 %>% filter(term=="d_meaning_1 ~1 ") %>% pull(estimate), 3)`, *beta* = `r round(params_lcs_meaning_hyp2 %>% filter(term=="d_meaning_1 ~1 ") %>% pull(estimate) / (sd_wb_st2 %>% filter(trait=="meaning" & time==1) %>% pull(sd_trait)), 3)`, *p* = `r round(params_lcs_meaning_hyp2 %>% filter(term=="d_meaning_1 ~1 ") %>% pull(p.value), 3)`. 
+Participants improved significantly in meaning in life across time, *b* = `r round(params_lcs_meaning_hyp2 %>% filter(term=="d_meaning_1 ~1 ") %>% pull(estimate), 3)`, *beta* = `r round(params_lcs_meaning_hyp2 %>% filter(term=="d_meaning_1 ~1 ") %>% pull(estimate) / (sd_wb_st2 %>% filter(trait=="meaning" & time==1) %>% pull(sd_trait)), 3)`, *p* = `r round(params_lcs_meaning_hyp2 %>% filter(term=="d_meaning_1 ~1 ") %>% pull(p.value), 3)`.  
 :::
 
 What happens in the waitlist control group during this time?
@@ -7623,7 +7838,132 @@ kable(params_lcs_meaning_hyp2_cg, digits = 3)
 ```
 
 ::: {.callout-note appearance="minimal"}
-Meaning increases significantly in the control group, *b* = `r round(params_lcs_meaning_hyp2_cg %>% filter(term=="d_meaning_1 ~1 ") %>% pull(estimate), 3)`, *beta* = `r round(params_lcs_meaning_hyp2_cg %>% filter(term=="d_meaning_1 ~1 ") %>% pull(estimate) / (sd_wb_st2 %>% filter(trait=="meaning" & time==1) %>% pull(sd_trait)), 3)`, *p* = `r round(params_lcs_meaning_hyp2_cg %>% filter(term=="d_meaning_1 ~1 ") %>% pull(p.value), 3)`, with an even stronger effect size than in the intervention groups.  
+Meaning increases significantly in the control group, *b* = `r round(params_lcs_meaning_hyp2_cg %>% filter(term=="d_meaning_1 ~1 ") %>% pull(estimate), 3)`, *beta* = `r round(params_lcs_meaning_hyp2_cg %>% filter(term=="d_meaning_1 ~1 ") %>% pull(estimate) / (sd_wb_st2 %>% filter(trait=="meaning" & time==1) %>% pull(sd_trait)), 3)`, *p* = `r round(params_lcs_meaning_hyp2_cg %>% filter(term=="d_meaning_1 ~1 ") %>% pull(p.value), 3)`, with a highly similar effect size than in the intervention groups.  
+:::
+
+###### Search for Meaning
+
+For the 5-item subscale search for meaning in life.  
+
+Fit model:
+```{r}
+#| echo: true
+#| warning: false
+#| code-fold: true
+#| code-summary: "Show the code"
+#| output: false
+#| cache: true
+
+# Code snippets adapted from Kievit et al. (2018) -- CC-BY -- https://doi.org/10.1016/j.dcn.2017.11.007
+
+# Fit the multiple indicator Univariate Latent Change Score model
+mi_lcs_search_hyp2 <- '
+search_t1 =~ 1*ml01_02_t1 + lamb2*ml01_03_t1 + lamb3*ml01_07_t1 + lamb4*ml01_08_t1 + lamb5*ml01_10_t1 # This specifies the measurement model for search_t1 
+search_t2 =~ 1*ml01_02_t2 + lamb2*ml01_03_t2 + lamb3*ml01_07_t2 + lamb4*ml01_08_t2 + lamb5*ml01_10_t2 # This specifies the measurement model for search_t2 with the equality constrained factor loadings
+
+search_t2 ~ 1*search_t1     # This parameter regresses search_t2 perfectly on search_t1
+d_search_1 =~ 1*search_t2   # This defines the latent change score factor as measured perfectly by scores on search_t2
+search_t2 ~ 0*1              # This line constrains the intercept of search_t2 to 0
+search_t2 ~~ 0*search_t2    # This fixes the variance of search_t2 to 0
+
+d_search_1 ~ 1              # This estimates the intercept of the change score 
+search_t1 ~ 1               # This estimates the intercept of search_t1 
+d_search_1 ~~ d_search_1   # This estimates the variance of the change scores 
+search_t1 ~~ search_t1     # This estimates the variance of the search_t1 
+d_search_1 ~~ search_t1     # This estimates the self-feedback parameter, as a covariance! -> therefore, the interpretation of the change score remains unconditional
+
+ml01_02_t1 ~~ ml01_02_t2   # This allows residual covariance on indicator X1 across T1 and T2
+ml01_03_t1 ~~ ml01_03_t2   # This allows residual covariance on indicator X2 across T1 and T2
+ml01_07_t1 ~~ ml01_07_t2   # This allows residual covariance on indicator X3 across T1 and T2
+ml01_08_t1 ~~ ml01_08_t2   # This allows residual covariance on indicator X4 across T1 and T2
+ml01_10_t1 ~~ ml01_10_t2   # This allows residual covariance on indicator X5 across T1 and T2
+
+ml01_02_t1 ~~ res1*ml01_02_t1   # This allows residual variance on indicator X1 at T1 
+ml01_03_t1 ~~ res2*ml01_03_t1   # This allows residual variance on indicator X2 at T1
+ml01_07_t1 ~~ res3*ml01_07_t1   # This allows residual variance on indicator X3 at T1
+ml01_08_t1 ~~ res4*ml01_08_t1   # This allows residual variance on indicator X4 at T1
+ml01_10_t1 ~~ res5*ml01_10_t1   # This allows residual variance on indicator X5 at T1
+
+ml01_02_t2 ~~ res1*ml01_02_t2  # This allows residual variance on indicator X1 at T2 
+ml01_03_t2 ~~ res2*ml01_03_t2  # This allows residual variance on indicator X2 at T2 
+ml01_07_t2 ~~ res3*ml01_07_t2  # This allows residual variance on indicator X3 at T2
+ml01_08_t2 ~~ res4*ml01_08_t2  # This allows residual variance on indicator X4 at T2
+ml01_10_t2 ~~ res5*ml01_10_t2  # This allows residual variance on indicator X5 at T2
+
+ml01_02_t1 ~ 0*1      # This constrains the intercept of X1 to 0 at T1
+ml01_03_t1 ~ m2*1     # This estimates the intercept of X2 at T1
+ml01_07_t1 ~ m3*1     # This estimates the intercept of X3 at T1
+ml01_08_t1 ~ m4*1     # This estimates the intercept of X4 at T1
+ml01_10_t1 ~ m5*1     # This estimates the intercept of X5 at T1
+
+ml01_02_t2 ~ 0*1      # This constrains the intercept of X1 to 0 at T2
+ml01_03_t2 ~ m2*1     # This estimates the intercept of X2 at T2
+ml01_07_t2 ~ m3*1     # This estimates the intercept of X3 at T2
+ml01_08_t2 ~ m4*1     # This estimates the intercept of X4 at T2
+ml01_10_t2 ~ m5*1     # This estimates the intercept of X5 at T2
+'
+fit_mi_lcs_search_hyp2 <- lavaan(mi_lcs_search_hyp2, data=df_sbsa2_wide_wb, estimator='mlr', fixed.x=FALSE, missing='fiml')
+summary(fit_mi_lcs_search_hyp2, fit.measures=TRUE, standardized=TRUE, rsquare=F)
+```
+
+Results summary:
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+
+# model fit
+kable(broom::glance(fit_mi_lcs_search_hyp2) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+
+# parameters of interest
+params_lcs_search_hyp2 <- broom::tidy(fit_mi_lcs_search_hyp2, conf.int = TRUE, conf.level = 0.999) %>% 
+        select(term, estimate, conf.low, conf.high, std.all, statistic, p.value) %>% 
+        filter(term %in% c("search_t2 ~ search_t1", "d_search_1 =~ search_t2", "search_t1 ~~ d_search_1", # change parameters
+                           "d_search_1 ~1 ", "search_t1 ~1 ", "", # means
+                           "d_search_1 ~~ d_search_1")) # variances
+
+kable(params_lcs_search_hyp2, digits = 3)
+```
+
+::: {.callout-note appearance="minimal"}
+Participants decreased significantly in search for meaning in life across time, *b* = `r round(params_lcs_search_hyp2 %>% filter(term=="d_search_1 ~1 ") %>% pull(estimate), 3)`, *beta* = `r round(params_lcs_search_hyp2 %>% filter(term=="d_search_1 ~1 ") %>% pull(estimate) / (sd_wb_st2 %>% filter(trait=="search" & time==1) %>% pull(sd_trait)), 3)`, *p* = `r round(params_lcs_search_hyp2 %>% filter(term=="d_search_1 ~1 ") %>% pull(p.value), 3)`.  
+:::
+
+What happens in the waitlist control group during this time?
+
+Fit model:
+```{r}
+#| echo: true
+#| warning: false
+#| code-fold: true
+#| code-summary: "Show the code"
+#| output: false
+#| cache: true
+
+fit_mi_lcs_search_hyp2_cg <- lavaan(mi_lcs_search_hyp2, data=df_sbsa2_wide_wb %>% filter(rando=="Waitlist-Control"), estimator='mlr', fixed.x=FALSE, missing='fiml')
+summary(fit_mi_lcs_search_hyp2_cg, fit.measures=TRUE, standardized=TRUE, rsquare=F)
+```
+
+Results summary:
+```{r}
+#| echo: true
+
+# model fit
+kable(broom::glance(fit_mi_lcs_search_hyp2_cg) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+
+# parameters of interest
+params_lcs_search_hyp2_cg <- broom::tidy(fit_mi_lcs_search_hyp2_cg, conf.int = TRUE, conf.level = 0.999) %>% 
+        select(term, estimate, conf.low, conf.high, std.all, statistic, p.value) %>% 
+        filter(term %in% c("search_t2 ~ search_t1", "d_search_1 =~ search_t2", "search_t1 ~~ d_search_1", # change parameters
+                           "d_search_1 ~1 ", "search_t1 ~1 ", "", # means
+                           "d_search_1 ~~ d_search_1")) # variances
+kable(params_lcs_search_hyp2_cg, digits = 3)
+```
+
+::: {.callout-note appearance="minimal"}
+Search for meaning decreases significantly in the control group, *b* = `r round(params_lcs_search_hyp2_cg %>% filter(term=="d_search_1 ~1 ") %>% pull(estimate), 3)`, *beta* = `r round(params_lcs_search_hyp2_cg %>% filter(term=="d_search_1 ~1 ") %>% pull(estimate) / (sd_wb_st2 %>% filter(trait=="search" & time==1) %>% pull(sd_trait)), 3)`, *p* = `r round(params_lcs_search_hyp2_cg %>% filter(term=="d_search_1 ~1 ") %>% pull(p.value), 3)`, with a similar effect size than in the intervention groups.  
 :::
 
 ##### Self-esteem
@@ -7948,8 +8288,8 @@ Fit model:
 
 # Fit the multiple indicator Univariate Latent Change Score model
 mi_lcs_meaning_hyp2_fu <- '
-meaning_t2 =~ 1*meaning_par1_t2 + lamb2*meaning_par2_t2 + lamb3*meaning_par3_t2 # This specifies the measurement model for meaning_t2 
-meaning_t3 =~ 1*meaning_par1_t3 + lamb2*meaning_par2_t3 + lamb3*meaning_par3_t3 # This specifies the measurement model for meaning_t3 with the equality constrained factor loadings
+meaning_t2 =~ 1*ml01_01_t2 + lamb2*ml01_04_t2 + lamb3*ml01_05_t2 + lamb4*ml01_06_t2 + lamb5*ml01_09_t2 # This specifies the measurement model for meaning_t2 
+meaning_t3 =~ 1*ml01_01_t3 + lamb2*ml01_04_t3 + lamb3*ml01_05_t3 + lamb4*ml01_06_t3 + lamb5*ml01_09_t3 # This specifies the measurement model for meaning_t3 with the equality constrained factor loadings
 
 meaning_t3 ~ 1*meaning_t2     # This parameter regresses meaning_t3 perfectly on meaning_t2
 d_meaning_1 =~ 1*meaning_t3   # This defines the latent change score factor as measured perfectly by scores on meaning_t3
@@ -7960,27 +8300,37 @@ d_meaning_1 ~ 1              # This estimates the intercept of the change score
 meaning_t2 ~ 1               # This estimates the intercept of meaning_t2 
 d_meaning_1 ~~ d_meaning_1   # This estimates the variance of the change scores 
 meaning_t2 ~~ meaning_t2     # This estimates the variance of the meaning_t2 
-meaning_t2 ~~ d_meaning_1     # This estimates the self-feedback parameter, as a covariance! -> therefore, the interpretation of the change score remains unconditional
+d_meaning_1 ~~ meaning_t2     # This estimates the self-feedback parameter, as a covariance! -> therefore, the interpretation of the change score remains unconditional
 
-meaning_par1_t2 ~~ meaning_par1_t3   # This allows residual covariance on indicator X1 across T1 and T2
-meaning_par2_t2 ~~ meaning_par2_t3   # This allows residual covariance on indicator X2 across T1 and T2
-meaning_par3_t2 ~~ meaning_par3_t3   # This allows residual covariance on indicator X3 across T1 and T2
+ml01_01_t2 ~~ ml01_01_t3   # This allows residual covariance on indicator X1 across T1 and T2
+ml01_04_t2 ~~ ml01_04_t3   # This allows residual covariance on indicator X2 across T1 and T2
+ml01_05_t2 ~~ ml01_05_t3   # This allows residual covariance on indicator X3 across T1 and T2
+ml01_06_t2 ~~ ml01_06_t3   # This allows residual covariance on indicator X4 across T1 and T2
+ml01_09_t2 ~~ ml01_09_t3   # This allows residual covariance on indicator X5 across T1 and T2
 
-meaning_par1_t2 ~~ res1*meaning_par1_t2   # This allows residual variance on indicator X1 at T1 
-meaning_par2_t2 ~~ res2*meaning_par2_t2   # This allows residual variance on indicator X2 at T1
-meaning_par3_t2 ~~ res3*meaning_par3_t2   # This allows residual variance on indicator X3 at T1
+ml01_01_t2 ~~ res1*ml01_01_t2   # This allows residual variance on indicator X1 at T1 
+ml01_04_t2 ~~ res2*ml01_04_t2   # This allows residual variance on indicator X2 at T1
+ml01_05_t2 ~~ res3*ml01_05_t2   # This allows residual variance on indicator X3 at T1
+ml01_06_t2 ~~ res4*ml01_06_t2   # This allows residual variance on indicator X4 at T1
+ml01_09_t2 ~~ res5*ml01_09_t2   # This allows residual variance on indicator X5 at T1
 
-meaning_par1_t3 ~~ res1*meaning_par1_t3  # This allows residual variance on indicator X1 at T2 
-meaning_par2_t3 ~~ res2*meaning_par2_t3  # This allows residual variance on indicator X2 at T2 
-meaning_par3_t3 ~~ res3*meaning_par3_t3  # This allows residual variance on indicator X3 at T2
+ml01_01_t3 ~~ res1*ml01_01_t3  # This allows residual variance on indicator X1 at T2 
+ml01_04_t3 ~~ res2*ml01_04_t3  # This allows residual variance on indicator X2 at T2 
+ml01_05_t3 ~~ res3*ml01_05_t3  # This allows residual variance on indicator X3 at T2
+ml01_06_t3 ~~ res4*ml01_06_t3  # This allows residual variance on indicator X4 at T2
+ml01_09_t3 ~~ res5*ml01_09_t3  # This allows residual variance on indicator X5 at T2
 
-meaning_par1_t2 ~ 0*1      # This constrains the intercept of X1 to 0 at T1
-meaning_par2_t2 ~ m2*1     # This estimates the intercept of X2 at T1
-meaning_par3_t2 ~ m3*1     # This estimates the intercept of X3 at T1
+ml01_01_t2 ~ 0*1      # This constrains the intercept of X1 to 0 at T1
+ml01_04_t2 ~ m2*1     # This estimates the intercept of X2 at T1
+ml01_05_t2 ~ m3*1     # This estimates the intercept of X3 at T1
+ml01_06_t2 ~ m4*1     # This estimates the intercept of X4 at T1
+ml01_09_t2 ~ m5*1     # This estimates the intercept of X5 at T1
 
-meaning_par1_t3 ~ 0*1      # This constrains the intercept of X1 to 0 at T2
-meaning_par2_t3 ~ m2*1     # This estimates the intercept of X2 at T2
-meaning_par3_t3 ~ m3*1     # This estimates the intercept of X3 at T2
+ml01_01_t3 ~ 0*1      # This constrains the intercept of X1 to 0 at T2
+ml01_04_t3 ~ m2*1     # This estimates the intercept of X2 at T2
+ml01_05_t3 ~ m3*1     # This estimates the intercept of X3 at T2
+ml01_06_t3 ~ m4*1     # This estimates the intercept of X4 at T2
+ml01_09_t3 ~ m5*1     # This estimates the intercept of X5 at T2
 '
 fit_mi_lcs_meaning_hyp2_fu <- lavaan(mi_lcs_meaning_hyp2_fu, data=df_sbsa2_wide_wb %>% filter(rando!="Waitlist-Control"), estimator='mlr', fixed.x=FALSE, missing='fiml')
 summary(fit_mi_lcs_meaning_hyp2_fu, fit.measures=TRUE, standardized=TRUE, rsquare=F)
@@ -8008,6 +8358,95 @@ kable(params_lcs_meaning_hyp2_fu, digits = 3)
 
 ::: {.callout-note appearance="minimal"}
 Meaning in life further increased from T2 to the T3 follow up, *b* = `r round(params_lcs_meaning_hyp2_fu %>% filter(term=="d_meaning_1 ~1 ") %>% pull(estimate), 3)`, *beta* = `r round(params_lcs_meaning_hyp2_fu %>% filter(term=="d_meaning_1 ~1 ") %>% pull(estimate) / (sd_wb_st2 %>% filter(trait=="meaning" & time==1) %>% pull(sd_trait)), 3)`, *p* = `r round(params_lcs_meaning_hyp2_fu %>% filter(term=="d_meaning_1 ~1 ") %>% pull(p.value), 3)`.  
+:::
+
+###### Search for Meaning
+
+For the 5-item subscale search for meaning in life.  
+
+Fit model:
+```{r}
+#| echo: true
+#| warning: false
+#| code-fold: true
+#| code-summary: "Show the code"
+#| output: false
+#| cache: true
+
+# Code snippets adapted from Kievit et al. (2018) -- CC-BY -- https://doi.org/10.1016/j.dcn.2017.11.007
+
+# Fit the multiple indicator Univariate Latent Change Score model
+mi_lcs_search_hyp2_fu <- '
+search_t2 =~ 1*ml01_02_t2 + lamb2*ml01_03_t2 + lamb3*ml01_07_t2 + lamb4*ml01_08_t2 + lamb5*ml01_10_t2 # This specifies the measurement model for search_t2 
+search_t3 =~ 1*ml01_02_t3 + lamb2*ml01_03_t3 + lamb3*ml01_07_t3 + lamb4*ml01_08_t3 + lamb5*ml01_10_t3 # This specifies the measurement model for search_t3 with the equality constrained factor loadings
+
+search_t3 ~ 1*search_t2     # This parameter regresses search_t3 perfectly on search_t2
+d_search_1 =~ 1*search_t3   # This defines the latent change score factor as measured perfectly by scores on search_t3
+search_t3 ~ 0*1              # This line constrains the intercept of search_t3 to 0
+search_t3 ~~ 0*search_t3    # This fixes the variance of search_t3 to 0
+
+d_search_1 ~ 1              # This estimates the intercept of the change score 
+search_t2 ~ 1               # This estimates the intercept of search_t2 
+d_search_1 ~~ d_search_1   # This estimates the variance of the change scores 
+search_t2 ~~ search_t2     # This estimates the variance of the search_t2 
+d_search_1 ~~ search_t2     # This estimates the self-feedback parameter, as a covariance! -> therefore, the interpretation of the change score remains unconditional
+
+ml01_02_t2 ~~ ml01_02_t3   # This allows residual covariance on indicator X1 across T1 and T2
+ml01_03_t2 ~~ ml01_03_t3   # This allows residual covariance on indicator X2 across T1 and T2
+ml01_07_t2 ~~ ml01_07_t3   # This allows residual covariance on indicator X3 across T1 and T2
+ml01_08_t2 ~~ ml01_08_t3   # This allows residual covariance on indicator X4 across T1 and T2
+ml01_10_t2 ~~ ml01_10_t3   # This allows residual covariance on indicator X5 across T1 and T2
+
+ml01_02_t2 ~~ res1*ml01_02_t2   # This allows residual variance on indicator X1 at T1 
+ml01_03_t2 ~~ res2*ml01_03_t2   # This allows residual variance on indicator X2 at T1
+ml01_07_t2 ~~ res3*ml01_07_t2   # This allows residual variance on indicator X3 at T1
+ml01_08_t2 ~~ res4*ml01_08_t2   # This allows residual variance on indicator X4 at T1
+ml01_10_t2 ~~ res5*ml01_10_t2   # This allows residual variance on indicator X5 at T1
+
+ml01_02_t3 ~~ res1*ml01_02_t3  # This allows residual variance on indicator X1 at T2 
+ml01_03_t3 ~~ res2*ml01_03_t3  # This allows residual variance on indicator X2 at T2 
+ml01_07_t3 ~~ res3*ml01_07_t3  # This allows residual variance on indicator X3 at T2
+ml01_08_t3 ~~ res4*ml01_08_t3  # This allows residual variance on indicator X4 at T2
+ml01_10_t3 ~~ res5*ml01_10_t3  # This allows residual variance on indicator X5 at T2
+
+ml01_02_t2 ~ 0*1      # This constrains the intercept of X1 to 0 at T1
+ml01_03_t2 ~ m2*1     # This estimates the intercept of X2 at T1
+ml01_07_t2 ~ m3*1     # This estimates the intercept of X3 at T1
+ml01_08_t2 ~ m4*1     # This estimates the intercept of X4 at T1
+ml01_10_t2 ~ m5*1     # This estimates the intercept of X5 at T1
+
+ml01_02_t3 ~ 0*1      # This constrains the intercept of X1 to 0 at T2
+ml01_03_t3 ~ m2*1     # This estimates the intercept of X2 at T2
+ml01_07_t3 ~ m3*1     # This estimates the intercept of X3 at T2
+ml01_08_t3 ~ m4*1     # This estimates the intercept of X4 at T2
+ml01_10_t3 ~ m5*1     # This estimates the intercept of X5 at T2
+'
+fit_mi_lcs_search_hyp2_fu <- lavaan(mi_lcs_search_hyp2_fu, data=df_sbsa2_wide_wb %>% filter(rando!="Waitlist-Control"), estimator='mlr', fixed.x=FALSE, missing='fiml')
+summary(fit_mi_lcs_search_hyp2_fu, fit.measures=TRUE, standardized=TRUE, rsquare=F)
+```
+
+Results summary:
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+
+# model fit
+kable(broom::glance(fit_mi_lcs_search_hyp2_fu) %>% 
+        select(nobs, npar, AIC, BIC, cfi, rmsea, srmr), digits = 3)
+
+# parameters of interest
+params_lcs_search_hyp2_fu <- broom::tidy(fit_mi_lcs_search_hyp2_fu, conf.int = TRUE, conf.level = 0.999) %>% 
+        select(term, estimate, conf.low, conf.high, std.all, statistic, p.value) %>% 
+        filter(term %in% c("search_t3 ~ search_t2", "d_search_1 =~ search_t3", "search_t2 ~~ d_search_1", # change parameters
+                           "d_search_1 ~1 ", "search_t2 ~1 ", "", # means
+                           "d_search_1 ~~ d_search_1")) # variances
+
+kable(params_lcs_search_hyp2_fu, digits = 3)
+```
+
+::: {.callout-note appearance="minimal"}
+Search for meaning further decreased from T2 to the T3 follow up, *b* = `r round(params_lcs_search_hyp2_fu %>% filter(term=="d_search_1 ~1 ") %>% pull(estimate), 3)`, *beta* = `r round(params_lcs_search_hyp2_fu %>% filter(term=="d_search_1 ~1 ") %>% pull(estimate) / (sd_wb_st2 %>% filter(trait=="search" & time==1) %>% pull(sd_trait)), 3)`, *p* = `r round(params_lcs_search_hyp2_fu %>% filter(term=="d_search_1 ~1 ") %>% pull(p.value), 3)`.  
 :::
 
 ##### Self-esteem
@@ -25151,7 +25590,7 @@ summary(lcs_swls_group_weak, fit.measures=TRUE, standardized=TRUE, rsquare=F)
 
 ##### Meaning in life
 
-Meaning in life: fitting multi-group models
+Meaning in life: fitting multi-group models (based on the 5-item subscale presence of meaning in life)
 ```{r}
 #| echo: true
 #| warning: false
@@ -25164,8 +25603,8 @@ Meaning in life: fitting multi-group models
 
 # configural invariance
 mi_lcs_meaning_group_config <- '
-meaning_t1 =~ 1*meaning_par1_t1 + c("lamb2a", "lamb2b")*meaning_par2_t1 + c("lamb3a", "lamb3b")*meaning_par3_t1 # This specifies the measurement model for meaning_t1 
-meaning_t2 =~ 1*meaning_par1_t2 + c("lamb2a", "lamb2b")*meaning_par2_t2 + c("lamb3a", "lamb3b")*meaning_par3_t2 # This specifies the measurement model for meaning_t2 with the equality constrained factor loadings
+meaning_t1 =~ 1*ml01_01_t1 + c("lamb2a", "lamb2b")*ml01_04_t1 + c("lamb3a", "lamb3b")*ml01_05_t1 + c("lamb4a", "lamb4b")*ml01_06_t1 + c("lamb5a", "lamb5b")*ml01_09_t1 # This specifies the measurement model for meaning_t1 
+meaning_t2 =~ 1*ml01_01_t2 + c("lamb2a", "lamb2b")*ml01_04_t2 + c("lamb3a", "lamb3b")*ml01_05_t2 + c("lamb4a", "lamb4b")*ml01_06_t2 + c("lamb5a", "lamb5b")*ml01_09_t2 # This specifies the measurement model for meaning_t2 with the equality constrained factor loadings
 
 meaning_t2 ~ 1*meaning_t1     # This parameter regresses meaning_t2 perfectly on meaning_t1
 d_meaning_1 =~ 1*meaning_t2   # This defines the latent change score factor as measured perfectly by scores on meaning_t2
@@ -25176,35 +25615,45 @@ d_meaning_1 ~ c("d_int_a", "d_int_b")*1           # This estimates the intercept
 meaning_t1 ~ c("wb_int_a", "wb_int_b")*1            # This estimates the intercept of meaning_t1 
 d_meaning_1 ~~ c("d_var_a", "d_var_b")*d_meaning_1   # This estimates the variance of the change scores 
 meaning_t1 ~~ c("wb_var_a", "wb_var_b")*meaning_t1     # This estimates the variance of the meaning_t1 
-d_meaning_1 ~~ c("fb_a", "fb_b")*meaning_t1     # This estimates the self-feedback parameter, as a covariance! -> therefore, the interpretation of the change score remains unconditional
+d_meaning_1 ~~ c("fb_a", "fb_b")*meaning_t1     # This estimates the self-feedback parameter, as a covariance! -> therefore, the interpretation of the change score
 
-meaning_par1_t1 ~~ c("cov1a", "cov1b")*meaning_par1_t2   # This allows residual covariance on indicator X1 across T1 and T2
-meaning_par2_t1 ~~ c("cov2a", "cov2b")*meaning_par2_t2   # This allows residual covariance on indicator X2 across T1 and T2
-meaning_par3_t1 ~~ c("cov3a", "cov3b")*meaning_par3_t2   # This allows residual covariance on indicator X3 across T1 and T2
+ml01_01_t1 ~~ c("cov1a", "cov1b")*ml01_01_t2   # This allows residual covariance on indicator X1 across T1 and T2
+ml01_04_t1 ~~ c("cov2a", "cov2b")*ml01_04_t2   # This allows residual covariance on indicator X2 across T1 and T2
+ml01_05_t1 ~~ c("cov3a", "cov3b")*ml01_05_t2   # This allows residual covariance on indicator X3 across T1 and T2
+ml01_06_t1 ~~ c("cov4a", "cov4b")*ml01_06_t2   # This allows residual covariance on indicator X4 across T1 and T2
+ml01_09_t1 ~~ c("cov5a", "cov5b")*ml01_09_t2   # This allows residual covariance on indicator X5 across T1 and T2
 
-meaning_par1_t1 ~~ c("res1a", "res1b")*meaning_par1_t1   # This allows residual variance on indicator X1 at T1 
-meaning_par2_t1 ~~ c("res2a", "res2b")*meaning_par2_t1   # This allows residual variance on indicator X2 at T1
-meaning_par3_t1 ~~ c("res3a", "res3b")*meaning_par3_t1   # This allows residual variance on indicator X3 at T1
+ml01_01_t1 ~~ c("res1a", "res1b")*ml01_01_t1   # This allows residual variance on indicator X1 at T1 
+ml01_04_t1 ~~ c("res2a", "res2b")*ml01_04_t1   # This allows residual variance on indicator X2 at T1
+ml01_05_t1 ~~ c("res3a", "res3b")*ml01_05_t1   # This allows residual variance on indicator X3 at T1
+ml01_06_t1 ~~ c("res4a", "res4b")*ml01_06_t1   # This allows residual variance on indicator X4 at T1
+ml01_09_t1 ~~ c("res5a", "res5b")*ml01_09_t1   # This allows residual variance on indicator X5 at T1
 
-meaning_par1_t2 ~~ c("res1a", "res1b")*meaning_par1_t2  # This allows residual variance on indicator X1 at T2 
-meaning_par2_t2 ~~ c("res2a", "res2b")*meaning_par2_t2  # This allows residual variance on indicator X2 at T2 
-meaning_par3_t2 ~~ c("res3a", "res3b")*meaning_par3_t2  # This allows residual variance on indicator X3 at T2
+ml01_01_t2 ~~ c("res1a", "res1b")*ml01_01_t2  # This allows residual variance on indicator X1 at T2 
+ml01_04_t2 ~~ c("res2a", "res2b")*ml01_04_t2  # This allows residual variance on indicator X2 at T2 
+ml01_05_t2 ~~ c("res3a", "res3b")*ml01_05_t2  # This allows residual variance on indicator X3 at T2
+ml01_06_t2 ~~ c("res4a", "res4b")*ml01_06_t2  # This allows residual variance on indicator X4 at T2
+ml01_09_t2 ~~ c("res5a", "res5b")*ml01_09_t2  # This allows residual variance on indicator X5 at T2
 
-meaning_par1_t1 ~ 0*1      # This constrains the intercept of X1 to 0 at T1
-meaning_par2_t1 ~ c("m2a", "m2b")*1     # This estimates the intercept of X2 at T1
-meaning_par3_t1 ~ c("m3a", "m3b")*1     # This estimates the intercept of X3 at T1
+ml01_01_t1 ~ 0*1      # This constrains the intercept of X1 to 0 at T1
+ml01_04_t1 ~ c("m2a", "m2b")*1     # This estimates the intercept of X2 at T1
+ml01_05_t1 ~ c("m3a", "m3b")*1     # This estimates the intercept of X3 at T1
+ml01_06_t1 ~ c("m4a", "m4b")*1     # This estimates the intercept of X4 at T1
+ml01_09_t1 ~ c("m5a", "m5b")*1     # This estimates the intercept of X5 at T1
 
-meaning_par1_t2 ~ 0*1      # This constrains the intercept of X1 to 0 at T2
-meaning_par2_t2 ~ c("m2a", "m2b")*1     # This estimates the intercept of X2 at T2
-meaning_par3_t2 ~ c("m3a", "m3b")*1     # This estimates the intercept of X3 at T2
+ml01_01_t2 ~ 0*1      # This constrains the intercept of X1 to 0 at T2
+ml01_04_t2 ~ c("m2a", "m2b")*1     # This estimates the intercept of X2 at T2
+ml01_05_t2 ~ c("m3a", "m3b")*1     # This estimates the intercept of X3 at T2
+ml01_06_t2 ~ c("m4a", "m4b")*1     # This estimates the intercept of X4 at T2
+ml01_09_t2 ~ c("m5a", "m5b")*1     # This estimates the intercept of X5 at T2
 '
 lcs_meaning_group_config <- sem(mi_lcs_meaning_group_config, data=df_sbsa2_wide_wb %>% filter(rando!="Waitlist-Control"), estimator='mlr', 
                                 fixed.x=FALSE, missing='fiml', group = "rando")
 
 # weak invariance
 mi_lcs_meaning_group_weak <- '
-meaning_t1 =~ 1*meaning_par1_t1 + c("lamb2", "lamb2")*meaning_par2_t1 + c("lamb3", "lamb3")*meaning_par3_t1 # This specifies the measurement model for meaning_t1 
-meaning_t2 =~ 1*meaning_par1_t2 + c("lamb2", "lamb2")*meaning_par2_t2 + c("lamb3", "lamb3")*meaning_par3_t2 # This specifies the measurement model for meaning_t2 with the equality constrained factor loadings
+meaning_t1 =~ 1*ml01_01_t1 + c("lamb2", "lamb2")*ml01_04_t1 + c("lamb3", "lamb3")*ml01_05_t1 + c("lamb4", "lamb4")*ml01_06_t1 + c("lamb5", "lamb5")*ml01_09_t1 # This specifies the measurement model for meaning_t1 
+meaning_t2 =~ 1*ml01_01_t2 + c("lamb2", "lamb2")*ml01_04_t2 + c("lamb3", "lamb3")*ml01_05_t2 + c("lamb4", "lamb4")*ml01_06_t2 + c("lamb5", "lamb5")*ml01_09_t2 # This specifies the measurement model for meaning_t2 with the equality constrained factor loadings
 
 meaning_t2 ~ 1*meaning_t1     # This parameter regresses meaning_t2 perfectly on meaning_t1
 d_meaning_1 =~ 1*meaning_t2   # This defines the latent change score factor as measured perfectly by scores on meaning_t2
@@ -25215,27 +25664,37 @@ d_meaning_1 ~ c("d_int_a", "d_int_b")*1           # This estimates the intercept
 meaning_t1 ~ c("wb_int_a", "wb_int_b")*1            # This estimates the intercept of meaning_t1 
 d_meaning_1 ~~ c("d_var_a", "d_var_b")*d_meaning_1   # This estimates the variance of the change scores 
 meaning_t1 ~~ c("wb_var_a", "wb_var_b")*meaning_t1     # This estimates the variance of the meaning_t1 
-d_meaning_1 ~~ c("fb_a", "fb_b")*meaning_t1     # This estimates the self-feedback parameter, as a covariance! -> therefore, the interpretation of the change score remains unconditional
+d_meaning_1 ~~ c("fb_a", "fb_b")*meaning_t1     # This estimates the self-feedback parameter, as a covariance! -> therefore, the interpretation of the change score
 
-meaning_par1_t1 ~~ c("cov1a", "cov1b")*meaning_par1_t2   # This allows residual covariance on indicator X1 across T1 and T2
-meaning_par2_t1 ~~ c("cov2a", "cov2b")*meaning_par2_t2   # This allows residual covariance on indicator X2 across T1 and T2
-meaning_par3_t1 ~~ c("cov3a", "cov3b")*meaning_par3_t2   # This allows residual covariance on indicator X3 across T1 and T2
+ml01_01_t1 ~~ c("cov1a", "cov1b")*ml01_01_t2   # This allows residual covariance on indicator X1 across T1 and T2
+ml01_04_t1 ~~ c("cov2a", "cov2b")*ml01_04_t2   # This allows residual covariance on indicator X2 across T1 and T2
+ml01_05_t1 ~~ c("cov3a", "cov3b")*ml01_05_t2   # This allows residual covariance on indicator X3 across T1 and T2
+ml01_06_t1 ~~ c("cov4a", "cov4b")*ml01_06_t2   # This allows residual covariance on indicator X4 across T1 and T2
+ml01_09_t1 ~~ c("cov5a", "cov5b")*ml01_09_t2   # This allows residual covariance on indicator X5 across T1 and T2
 
-meaning_par1_t1 ~~ c("res1a", "res1b")*meaning_par1_t1   # This allows residual variance on indicator X1 at T1 
-meaning_par2_t1 ~~ c("res2a", "res2b")*meaning_par2_t1   # This allows residual variance on indicator X2 at T1
-meaning_par3_t1 ~~ c("res3a", "res3b")*meaning_par3_t1   # This allows residual variance on indicator X3 at T1
+ml01_01_t1 ~~ c("res1a", "res1b")*ml01_01_t1   # This allows residual variance on indicator X1 at T1 
+ml01_04_t1 ~~ c("res2a", "res2b")*ml01_04_t1   # This allows residual variance on indicator X2 at T1
+ml01_05_t1 ~~ c("res3a", "res3b")*ml01_05_t1   # This allows residual variance on indicator X3 at T1
+ml01_06_t1 ~~ c("res4a", "res4b")*ml01_06_t1   # This allows residual variance on indicator X4 at T1
+ml01_09_t1 ~~ c("res5a", "res5b")*ml01_09_t1   # This allows residual variance on indicator X5 at T1
 
-meaning_par1_t2 ~~ c("res1a", "res1b")*meaning_par1_t2  # This allows residual variance on indicator X1 at T2 
-meaning_par2_t2 ~~ c("res2a", "res2b")*meaning_par2_t2  # This allows residual variance on indicator X2 at T2 
-meaning_par3_t2 ~~ c("res3a", "res3b")*meaning_par3_t2  # This allows residual variance on indicator X3 at T2
+ml01_01_t2 ~~ c("res1a", "res1b")*ml01_01_t2  # This allows residual variance on indicator X1 at T2 
+ml01_04_t2 ~~ c("res2a", "res2b")*ml01_04_t2  # This allows residual variance on indicator X2 at T2 
+ml01_05_t2 ~~ c("res3a", "res3b")*ml01_05_t2  # This allows residual variance on indicator X3 at T2
+ml01_06_t2 ~~ c("res4a", "res4b")*ml01_06_t2  # This allows residual variance on indicator X4 at T2
+ml01_09_t2 ~~ c("res5a", "res5b")*ml01_09_t2  # This allows residual variance on indicator X5 at T2
 
-meaning_par1_t1 ~ 0*1      # This constrains the intercept of X1 to 0 at T1
-meaning_par2_t1 ~ c("m2a", "m2b")*1     # This estimates the intercept of X2 at T1
-meaning_par3_t1 ~ c("m3a", "m3b")*1     # This estimates the intercept of X3 at T1
+ml01_01_t1 ~ 0*1      # This constrains the intercept of X1 to 0 at T1
+ml01_04_t1 ~ c("m2a", "m2b")*1     # This estimates the intercept of X2 at T1
+ml01_05_t1 ~ c("m3a", "m3b")*1     # This estimates the intercept of X3 at T1
+ml01_06_t1 ~ c("m4a", "m4b")*1     # This estimates the intercept of X4 at T1
+ml01_09_t1 ~ c("m5a", "m5b")*1     # This estimates the intercept of X5 at T1
 
-meaning_par1_t2 ~ 0*1      # This constrains the intercept of X1 to 0 at T2
-meaning_par2_t2 ~ c("m2a", "m2b")*1     # This estimates the intercept of X2 at T2
-meaning_par3_t2 ~ c("m3a", "m3b")*1     # This estimates the intercept of X3 at T2
+ml01_01_t2 ~ 0*1      # This constrains the intercept of X1 to 0 at T2
+ml01_04_t2 ~ c("m2a", "m2b")*1     # This estimates the intercept of X2 at T2
+ml01_05_t2 ~ c("m3a", "m3b")*1     # This estimates the intercept of X3 at T2
+ml01_06_t2 ~ c("m4a", "m4b")*1     # This estimates the intercept of X4 at T2
+ml01_09_t2 ~ c("m5a", "m5b")*1     # This estimates the intercept of X5 at T2
 '
 
 lcs_meaning_group_weak <- sem(mi_lcs_meaning_group_weak, data=df_sbsa2_wide_wb %>% filter(rando!="Waitlist-Control"), estimator='mlr', fixed.x=FALSE, missing='fiml', 
@@ -25243,8 +25702,8 @@ lcs_meaning_group_weak <- sem(mi_lcs_meaning_group_weak, data=df_sbsa2_wide_wb %
 
 # strong invariance
 mi_lcs_meaning_group_strong <- '
-meaning_t1 =~ 1*meaning_par1_t1 + c("lamb2", "lamb2")*meaning_par2_t1 + c("lamb3", "lamb3")*meaning_par3_t1 # This specifies the measurement model for meaning_t1 
-meaning_t2 =~ 1*meaning_par1_t2 + c("lamb2", "lamb2")*meaning_par2_t2 + c("lamb3", "lamb3")*meaning_par3_t2 # This specifies the measurement model for meaning_t2 with the equality constrained factor loadings
+meaning_t1 =~ 1*ml01_01_t1 + c("lamb2", "lamb2")*ml01_04_t1 + c("lamb3", "lamb3")*ml01_05_t1 + c("lamb4", "lamb4")*ml01_06_t1 + c("lamb5", "lamb5")*ml01_09_t1 # This specifies the measurement model for meaning_t1 
+meaning_t2 =~ 1*ml01_01_t2 + c("lamb2", "lamb2")*ml01_04_t2 + c("lamb3", "lamb3")*ml01_05_t2 + c("lamb4", "lamb4")*ml01_06_t2 + c("lamb5", "lamb5")*ml01_09_t2 # This specifies the measurement model for meaning_t2 with the equality constrained factor loadings
 
 meaning_t2 ~ 1*meaning_t1     # This parameter regresses meaning_t2 perfectly on meaning_t1
 d_meaning_1 =~ 1*meaning_t2   # This defines the latent change score factor as measured perfectly by scores on meaning_t2
@@ -25255,27 +25714,37 @@ d_meaning_1 ~ c("d_int", "d_int")*1           # This estimates the intercept of 
 meaning_t1 ~ c("wb_int", "wb_int")*1            # This estimates the intercept of meaning_t1 
 d_meaning_1 ~~ c("d_var_a", "d_var_b")*d_meaning_1   # This estimates the variance of the change scores 
 meaning_t1 ~~ c("wb_var_a", "wb_var_b")*meaning_t1     # This estimates the variance of the meaning_t1 
-d_meaning_1 ~~ c("fb_a", "fb_b")*meaning_t1     # This estimates the self-feedback parameter, as a covariance! -> therefore, the interpretation of the change score remains unconditional
+d_meaning_1 ~~ c("fb_a", "fb_b")*meaning_t1     # This estimates the self-feedback parameter, as a covariance! -> therefore, the interpretation of the change score
 
-meaning_par1_t1 ~~ c("cov1a", "cov1b")*meaning_par1_t2   # This allows residual covariance on indicator X1 across T1 and T2
-meaning_par2_t1 ~~ c("cov2a", "cov2b")*meaning_par2_t2   # This allows residual covariance on indicator X2 across T1 and T2
-meaning_par3_t1 ~~ c("cov3a", "cov3b")*meaning_par3_t2   # This allows residual covariance on indicator X3 across T1 and T2
+ml01_01_t1 ~~ c("cov1a", "cov1b")*ml01_01_t2   # This allows residual covariance on indicator X1 across T1 and T2
+ml01_04_t1 ~~ c("cov2a", "cov2b")*ml01_04_t2   # This allows residual covariance on indicator X2 across T1 and T2
+ml01_05_t1 ~~ c("cov3a", "cov3b")*ml01_05_t2   # This allows residual covariance on indicator X3 across T1 and T2
+ml01_06_t1 ~~ c("cov4a", "cov4b")*ml01_06_t2   # This allows residual covariance on indicator X4 across T1 and T2
+ml01_09_t1 ~~ c("cov5a", "cov5b")*ml01_09_t2   # This allows residual covariance on indicator X5 across T1 and T2
 
-meaning_par1_t1 ~~ c("res1a", "res1b")*meaning_par1_t1   # This allows residual variance on indicator X1 at T1 
-meaning_par2_t1 ~~ c("res2a", "res2b")*meaning_par2_t1   # This allows residual variance on indicator X2 at T1
-meaning_par3_t1 ~~ c("res3a", "res3b")*meaning_par3_t1   # This allows residual variance on indicator X3 at T1
+ml01_01_t1 ~~ c("res1a", "res1b")*ml01_01_t1   # This allows residual variance on indicator X1 at T1 
+ml01_04_t1 ~~ c("res2a", "res2b")*ml01_04_t1   # This allows residual variance on indicator X2 at T1
+ml01_05_t1 ~~ c("res3a", "res3b")*ml01_05_t1   # This allows residual variance on indicator X3 at T1
+ml01_06_t1 ~~ c("res4a", "res4b")*ml01_06_t1   # This allows residual variance on indicator X4 at T1
+ml01_09_t1 ~~ c("res5a", "res5b")*ml01_09_t1   # This allows residual variance on indicator X5 at T1
 
-meaning_par1_t2 ~~ c("res1a", "res1b")*meaning_par1_t2  # This allows residual variance on indicator X1 at T2 
-meaning_par2_t2 ~~ c("res2a", "res2b")*meaning_par2_t2  # This allows residual variance on indicator X2 at T2 
-meaning_par3_t2 ~~ c("res3a", "res3b")*meaning_par3_t2  # This allows residual variance on indicator X3 at T2
+ml01_01_t2 ~~ c("res1a", "res1b")*ml01_01_t2  # This allows residual variance on indicator X1 at T2 
+ml01_04_t2 ~~ c("res2a", "res2b")*ml01_04_t2  # This allows residual variance on indicator X2 at T2 
+ml01_05_t2 ~~ c("res3a", "res3b")*ml01_05_t2  # This allows residual variance on indicator X3 at T2
+ml01_06_t2 ~~ c("res4a", "res4b")*ml01_06_t2  # This allows residual variance on indicator X4 at T2
+ml01_09_t2 ~~ c("res5a", "res5b")*ml01_09_t2  # This allows residual variance on indicator X5 at T2
 
-meaning_par1_t1 ~ 0*1      # This constrains the intercept of X1 to 0 at T1
-meaning_par2_t1 ~ c("m2", "m2")*1     # This estimates the intercept of X2 at T1
-meaning_par3_t1 ~ c("m3", "m3")*1     # This estimates the intercept of X3 at T1
+ml01_01_t1 ~ 0*1      # This constrains the intercept of X1 to 0 at T1
+ml01_04_t1 ~ c("m2", "m2")*1     # This estimates the intercept of X2 at T1
+ml01_05_t1 ~ c("m3", "m3")*1     # This estimates the intercept of X3 at T1
+ml01_06_t1 ~ c("m4", "m4")*1     # This estimates the intercept of X4 at T1
+ml01_09_t1 ~ c("m5", "m5")*1     # This estimates the intercept of X5 at T1
 
-meaning_par1_t2 ~ 0*1      # This constrains the intercept of X1 to 0 at T2
-meaning_par2_t2 ~ c("m2", "m2")*1     # This estimates the intercept of X2 at T2
-meaning_par3_t2 ~ c("m3", "m3")*1     # This estimates the intercept of X3 at T2
+ml01_01_t2 ~ 0*1      # This constrains the intercept of X1 to 0 at T2
+ml01_04_t2 ~ c("m2", "m2")*1     # This estimates the intercept of X2 at T2
+ml01_05_t2 ~ c("m3", "m3")*1     # This estimates the intercept of X3 at T2
+ml01_06_t2 ~ c("m4", "m4")*1     # This estimates the intercept of X4 at T2
+ml01_09_t2 ~ c("m5", "m5")*1     # This estimates the intercept of X5 at T2
 '
 
 lcs_meaning_group_strong <- sem(mi_lcs_meaning_group_strong, data=df_sbsa2_wide_wb %>% filter(rando!="Waitlist-Control"), estimator='mlr', fixed.x=FALSE, missing='fiml', 
@@ -25310,7 +25779,7 @@ kable(broom::tidy(lcs_meaning_group_strong, conf.int = TRUE, conf.level = 0.999)
 ```
 
 ::: {.callout-note appearance="minimal"}
-Slightly more positive change in meaning in life in the Self-Improvement group but no substantial differences according to the LRTs.
+Slightly more positive change in meaning in life in the Self-Acceptance group but no substantial differences according to the LRTs.
 :::
 
 ```{r}
@@ -25319,6 +25788,208 @@ Slightly more positive change in meaning in life in the Self-Improvement group b
 #| fig-height: 6.5
 # whole model (weak invariance)
 summary(lcs_meaning_group_weak, fit.measures=TRUE, standardized=TRUE, rsquare=F)
+```
+
+###### Search for Meaning
+
+Search for meaning in life: fitting multi-group models (based on the 5-item subscale, see preregistration deviations)
+```{r}
+#| echo: true
+#| warning: false
+#| code-fold: true
+#| code-summary: "Show the code"
+#| output: false
+#| cache: true
+
+# adapt latent change score model from above and add grouping factor in estimation (also add vectorized equality constraints to the model)
+
+# configural invariance
+mi_lcs_search_group_config <- '
+search_t1 =~ 1*ml01_02_t1 + c("lamb2a", "lamb2b")*ml01_03_t1 + c("lamb3a", "lamb3b")*ml01_07_t1 + c("lamb4a", "lamb4b")*ml01_08_t1 + c("lamb5a", "lamb5b")*ml01_10_t1 # This specifies the measurement model for search_t1 
+search_t2 =~ 1*ml01_02_t2 + c("lamb2a", "lamb2b")*ml01_03_t2 + c("lamb3a", "lamb3b")*ml01_07_t2 + c("lamb4a", "lamb4b")*ml01_08_t2 + c("lamb5a", "lamb5b")*ml01_10_t2 # This specifies the measurement model for search_t2 with the equality constrained factor loadings
+
+search_t2 ~ 1*search_t1     # This parameter regresses search_t2 perfectly on search_t1
+d_search_1 =~ 1*search_t2   # This defines the latent change score factor as measured perfectly by scores on search_t2
+search_t2 ~ 0*1           # This line constrains the intercept of search_t2 to 0
+search_t2 ~~ 0*search_t2    # This fixes the variance of search_t2 to 0
+
+d_search_1 ~ c("d_int_a", "d_int_b")*1           # This estimates the intercept of the change score 
+search_t1 ~ c("wb_int_a", "wb_int_b")*1            # This estimates the intercept of search_t1 
+d_search_1 ~~ c("d_var_a", "d_var_b")*d_search_1   # This estimates the variance of the change scores 
+search_t1 ~~ c("wb_var_a", "wb_var_b")*search_t1     # This estimates the variance of the search_t1 
+d_search_1 ~~ c("fb_a", "fb_b")*search_t1     # This estimates the self-feedback parameter, as a covariance! -> therefore, the interpretation of the change score
+
+ml01_02_t1 ~~ c("cov1a", "cov1b")*ml01_02_t2   # This allows residual covariance on indicator X1 across T1 and T2
+ml01_03_t1 ~~ c("cov2a", "cov2b")*ml01_03_t2   # This allows residual covariance on indicator X2 across T1 and T2
+ml01_07_t1 ~~ c("cov3a", "cov3b")*ml01_07_t2   # This allows residual covariance on indicator X3 across T1 and T2
+ml01_08_t1 ~~ c("cov4a", "cov4b")*ml01_08_t2   # This allows residual covariance on indicator X4 across T1 and T2
+ml01_10_t1 ~~ c("cov5a", "cov5b")*ml01_10_t2   # This allows residual covariance on indicator X5 across T1 and T2
+
+ml01_02_t1 ~~ c("res1a", "res1b")*ml01_02_t1   # This allows residual variance on indicator X1 at T1 
+ml01_03_t1 ~~ c("res2a", "res2b")*ml01_03_t1   # This allows residual variance on indicator X2 at T1
+ml01_07_t1 ~~ c("res3a", "res3b")*ml01_07_t1   # This allows residual variance on indicator X3 at T1
+ml01_08_t1 ~~ c("res4a", "res4b")*ml01_08_t1   # This allows residual variance on indicator X4 at T1
+ml01_10_t1 ~~ c("res5a", "res5b")*ml01_10_t1   # This allows residual variance on indicator X5 at T1
+
+ml01_02_t2 ~~ c("res1a", "res1b")*ml01_02_t2  # This allows residual variance on indicator X1 at T2 
+ml01_03_t2 ~~ c("res2a", "res2b")*ml01_03_t2  # This allows residual variance on indicator X2 at T2 
+ml01_07_t2 ~~ c("res3a", "res3b")*ml01_07_t2  # This allows residual variance on indicator X3 at T2
+ml01_08_t2 ~~ c("res4a", "res4b")*ml01_08_t2  # This allows residual variance on indicator X4 at T2
+ml01_10_t2 ~~ c("res5a", "res5b")*ml01_10_t2  # This allows residual variance on indicator X5 at T2
+
+ml01_02_t1 ~ 0*1      # This constrains the intercept of X1 to 0 at T1
+ml01_03_t1 ~ c("m2a", "m2b")*1     # This estimates the intercept of X2 at T1
+ml01_07_t1 ~ c("m3a", "m3b")*1     # This estimates the intercept of X3 at T1
+ml01_08_t1 ~ c("m4a", "m4b")*1     # This estimates the intercept of X4 at T1
+ml01_10_t1 ~ c("m5a", "m5b")*1     # This estimates the intercept of X5 at T1
+
+ml01_02_t2 ~ 0*1      # This constrains the intercept of X1 to 0 at T2
+ml01_03_t2 ~ c("m2a", "m2b")*1     # This estimates the intercept of X2 at T2
+ml01_07_t2 ~ c("m3a", "m3b")*1     # This estimates the intercept of X3 at T2
+ml01_08_t2 ~ c("m4a", "m4b")*1     # This estimates the intercept of X4 at T2
+ml01_10_t2 ~ c("m5a", "m5b")*1     # This estimates the intercept of X5 at T2
+'
+lcs_search_group_config <- sem(mi_lcs_search_group_config, data=df_sbsa2_wide_wb %>% filter(rando!="Waitlist-Control"), estimator='mlr', 
+                                fixed.x=FALSE, missing='fiml', group = "rando")
+
+# weak invariance
+mi_lcs_search_group_weak <- '
+search_t1 =~ 1*ml01_02_t1 + c("lamb2", "lamb2")*ml01_03_t1 + c("lamb3", "lamb3")*ml01_07_t1 + c("lamb4", "lamb4")*ml01_08_t1 + c("lamb5", "lamb5")*ml01_10_t1 # This specifies the measurement model for search_t1 
+search_t2 =~ 1*ml01_02_t2 + c("lamb2", "lamb2")*ml01_03_t2 + c("lamb3", "lamb3")*ml01_07_t2 + c("lamb4", "lamb4")*ml01_08_t2 + c("lamb5", "lamb5")*ml01_10_t2 # This specifies the measurement model for search_t2 with the equality constrained factor loadings
+
+search_t2 ~ 1*search_t1     # This parameter regresses search_t2 perfectly on search_t1
+d_search_1 =~ 1*search_t2   # This defines the latent change score factor as measured perfectly by scores on search_t2
+search_t2 ~ 0*1           # This line constrains the intercept of search_t2 to 0
+search_t2 ~~ 0*search_t2    # This fixes the variance of search_t2 to 0
+
+d_search_1 ~ c("d_int_a", "d_int_b")*1           # This estimates the intercept of the change score 
+search_t1 ~ c("wb_int_a", "wb_int_b")*1            # This estimates the intercept of search_t1 
+d_search_1 ~~ c("d_var_a", "d_var_b")*d_search_1   # This estimates the variance of the change scores 
+search_t1 ~~ c("wb_var_a", "wb_var_b")*search_t1     # This estimates the variance of the search_t1 
+d_search_1 ~~ c("fb_a", "fb_b")*search_t1     # This estimates the self-feedback parameter, as a covariance! -> therefore, the interpretation of the change score
+
+ml01_02_t1 ~~ c("cov1a", "cov1b")*ml01_02_t2   # This allows residual covariance on indicator X1 across T1 and T2
+ml01_03_t1 ~~ c("cov2a", "cov2b")*ml01_03_t2   # This allows residual covariance on indicator X2 across T1 and T2
+ml01_07_t1 ~~ c("cov3a", "cov3b")*ml01_07_t2   # This allows residual covariance on indicator X3 across T1 and T2
+ml01_08_t1 ~~ c("cov4a", "cov4b")*ml01_08_t2   # This allows residual covariance on indicator X4 across T1 and T2
+ml01_10_t1 ~~ c("cov5a", "cov5b")*ml01_10_t2   # This allows residual covariance on indicator X5 across T1 and T2
+
+ml01_02_t1 ~~ c("res1a", "res1b")*ml01_02_t1   # This allows residual variance on indicator X1 at T1 
+ml01_03_t1 ~~ c("res2a", "res2b")*ml01_03_t1   # This allows residual variance on indicator X2 at T1
+ml01_07_t1 ~~ c("res3a", "res3b")*ml01_07_t1   # This allows residual variance on indicator X3 at T1
+ml01_08_t1 ~~ c("res4a", "res4b")*ml01_08_t1   # This allows residual variance on indicator X4 at T1
+ml01_10_t1 ~~ c("res5a", "res5b")*ml01_10_t1   # This allows residual variance on indicator X5 at T1
+
+ml01_02_t2 ~~ c("res1a", "res1b")*ml01_02_t2  # This allows residual variance on indicator X1 at T2 
+ml01_03_t2 ~~ c("res2a", "res2b")*ml01_03_t2  # This allows residual variance on indicator X2 at T2 
+ml01_07_t2 ~~ c("res3a", "res3b")*ml01_07_t2  # This allows residual variance on indicator X3 at T2
+ml01_08_t2 ~~ c("res4a", "res4b")*ml01_08_t2  # This allows residual variance on indicator X4 at T2
+ml01_10_t2 ~~ c("res5a", "res5b")*ml01_10_t2  # This allows residual variance on indicator X5 at T2
+
+ml01_02_t1 ~ 0*1      # This constrains the intercept of X1 to 0 at T1
+ml01_03_t1 ~ c("m2a", "m2b")*1     # This estimates the intercept of X2 at T1
+ml01_07_t1 ~ c("m3a", "m3b")*1     # This estimates the intercept of X3 at T1
+ml01_08_t1 ~ c("m4a", "m4b")*1     # This estimates the intercept of X4 at T1
+ml01_10_t1 ~ c("m5a", "m5b")*1     # This estimates the intercept of X5 at T1
+
+ml01_02_t2 ~ 0*1      # This constrains the intercept of X1 to 0 at T2
+ml01_03_t2 ~ c("m2a", "m2b")*1     # This estimates the intercept of X2 at T2
+ml01_07_t2 ~ c("m3a", "m3b")*1     # This estimates the intercept of X3 at T2
+ml01_08_t2 ~ c("m4a", "m4b")*1     # This estimates the intercept of X4 at T2
+ml01_10_t2 ~ c("m5a", "m5b")*1     # This estimates the intercept of X5 at T2
+'
+
+lcs_search_group_weak <- sem(mi_lcs_search_group_weak, data=df_sbsa2_wide_wb %>% filter(rando!="Waitlist-Control"), estimator='mlr', fixed.x=FALSE, missing='fiml', 
+                           group = "rando", group.equal = "loadings")
+
+# strong invariance
+mi_lcs_search_group_strong <- '
+search_t1 =~ 1*ml01_02_t1 + c("lamb2", "lamb2")*ml01_03_t1 + c("lamb3", "lamb3")*ml01_07_t1 + c("lamb4", "lamb4")*ml01_08_t1 + c("lamb5", "lamb5")*ml01_10_t1 # This specifies the measurement model for search_t1 
+search_t2 =~ 1*ml01_02_t2 + c("lamb2", "lamb2")*ml01_03_t2 + c("lamb3", "lamb3")*ml01_07_t2 + c("lamb4", "lamb4")*ml01_08_t2 + c("lamb5", "lamb5")*ml01_10_t2 # This specifies the measurement model for search_t2 with the equality constrained factor loadings
+
+search_t2 ~ 1*search_t1     # This parameter regresses search_t2 perfectly on search_t1
+d_search_1 =~ 1*search_t2   # This defines the latent change score factor as measured perfectly by scores on search_t2
+search_t2 ~ 0*1           # This line constrains the intercept of search_t2 to 0
+search_t2 ~~ 0*search_t2    # This fixes the variance of search_t2 to 0
+
+d_search_1 ~ c("d_int", "d_int")*1           # This estimates the intercept of the change score 
+search_t1 ~ c("wb_int", "wb_int")*1            # This estimates the intercept of search_t1 
+d_search_1 ~~ c("d_var_a", "d_var_b")*d_search_1   # This estimates the variance of the change scores 
+search_t1 ~~ c("wb_var_a", "wb_var_b")*search_t1     # This estimates the variance of the search_t1 
+d_search_1 ~~ c("fb_a", "fb_b")*search_t1     # This estimates the self-feedback parameter, as a covariance! -> therefore, the interpretation of the change score
+
+ml01_02_t1 ~~ c("cov1a", "cov1b")*ml01_02_t2   # This allows residual covariance on indicator X1 across T1 and T2
+ml01_03_t1 ~~ c("cov2a", "cov2b")*ml01_03_t2   # This allows residual covariance on indicator X2 across T1 and T2
+ml01_07_t1 ~~ c("cov3a", "cov3b")*ml01_07_t2   # This allows residual covariance on indicator X3 across T1 and T2
+ml01_08_t1 ~~ c("cov4a", "cov4b")*ml01_08_t2   # This allows residual covariance on indicator X4 across T1 and T2
+ml01_10_t1 ~~ c("cov5a", "cov5b")*ml01_10_t2   # This allows residual covariance on indicator X5 across T1 and T2
+
+ml01_02_t1 ~~ c("res1a", "res1b")*ml01_02_t1   # This allows residual variance on indicator X1 at T1 
+ml01_03_t1 ~~ c("res2a", "res2b")*ml01_03_t1   # This allows residual variance on indicator X2 at T1
+ml01_07_t1 ~~ c("res3a", "res3b")*ml01_07_t1   # This allows residual variance on indicator X3 at T1
+ml01_08_t1 ~~ c("res4a", "res4b")*ml01_08_t1   # This allows residual variance on indicator X4 at T1
+ml01_10_t1 ~~ c("res5a", "res5b")*ml01_10_t1   # This allows residual variance on indicator X5 at T1
+
+ml01_02_t2 ~~ c("res1a", "res1b")*ml01_02_t2  # This allows residual variance on indicator X1 at T2 
+ml01_03_t2 ~~ c("res2a", "res2b")*ml01_03_t2  # This allows residual variance on indicator X2 at T2 
+ml01_07_t2 ~~ c("res3a", "res3b")*ml01_07_t2  # This allows residual variance on indicator X3 at T2
+ml01_08_t2 ~~ c("res4a", "res4b")*ml01_08_t2  # This allows residual variance on indicator X4 at T2
+ml01_10_t2 ~~ c("res5a", "res5b")*ml01_10_t2  # This allows residual variance on indicator X5 at T2
+
+ml01_02_t1 ~ 0*1      # This constrains the intercept of X1 to 0 at T1
+ml01_03_t1 ~ c("m2", "m2")*1     # This estimates the intercept of X2 at T1
+ml01_07_t1 ~ c("m3", "m3")*1     # This estimates the intercept of X3 at T1
+ml01_08_t1 ~ c("m4", "m4")*1     # This estimates the intercept of X4 at T1
+ml01_10_t1 ~ c("m5", "m5")*1     # This estimates the intercept of X5 at T1
+
+ml01_02_t2 ~ 0*1      # This constrains the intercept of X1 to 0 at T2
+ml01_03_t2 ~ c("m2", "m2")*1     # This estimates the intercept of X2 at T2
+ml01_07_t2 ~ c("m3", "m3")*1     # This estimates the intercept of X3 at T2
+ml01_08_t2 ~ c("m4", "m4")*1     # This estimates the intercept of X4 at T2
+ml01_10_t2 ~ c("m5", "m5")*1     # This estimates the intercept of X5 at T2
+'
+
+lcs_search_group_strong <- sem(mi_lcs_search_group_strong, data=df_sbsa2_wide_wb %>% filter(rando!="Waitlist-Control"), estimator='mlr', fixed.x=FALSE, missing='fiml', 
+                             group = "rando", group.equal = c("intercepts", "loadings"))
+```
+
+Search for meaning: results
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+
+# model comparison tests for measurement invariance
+lavTestLRT(lcs_search_group_config, lcs_search_group_weak, lcs_search_group_strong)
+
+# show model with varying latent change parameters 
+# -> key parameter is "d_search_1 ~1"
+# labelled parameter as "d_int_a" & "d_int_b" (a = Self-Acceptance group, b = Self-Improvement group)
+params_main_lcs_search <- broom::tidy(lcs_search_group_weak, conf.int = TRUE, conf.level = 0.999) %>% 
+        mutate(beta = estimate / 
+           (sd_wb_st2 %>% filter(trait=="search" & time==1) %>% pull(sd_trait))) %>% 
+        select(term, label, estimate, beta, std.all, statistic, p.value) %>% 
+        filter(term %in% c("d_search_1 ~1 "))
+kable(params_main_lcs_search, digits = 3) 
+
+# constrained to be equal in the strong measurement invariance model:
+kable(broom::tidy(lcs_search_group_strong, conf.int = TRUE, conf.level = 0.999) %>% 
+        mutate(beta = estimate / 
+           (sd_wb_st2 %>% filter(trait=="search" & time==1) %>% pull(sd_trait))) %>% 
+        select(term, label, estimate, beta, std.all, statistic, p.value) %>% 
+        filter(term %in% c("d_search_1 ~1 ")), digits = 3) 
+```
+
+::: {.callout-note appearance="minimal"}
+Change in search for meaning in life only significant in the self-improvement group (not in the self-acceptance group) but no substantial differences according to the LRTs.
+:::
+
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+# whole model (weak invariance)
+summary(lcs_search_group_weak, fit.measures=TRUE, standardized=TRUE, rsquare=F)
 ```
 
 ##### Self-esteem 
@@ -25674,6 +26345,7 @@ summary(lcs_concept_group_weak, fit.measures=TRUE, standardized=TRUE, rsquare=F)
 params_main_wb_summary <- bind_rows(
   params_main_lcs_swls %>% mutate(trait = "Life satisfaction") %>% select(trait, group = label, estimate, beta, p.value),
   params_main_lcs_meaning %>% mutate(trait = "Meaning in life") %>% select(trait, group = label, estimate, beta, p.value),
+  params_main_lcs_search %>% mutate(trait = "Search for meaning") %>% select(trait, group = label, estimate, beta, p.value),
   params_main_lcs_selfes %>% mutate(trait = "Self-esteem") %>% select(trait, group = label, estimate, beta, p.value),
   params_main_lcs_concept %>% mutate(trait = "Self-concept clarity") %>% select(trait, group = label, estimate, beta, p.value)) %>% mutate(group = ifelse(group=="d_int_a", "Self-Acceptance", "Self-Improvement"))
 
@@ -25883,7 +26555,7 @@ summary(lcs_swls_group_cg_weak, fit.measures=TRUE, standardized=TRUE, rsquare=F)
 
 ##### Meaning in life
 
-Meaning in life: fitting multi-group models
+Meaning in life: fitting multi-group models (based on the 5-item subscale presence of meaning in life)
 ```{r}
 #| echo: true
 #| warning: false
@@ -25896,8 +26568,8 @@ Meaning in life: fitting multi-group models
 
 # configural invariance
 mi_lcs_meaning_group_cg_config <- '
-meaning_t1 =~ 1*meaning_par1_t1 + c("lamb2a", "lamb2b")*meaning_par2_t1 + c("lamb3a", "lamb3b")*meaning_par3_t1 # This specifies the measurement model for meaning_t1 
-meaning_t2 =~ 1*meaning_par1_t2 + c("lamb2a", "lamb2b")*meaning_par2_t2 + c("lamb3a", "lamb3b")*meaning_par3_t2 # This specifies the measurement model for meaning_t2 with the equality constrained factor loadings
+meaning_t1 =~ 1*ml01_01_t1 + c("lamb2a", "lamb2b")*ml01_04_t1 + c("lamb3a", "lamb3b")*ml01_05_t1 + c("lamb4a", "lamb4b")*ml01_06_t1 + c("lamb5a", "lamb5b")*ml01_09_t1 # This specifies the measurement model for meaning_t1 
+meaning_t2 =~ 1*ml01_01_t2 + c("lamb2a", "lamb2b")*ml01_04_t2 + c("lamb3a", "lamb3b")*ml01_05_t2 + c("lamb4a", "lamb4b")*ml01_06_t2 + c("lamb5a", "lamb5b")*ml01_09_t2 # This specifies the measurement model for meaning_t2 with the equality constrained factor loadings
 
 meaning_t2 ~ 1*meaning_t1     # This parameter regresses meaning_t2 perfectly on meaning_t1
 d_meaning_1 =~ 1*meaning_t2   # This defines the latent change score factor as measured perfectly by scores on meaning_t2
@@ -25908,35 +26580,45 @@ d_meaning_1 ~ c("d_int_a", "d_int_b")*1           # This estimates the intercept
 meaning_t1 ~ c("wb_int_a", "wb_int_b")*1            # This estimates the intercept of meaning_t1 
 d_meaning_1 ~~ c("d_var_a", "d_var_b")*d_meaning_1   # This estimates the variance of the change scores 
 meaning_t1 ~~ c("wb_var_a", "wb_var_b")*meaning_t1     # This estimates the variance of the meaning_t1 
-d_meaning_1 ~~ c("fb_a", "fb_b")*meaning_t1     # This estimates the self-feedback parameter, as a covariance! -> therefore, the interpretation of the change score remains unconditional
+d_meaning_1 ~~ c("fb_a", "fb_b")*meaning_t1     # This estimates the self-feedback parameter, as a covariance! -> therefore, the interpretation of the change score
 
-meaning_par1_t1 ~~ c("cov1a", "cov1b")*meaning_par1_t2   # This allows residual covariance on indicator X1 across T1 and T2
-meaning_par2_t1 ~~ c("cov2a", "cov2b")*meaning_par2_t2   # This allows residual covariance on indicator X2 across T1 and T2
-meaning_par3_t1 ~~ c("cov3a", "cov3b")*meaning_par3_t2   # This allows residual covariance on indicator X3 across T1 and T2
+ml01_01_t1 ~~ c("cov1a", "cov1b")*ml01_01_t2   # This allows residual covariance on indicator X1 across T1 and T2
+ml01_04_t1 ~~ c("cov2a", "cov2b")*ml01_04_t2   # This allows residual covariance on indicator X2 across T1 and T2
+ml01_05_t1 ~~ c("cov3a", "cov3b")*ml01_05_t2   # This allows residual covariance on indicator X3 across T1 and T2
+ml01_06_t1 ~~ c("cov4a", "cov4b")*ml01_06_t2   # This allows residual covariance on indicator X4 across T1 and T2
+ml01_09_t1 ~~ c("cov5a", "cov5b")*ml01_09_t2   # This allows residual covariance on indicator X5 across T1 and T2
 
-meaning_par1_t1 ~~ c("res1a", "res1b")*meaning_par1_t1   # This allows residual variance on indicator X1 at T1 
-meaning_par2_t1 ~~ c("res2a", "res2b")*meaning_par2_t1   # This allows residual variance on indicator X2 at T1
-meaning_par3_t1 ~~ c("res3a", "res3b")*meaning_par3_t1   # This allows residual variance on indicator X3 at T1
+ml01_01_t1 ~~ c("res1a", "res1b")*ml01_01_t1   # This allows residual variance on indicator X1 at T1 
+ml01_04_t1 ~~ c("res2a", "res2b")*ml01_04_t1   # This allows residual variance on indicator X2 at T1
+ml01_05_t1 ~~ c("res3a", "res3b")*ml01_05_t1   # This allows residual variance on indicator X3 at T1
+ml01_06_t1 ~~ c("res4a", "res4b")*ml01_06_t1   # This allows residual variance on indicator X4 at T1
+ml01_09_t1 ~~ c("res5a", "res5b")*ml01_09_t1   # This allows residual variance on indicator X5 at T1
 
-meaning_par1_t2 ~~ c("res1a", "res1b")*meaning_par1_t2  # This allows residual variance on indicator X1 at T2 
-meaning_par2_t2 ~~ c("res2a", "res2b")*meaning_par2_t2  # This allows residual variance on indicator X2 at T2 
-meaning_par3_t2 ~~ c("res3a", "res3b")*meaning_par3_t2  # This allows residual variance on indicator X3 at T2
+ml01_01_t2 ~~ c("res1a", "res1b")*ml01_01_t2  # This allows residual variance on indicator X1 at T2 
+ml01_04_t2 ~~ c("res2a", "res2b")*ml01_04_t2  # This allows residual variance on indicator X2 at T2 
+ml01_05_t2 ~~ c("res3a", "res3b")*ml01_05_t2  # This allows residual variance on indicator X3 at T2
+ml01_06_t2 ~~ c("res4a", "res4b")*ml01_06_t2  # This allows residual variance on indicator X4 at T2
+ml01_09_t2 ~~ c("res5a", "res5b")*ml01_09_t2  # This allows residual variance on indicator X5 at T2
 
-meaning_par1_t1 ~ 0*1      # This constrains the intercept of X1 to 0 at T1
-meaning_par2_t1 ~ c("m2a", "m2b")*1     # This estimates the intercept of X2 at T1
-meaning_par3_t1 ~ c("m3a", "m3b")*1     # This estimates the intercept of X3 at T1
+ml01_01_t1 ~ 0*1      # This constrains the intercept of X1 to 0 at T1
+ml01_04_t1 ~ c("m2a", "m2b")*1     # This estimates the intercept of X2 at T1
+ml01_05_t1 ~ c("m3a", "m3b")*1     # This estimates the intercept of X3 at T1
+ml01_06_t1 ~ c("m4a", "m4b")*1     # This estimates the intercept of X4 at T1
+ml01_09_t1 ~ c("m5a", "m5b")*1     # This estimates the intercept of X5 at T1
 
-meaning_par1_t2 ~ 0*1      # This constrains the intercept of X1 to 0 at T2
-meaning_par2_t2 ~ c("m2a", "m2b")*1     # This estimates the intercept of X2 at T2
-meaning_par3_t2 ~ c("m3a", "m3b")*1     # This estimates the intercept of X3 at T2
+ml01_01_t2 ~ 0*1      # This constrains the intercept of X1 to 0 at T2
+ml01_04_t2 ~ c("m2a", "m2b")*1     # This estimates the intercept of X2 at T2
+ml01_05_t2 ~ c("m3a", "m3b")*1     # This estimates the intercept of X3 at T2
+ml01_06_t2 ~ c("m4a", "m4b")*1     # This estimates the intercept of X4 at T2
+ml01_09_t2 ~ c("m5a", "m5b")*1     # This estimates the intercept of X5 at T2
 '
 lcs_meaning_group_cg_config <- sem(mi_lcs_meaning_group_cg_config, data=df_sbsa2_wide_wb, estimator='mlr', 
                                 fixed.x=FALSE, missing='fiml', group = "group_cg")
 
 # weak invariance
 mi_lcs_meaning_group_cg_weak <- '
-meaning_t1 =~ 1*meaning_par1_t1 + c("lamb2", "lamb2")*meaning_par2_t1 + c("lamb3", "lamb3")*meaning_par3_t1 # This specifies the measurement model for meaning_t1 
-meaning_t2 =~ 1*meaning_par1_t2 + c("lamb2", "lamb2")*meaning_par2_t2 + c("lamb3", "lamb3")*meaning_par3_t2 # This specifies the measurement model for meaning_t2 with the equality constrained factor loadings
+meaning_t1 =~ 1*ml01_01_t1 + c("lamb2", "lamb2")*ml01_04_t1 + c("lamb3", "lamb3")*ml01_05_t1 + c("lamb4", "lamb4")*ml01_06_t1 + c("lamb5", "lamb5")*ml01_09_t1 # This specifies the measurement model for meaning_t1 
+meaning_t2 =~ 1*ml01_01_t2 + c("lamb2", "lamb2")*ml01_04_t2 + c("lamb3", "lamb3")*ml01_05_t2 + c("lamb4", "lamb4")*ml01_06_t2 + c("lamb5", "lamb5")*ml01_09_t2 # This specifies the measurement model for meaning_t2 with the equality constrained factor loadings
 
 meaning_t2 ~ 1*meaning_t1     # This parameter regresses meaning_t2 perfectly on meaning_t1
 d_meaning_1 =~ 1*meaning_t2   # This defines the latent change score factor as measured perfectly by scores on meaning_t2
@@ -25947,27 +26629,37 @@ d_meaning_1 ~ c("d_int_a", "d_int_b")*1           # This estimates the intercept
 meaning_t1 ~ c("wb_int_a", "wb_int_b")*1            # This estimates the intercept of meaning_t1 
 d_meaning_1 ~~ c("d_var_a", "d_var_b")*d_meaning_1   # This estimates the variance of the change scores 
 meaning_t1 ~~ c("wb_var_a", "wb_var_b")*meaning_t1     # This estimates the variance of the meaning_t1 
-d_meaning_1 ~~ c("fb_a", "fb_b")*meaning_t1     # This estimates the self-feedback parameter, as a covariance! -> therefore, the interpretation of the change score remains unconditional
+d_meaning_1 ~~ c("fb_a", "fb_b")*meaning_t1     # This estimates the self-feedback parameter, as a covariance! -> therefore, the interpretation of the change score
 
-meaning_par1_t1 ~~ c("cov1a", "cov1b")*meaning_par1_t2   # This allows residual covariance on indicator X1 across T1 and T2
-meaning_par2_t1 ~~ c("cov2a", "cov2b")*meaning_par2_t2   # This allows residual covariance on indicator X2 across T1 and T2
-meaning_par3_t1 ~~ c("cov3a", "cov3b")*meaning_par3_t2   # This allows residual covariance on indicator X3 across T1 and T2
+ml01_01_t1 ~~ c("cov1a", "cov1b")*ml01_01_t2   # This allows residual covariance on indicator X1 across T1 and T2
+ml01_04_t1 ~~ c("cov2a", "cov2b")*ml01_04_t2   # This allows residual covariance on indicator X2 across T1 and T2
+ml01_05_t1 ~~ c("cov3a", "cov3b")*ml01_05_t2   # This allows residual covariance on indicator X3 across T1 and T2
+ml01_06_t1 ~~ c("cov4a", "cov4b")*ml01_06_t2   # This allows residual covariance on indicator X4 across T1 and T2
+ml01_09_t1 ~~ c("cov5a", "cov5b")*ml01_09_t2   # This allows residual covariance on indicator X5 across T1 and T2
 
-meaning_par1_t1 ~~ c("res1a", "res1b")*meaning_par1_t1   # This allows residual variance on indicator X1 at T1 
-meaning_par2_t1 ~~ c("res2a", "res2b")*meaning_par2_t1   # This allows residual variance on indicator X2 at T1
-meaning_par3_t1 ~~ c("res3a", "res3b")*meaning_par3_t1   # This allows residual variance on indicator X3 at T1
+ml01_01_t1 ~~ c("res1a", "res1b")*ml01_01_t1   # This allows residual variance on indicator X1 at T1 
+ml01_04_t1 ~~ c("res2a", "res2b")*ml01_04_t1   # This allows residual variance on indicator X2 at T1
+ml01_05_t1 ~~ c("res3a", "res3b")*ml01_05_t1   # This allows residual variance on indicator X3 at T1
+ml01_06_t1 ~~ c("res4a", "res4b")*ml01_06_t1   # This allows residual variance on indicator X4 at T1
+ml01_09_t1 ~~ c("res5a", "res5b")*ml01_09_t1   # This allows residual variance on indicator X5 at T1
 
-meaning_par1_t2 ~~ c("res1a", "res1b")*meaning_par1_t2  # This allows residual variance on indicator X1 at T2 
-meaning_par2_t2 ~~ c("res2a", "res2b")*meaning_par2_t2  # This allows residual variance on indicator X2 at T2 
-meaning_par3_t2 ~~ c("res3a", "res3b")*meaning_par3_t2  # This allows residual variance on indicator X3 at T2
+ml01_01_t2 ~~ c("res1a", "res1b")*ml01_01_t2  # This allows residual variance on indicator X1 at T2 
+ml01_04_t2 ~~ c("res2a", "res2b")*ml01_04_t2  # This allows residual variance on indicator X2 at T2 
+ml01_05_t2 ~~ c("res3a", "res3b")*ml01_05_t2  # This allows residual variance on indicator X3 at T2
+ml01_06_t2 ~~ c("res4a", "res4b")*ml01_06_t2  # This allows residual variance on indicator X4 at T2
+ml01_09_t2 ~~ c("res5a", "res5b")*ml01_09_t2  # This allows residual variance on indicator X5 at T2
 
-meaning_par1_t1 ~ 0*1      # This constrains the intercept of X1 to 0 at T1
-meaning_par2_t1 ~ c("m2a", "m2b")*1     # This estimates the intercept of X2 at T1
-meaning_par3_t1 ~ c("m3a", "m3b")*1     # This estimates the intercept of X3 at T1
+ml01_01_t1 ~ 0*1      # This constrains the intercept of X1 to 0 at T1
+ml01_04_t1 ~ c("m2a", "m2b")*1     # This estimates the intercept of X2 at T1
+ml01_05_t1 ~ c("m3a", "m3b")*1     # This estimates the intercept of X3 at T1
+ml01_06_t1 ~ c("m4a", "m4b")*1     # This estimates the intercept of X4 at T1
+ml01_09_t1 ~ c("m5a", "m5b")*1     # This estimates the intercept of X5 at T1
 
-meaning_par1_t2 ~ 0*1      # This constrains the intercept of X1 to 0 at T2
-meaning_par2_t2 ~ c("m2a", "m2b")*1     # This estimates the intercept of X2 at T2
-meaning_par3_t2 ~ c("m3a", "m3b")*1     # This estimates the intercept of X3 at T2
+ml01_01_t2 ~ 0*1      # This constrains the intercept of X1 to 0 at T2
+ml01_04_t2 ~ c("m2a", "m2b")*1     # This estimates the intercept of X2 at T2
+ml01_05_t2 ~ c("m3a", "m3b")*1     # This estimates the intercept of X3 at T2
+ml01_06_t2 ~ c("m4a", "m4b")*1     # This estimates the intercept of X4 at T2
+ml01_09_t2 ~ c("m5a", "m5b")*1     # This estimates the intercept of X5 at T2
 '
 
 lcs_meaning_group_cg_weak <- sem(mi_lcs_meaning_group_cg_weak, data=df_sbsa2_wide_wb, estimator='mlr', fixed.x=FALSE, missing='fiml', 
@@ -25975,8 +26667,8 @@ lcs_meaning_group_cg_weak <- sem(mi_lcs_meaning_group_cg_weak, data=df_sbsa2_wid
 
 # strong invariance
 mi_lcs_meaning_group_cg_strong <- '
-meaning_t1 =~ 1*meaning_par1_t1 + c("lamb2", "lamb2")*meaning_par2_t1 + c("lamb3", "lamb3")*meaning_par3_t1 # This specifies the measurement model for meaning_t1 
-meaning_t2 =~ 1*meaning_par1_t2 + c("lamb2", "lamb2")*meaning_par2_t2 + c("lamb3", "lamb3")*meaning_par3_t2 # This specifies the measurement model for meaning_t2 with the equality constrained factor loadings
+meaning_t1 =~ 1*ml01_01_t1 + c("lamb2", "lamb2")*ml01_04_t1 + c("lamb3", "lamb3")*ml01_05_t1 + c("lamb4", "lamb4")*ml01_06_t1 + c("lamb5", "lamb5")*ml01_09_t1 # This specifies the measurement model for meaning_t1 
+meaning_t2 =~ 1*ml01_01_t2 + c("lamb2", "lamb2")*ml01_04_t2 + c("lamb3", "lamb3")*ml01_05_t2 + c("lamb4", "lamb4")*ml01_06_t2 + c("lamb5", "lamb5")*ml01_09_t2 # This specifies the measurement model for meaning_t2 with the equality constrained factor loadings
 
 meaning_t2 ~ 1*meaning_t1     # This parameter regresses meaning_t2 perfectly on meaning_t1
 d_meaning_1 =~ 1*meaning_t2   # This defines the latent change score factor as measured perfectly by scores on meaning_t2
@@ -25987,27 +26679,37 @@ d_meaning_1 ~ c("d_int", "d_int")*1           # This estimates the intercept of 
 meaning_t1 ~ c("wb_int", "wb_int")*1            # This estimates the intercept of meaning_t1 
 d_meaning_1 ~~ c("d_var_a", "d_var_b")*d_meaning_1   # This estimates the variance of the change scores 
 meaning_t1 ~~ c("wb_var_a", "wb_var_b")*meaning_t1     # This estimates the variance of the meaning_t1 
-d_meaning_1 ~~ c("fb_a", "fb_b")*meaning_t1     # This estimates the self-feedback parameter, as a covariance! -> therefore, the interpretation of the change score remains unconditional
+d_meaning_1 ~~ c("fb_a", "fb_b")*meaning_t1     # This estimates the self-feedback parameter, as a covariance! -> therefore, the interpretation of the change score
 
-meaning_par1_t1 ~~ c("cov1a", "cov1b")*meaning_par1_t2   # This allows residual covariance on indicator X1 across T1 and T2
-meaning_par2_t1 ~~ c("cov2a", "cov2b")*meaning_par2_t2   # This allows residual covariance on indicator X2 across T1 and T2
-meaning_par3_t1 ~~ c("cov3a", "cov3b")*meaning_par3_t2   # This allows residual covariance on indicator X3 across T1 and T2
+ml01_01_t1 ~~ c("cov1a", "cov1b")*ml01_01_t2   # This allows residual covariance on indicator X1 across T1 and T2
+ml01_04_t1 ~~ c("cov2a", "cov2b")*ml01_04_t2   # This allows residual covariance on indicator X2 across T1 and T2
+ml01_05_t1 ~~ c("cov3a", "cov3b")*ml01_05_t2   # This allows residual covariance on indicator X3 across T1 and T2
+ml01_06_t1 ~~ c("cov4a", "cov4b")*ml01_06_t2   # This allows residual covariance on indicator X4 across T1 and T2
+ml01_09_t1 ~~ c("cov5a", "cov5b")*ml01_09_t2   # This allows residual covariance on indicator X5 across T1 and T2
 
-meaning_par1_t1 ~~ c("res1a", "res1b")*meaning_par1_t1   # This allows residual variance on indicator X1 at T1 
-meaning_par2_t1 ~~ c("res2a", "res2b")*meaning_par2_t1   # This allows residual variance on indicator X2 at T1
-meaning_par3_t1 ~~ c("res3a", "res3b")*meaning_par3_t1   # This allows residual variance on indicator X3 at T1
+ml01_01_t1 ~~ c("res1a", "res1b")*ml01_01_t1   # This allows residual variance on indicator X1 at T1 
+ml01_04_t1 ~~ c("res2a", "res2b")*ml01_04_t1   # This allows residual variance on indicator X2 at T1
+ml01_05_t1 ~~ c("res3a", "res3b")*ml01_05_t1   # This allows residual variance on indicator X3 at T1
+ml01_06_t1 ~~ c("res4a", "res4b")*ml01_06_t1   # This allows residual variance on indicator X4 at T1
+ml01_09_t1 ~~ c("res5a", "res5b")*ml01_09_t1   # This allows residual variance on indicator X5 at T1
 
-meaning_par1_t2 ~~ c("res1a", "res1b")*meaning_par1_t2  # This allows residual variance on indicator X1 at T2 
-meaning_par2_t2 ~~ c("res2a", "res2b")*meaning_par2_t2  # This allows residual variance on indicator X2 at T2 
-meaning_par3_t2 ~~ c("res3a", "res3b")*meaning_par3_t2  # This allows residual variance on indicator X3 at T2
+ml01_01_t2 ~~ c("res1a", "res1b")*ml01_01_t2  # This allows residual variance on indicator X1 at T2 
+ml01_04_t2 ~~ c("res2a", "res2b")*ml01_04_t2  # This allows residual variance on indicator X2 at T2 
+ml01_05_t2 ~~ c("res3a", "res3b")*ml01_05_t2  # This allows residual variance on indicator X3 at T2
+ml01_06_t2 ~~ c("res4a", "res4b")*ml01_06_t2  # This allows residual variance on indicator X4 at T2
+ml01_09_t2 ~~ c("res5a", "res5b")*ml01_09_t2  # This allows residual variance on indicator X5 at T2
 
-meaning_par1_t1 ~ 0*1      # This constrains the intercept of X1 to 0 at T1
-meaning_par2_t1 ~ c("m2", "m2")*1     # This estimates the intercept of X2 at T1
-meaning_par3_t1 ~ c("m3", "m3")*1     # This estimates the intercept of X3 at T1
+ml01_01_t1 ~ 0*1      # This constrains the intercept of X1 to 0 at T1
+ml01_04_t1 ~ c("m2", "m2")*1     # This estimates the intercept of X2 at T1
+ml01_05_t1 ~ c("m3", "m3")*1     # This estimates the intercept of X3 at T1
+ml01_06_t1 ~ c("m4", "m4")*1     # This estimates the intercept of X4 at T1
+ml01_09_t1 ~ c("m5", "m5")*1     # This estimates the intercept of X5 at T1
 
-meaning_par1_t2 ~ 0*1      # This constrains the intercept of X1 to 0 at T2
-meaning_par2_t2 ~ c("m2", "m2")*1     # This estimates the intercept of X2 at T2
-meaning_par3_t2 ~ c("m3", "m3")*1     # This estimates the intercept of X3 at T2
+ml01_01_t2 ~ 0*1      # This constrains the intercept of X1 to 0 at T2
+ml01_04_t2 ~ c("m2", "m2")*1     # This estimates the intercept of X2 at T2
+ml01_05_t2 ~ c("m3", "m3")*1     # This estimates the intercept of X3 at T2
+ml01_06_t2 ~ c("m4", "m4")*1     # This estimates the intercept of X4 at T2
+ml01_09_t2 ~ c("m5", "m5")*1     # This estimates the intercept of X5 at T2
 '
 
 lcs_meaning_group_cg_strong <- sem(mi_lcs_meaning_group_cg_strong, data=df_sbsa2_wide_wb, estimator='mlr', fixed.x=FALSE, missing='fiml', 
@@ -26031,7 +26733,7 @@ params_main_lcs_meaning_cg <- broom::tidy(lcs_meaning_group_cg_weak, conf.int = 
            (sd_wb_st2 %>% filter(trait=="meaning" & time==1) %>% pull(sd_trait))) %>% 
         select(term, label, estimate, beta, std.all, statistic, p.value) %>% 
         filter(term %in% c("d_meaning_1 ~1 "))
-kable(params_main_lcs_meaning_cg, digits = 3) 
+kable(params_main_lcs_meaning, digits = 3) 
 
 # constrained to be equal in the strong measurement invariance model:
 kable(broom::tidy(lcs_meaning_group_cg_strong, conf.int = TRUE, conf.level = 0.999) %>% 
@@ -26042,7 +26744,7 @@ kable(broom::tidy(lcs_meaning_group_cg_strong, conf.int = TRUE, conf.level = 0.9
 ```
 
 ::: {.callout-note appearance="minimal"}
-Somewhat more positive change in meaning in life in the control group compared to the intervention groups but no substantial differences according to the LRTs.
+Very similar change in meaning in life in the intervention groups compared to the control group. No substantial differences according to the LRTs.
 :::
 
 ```{r}
@@ -26051,6 +26753,208 @@ Somewhat more positive change in meaning in life in the control group compared t
 #| fig-height: 6.5
 # whole model (weak invariance)
 summary(lcs_meaning_group_cg_weak, fit.measures=TRUE, standardized=TRUE, rsquare=F)
+```
+
+###### Search for Meaning
+
+Search for meaning in life: fitting multi-group models (based on the 5-item subscale, see preregistration deviations)
+```{r}
+#| echo: true
+#| warning: false
+#| code-fold: true
+#| code-summary: "Show the code"
+#| output: false
+#| cache: true
+
+# adapt latent change score model from above and add grouping factor in estimation (also add vectorized equality constraints to the model)
+
+# configural invariance
+mi_lcs_search_group_cg_config <- '
+search_t1 =~ 1*ml01_02_t1 + c("lamb2a", "lamb2b")*ml01_03_t1 + c("lamb3a", "lamb3b")*ml01_07_t1 + c("lamb4a", "lamb4b")*ml01_08_t1 + c("lamb5a", "lamb5b")*ml01_10_t1 # This specifies the measurement model for search_t1 
+search_t2 =~ 1*ml01_02_t2 + c("lamb2a", "lamb2b")*ml01_03_t2 + c("lamb3a", "lamb3b")*ml01_07_t2 + c("lamb4a", "lamb4b")*ml01_08_t2 + c("lamb5a", "lamb5b")*ml01_10_t2 # This specifies the measurement model for search_t2 with the equality constrained factor loadings
+
+search_t2 ~ 1*search_t1     # This parameter regresses search_t2 perfectly on search_t1
+d_search_1 =~ 1*search_t2   # This defines the latent change score factor as measured perfectly by scores on search_t2
+search_t2 ~ 0*1           # This line constrains the intercept of search_t2 to 0
+search_t2 ~~ 0*search_t2    # This fixes the variance of search_t2 to 0
+
+d_search_1 ~ c("d_int_a", "d_int_b")*1           # This estimates the intercept of the change score 
+search_t1 ~ c("wb_int_a", "wb_int_b")*1            # This estimates the intercept of search_t1 
+d_search_1 ~~ c("d_var_a", "d_var_b")*d_search_1   # This estimates the variance of the change scores 
+search_t1 ~~ c("wb_var_a", "wb_var_b")*search_t1     # This estimates the variance of the search_t1 
+d_search_1 ~~ c("fb_a", "fb_b")*search_t1     # This estimates the self-feedback parameter, as a covariance! -> therefore, the interpretation of the change score
+
+ml01_02_t1 ~~ c("cov1a", "cov1b")*ml01_02_t2   # This allows residual covariance on indicator X1 across T1 and T2
+ml01_03_t1 ~~ c("cov2a", "cov2b")*ml01_03_t2   # This allows residual covariance on indicator X2 across T1 and T2
+ml01_07_t1 ~~ c("cov3a", "cov3b")*ml01_07_t2   # This allows residual covariance on indicator X3 across T1 and T2
+ml01_08_t1 ~~ c("cov4a", "cov4b")*ml01_08_t2   # This allows residual covariance on indicator X4 across T1 and T2
+ml01_10_t1 ~~ c("cov5a", "cov5b")*ml01_10_t2   # This allows residual covariance on indicator X5 across T1 and T2
+
+ml01_02_t1 ~~ c("res1a", "res1b")*ml01_02_t1   # This allows residual variance on indicator X1 at T1 
+ml01_03_t1 ~~ c("res2a", "res2b")*ml01_03_t1   # This allows residual variance on indicator X2 at T1
+ml01_07_t1 ~~ c("res3a", "res3b")*ml01_07_t1   # This allows residual variance on indicator X3 at T1
+ml01_08_t1 ~~ c("res4a", "res4b")*ml01_08_t1   # This allows residual variance on indicator X4 at T1
+ml01_10_t1 ~~ c("res5a", "res5b")*ml01_10_t1   # This allows residual variance on indicator X5 at T1
+
+ml01_02_t2 ~~ c("res1a", "res1b")*ml01_02_t2  # This allows residual variance on indicator X1 at T2 
+ml01_03_t2 ~~ c("res2a", "res2b")*ml01_03_t2  # This allows residual variance on indicator X2 at T2 
+ml01_07_t2 ~~ c("res3a", "res3b")*ml01_07_t2  # This allows residual variance on indicator X3 at T2
+ml01_08_t2 ~~ c("res4a", "res4b")*ml01_08_t2  # This allows residual variance on indicator X4 at T2
+ml01_10_t2 ~~ c("res5a", "res5b")*ml01_10_t2  # This allows residual variance on indicator X5 at T2
+
+ml01_02_t1 ~ 0*1      # This constrains the intercept of X1 to 0 at T1
+ml01_03_t1 ~ c("m2a", "m2b")*1     # This estimates the intercept of X2 at T1
+ml01_07_t1 ~ c("m3a", "m3b")*1     # This estimates the intercept of X3 at T1
+ml01_08_t1 ~ c("m4a", "m4b")*1     # This estimates the intercept of X4 at T1
+ml01_10_t1 ~ c("m5a", "m5b")*1     # This estimates the intercept of X5 at T1
+
+ml01_02_t2 ~ 0*1      # This constrains the intercept of X1 to 0 at T2
+ml01_03_t2 ~ c("m2a", "m2b")*1     # This estimates the intercept of X2 at T2
+ml01_07_t2 ~ c("m3a", "m3b")*1     # This estimates the intercept of X3 at T2
+ml01_08_t2 ~ c("m4a", "m4b")*1     # This estimates the intercept of X4 at T2
+ml01_10_t2 ~ c("m5a", "m5b")*1     # This estimates the intercept of X5 at T2
+'
+lcs_search_group_cg_config <- sem(mi_lcs_search_group_cg_config, data=df_sbsa2_wide_wb, estimator='mlr', 
+                                fixed.x=FALSE, missing='fiml', group = "group_cg")
+
+# weak invariance
+mi_lcs_search_group_cg_weak <- '
+search_t1 =~ 1*ml01_02_t1 + c("lamb2", "lamb2")*ml01_03_t1 + c("lamb3", "lamb3")*ml01_07_t1 + c("lamb4", "lamb4")*ml01_08_t1 + c("lamb5", "lamb5")*ml01_10_t1 # This specifies the measurement model for search_t1 
+search_t2 =~ 1*ml01_02_t2 + c("lamb2", "lamb2")*ml01_03_t2 + c("lamb3", "lamb3")*ml01_07_t2 + c("lamb4", "lamb4")*ml01_08_t2 + c("lamb5", "lamb5")*ml01_10_t2 # This specifies the measurement model for search_t2 with the equality constrained factor loadings
+
+search_t2 ~ 1*search_t1     # This parameter regresses search_t2 perfectly on search_t1
+d_search_1 =~ 1*search_t2   # This defines the latent change score factor as measured perfectly by scores on search_t2
+search_t2 ~ 0*1           # This line constrains the intercept of search_t2 to 0
+search_t2 ~~ 0*search_t2    # This fixes the variance of search_t2 to 0
+
+d_search_1 ~ c("d_int_a", "d_int_b")*1           # This estimates the intercept of the change score 
+search_t1 ~ c("wb_int_a", "wb_int_b")*1            # This estimates the intercept of search_t1 
+d_search_1 ~~ c("d_var_a", "d_var_b")*d_search_1   # This estimates the variance of the change scores 
+search_t1 ~~ c("wb_var_a", "wb_var_b")*search_t1     # This estimates the variance of the search_t1 
+d_search_1 ~~ c("fb_a", "fb_b")*search_t1     # This estimates the self-feedback parameter, as a covariance! -> therefore, the interpretation of the change score
+
+ml01_02_t1 ~~ c("cov1a", "cov1b")*ml01_02_t2   # This allows residual covariance on indicator X1 across T1 and T2
+ml01_03_t1 ~~ c("cov2a", "cov2b")*ml01_03_t2   # This allows residual covariance on indicator X2 across T1 and T2
+ml01_07_t1 ~~ c("cov3a", "cov3b")*ml01_07_t2   # This allows residual covariance on indicator X3 across T1 and T2
+ml01_08_t1 ~~ c("cov4a", "cov4b")*ml01_08_t2   # This allows residual covariance on indicator X4 across T1 and T2
+ml01_10_t1 ~~ c("cov5a", "cov5b")*ml01_10_t2   # This allows residual covariance on indicator X5 across T1 and T2
+
+ml01_02_t1 ~~ c("res1a", "res1b")*ml01_02_t1   # This allows residual variance on indicator X1 at T1 
+ml01_03_t1 ~~ c("res2a", "res2b")*ml01_03_t1   # This allows residual variance on indicator X2 at T1
+ml01_07_t1 ~~ c("res3a", "res3b")*ml01_07_t1   # This allows residual variance on indicator X3 at T1
+ml01_08_t1 ~~ c("res4a", "res4b")*ml01_08_t1   # This allows residual variance on indicator X4 at T1
+ml01_10_t1 ~~ c("res5a", "res5b")*ml01_10_t1   # This allows residual variance on indicator X5 at T1
+
+ml01_02_t2 ~~ c("res1a", "res1b")*ml01_02_t2  # This allows residual variance on indicator X1 at T2 
+ml01_03_t2 ~~ c("res2a", "res2b")*ml01_03_t2  # This allows residual variance on indicator X2 at T2 
+ml01_07_t2 ~~ c("res3a", "res3b")*ml01_07_t2  # This allows residual variance on indicator X3 at T2
+ml01_08_t2 ~~ c("res4a", "res4b")*ml01_08_t2  # This allows residual variance on indicator X4 at T2
+ml01_10_t2 ~~ c("res5a", "res5b")*ml01_10_t2  # This allows residual variance on indicator X5 at T2
+
+ml01_02_t1 ~ 0*1      # This constrains the intercept of X1 to 0 at T1
+ml01_03_t1 ~ c("m2a", "m2b")*1     # This estimates the intercept of X2 at T1
+ml01_07_t1 ~ c("m3a", "m3b")*1     # This estimates the intercept of X3 at T1
+ml01_08_t1 ~ c("m4a", "m4b")*1     # This estimates the intercept of X4 at T1
+ml01_10_t1 ~ c("m5a", "m5b")*1     # This estimates the intercept of X5 at T1
+
+ml01_02_t2 ~ 0*1      # This constrains the intercept of X1 to 0 at T2
+ml01_03_t2 ~ c("m2a", "m2b")*1     # This estimates the intercept of X2 at T2
+ml01_07_t2 ~ c("m3a", "m3b")*1     # This estimates the intercept of X3 at T2
+ml01_08_t2 ~ c("m4a", "m4b")*1     # This estimates the intercept of X4 at T2
+ml01_10_t2 ~ c("m5a", "m5b")*1     # This estimates the intercept of X5 at T2
+'
+
+lcs_search_group_cg_weak <- sem(mi_lcs_search_group_cg_weak, data=df_sbsa2_wide_wb, estimator='mlr', fixed.x=FALSE, missing='fiml', 
+                           group = "group_cg", group.equal = "loadings")
+
+# strong invariance
+mi_lcs_search_group_cg_strong <- '
+search_t1 =~ 1*ml01_02_t1 + c("lamb2", "lamb2")*ml01_03_t1 + c("lamb3", "lamb3")*ml01_07_t1 + c("lamb4", "lamb4")*ml01_08_t1 + c("lamb5", "lamb5")*ml01_10_t1 # This specifies the measurement model for search_t1 
+search_t2 =~ 1*ml01_02_t2 + c("lamb2", "lamb2")*ml01_03_t2 + c("lamb3", "lamb3")*ml01_07_t2 + c("lamb4", "lamb4")*ml01_08_t2 + c("lamb5", "lamb5")*ml01_10_t2 # This specifies the measurement model for search_t2 with the equality constrained factor loadings
+
+search_t2 ~ 1*search_t1     # This parameter regresses search_t2 perfectly on search_t1
+d_search_1 =~ 1*search_t2   # This defines the latent change score factor as measured perfectly by scores on search_t2
+search_t2 ~ 0*1           # This line constrains the intercept of search_t2 to 0
+search_t2 ~~ 0*search_t2    # This fixes the variance of search_t2 to 0
+
+d_search_1 ~ c("d_int", "d_int")*1           # This estimates the intercept of the change score 
+search_t1 ~ c("wb_int", "wb_int")*1            # This estimates the intercept of search_t1 
+d_search_1 ~~ c("d_var_a", "d_var_b")*d_search_1   # This estimates the variance of the change scores 
+search_t1 ~~ c("wb_var_a", "wb_var_b")*search_t1     # This estimates the variance of the search_t1 
+d_search_1 ~~ c("fb_a", "fb_b")*search_t1     # This estimates the self-feedback parameter, as a covariance! -> therefore, the interpretation of the change score
+
+ml01_02_t1 ~~ c("cov1a", "cov1b")*ml01_02_t2   # This allows residual covariance on indicator X1 across T1 and T2
+ml01_03_t1 ~~ c("cov2a", "cov2b")*ml01_03_t2   # This allows residual covariance on indicator X2 across T1 and T2
+ml01_07_t1 ~~ c("cov3a", "cov3b")*ml01_07_t2   # This allows residual covariance on indicator X3 across T1 and T2
+ml01_08_t1 ~~ c("cov4a", "cov4b")*ml01_08_t2   # This allows residual covariance on indicator X4 across T1 and T2
+ml01_10_t1 ~~ c("cov5a", "cov5b")*ml01_10_t2   # This allows residual covariance on indicator X5 across T1 and T2
+
+ml01_02_t1 ~~ c("res1a", "res1b")*ml01_02_t1   # This allows residual variance on indicator X1 at T1 
+ml01_03_t1 ~~ c("res2a", "res2b")*ml01_03_t1   # This allows residual variance on indicator X2 at T1
+ml01_07_t1 ~~ c("res3a", "res3b")*ml01_07_t1   # This allows residual variance on indicator X3 at T1
+ml01_08_t1 ~~ c("res4a", "res4b")*ml01_08_t1   # This allows residual variance on indicator X4 at T1
+ml01_10_t1 ~~ c("res5a", "res5b")*ml01_10_t1   # This allows residual variance on indicator X5 at T1
+
+ml01_02_t2 ~~ c("res1a", "res1b")*ml01_02_t2  # This allows residual variance on indicator X1 at T2 
+ml01_03_t2 ~~ c("res2a", "res2b")*ml01_03_t2  # This allows residual variance on indicator X2 at T2 
+ml01_07_t2 ~~ c("res3a", "res3b")*ml01_07_t2  # This allows residual variance on indicator X3 at T2
+ml01_08_t2 ~~ c("res4a", "res4b")*ml01_08_t2  # This allows residual variance on indicator X4 at T2
+ml01_10_t2 ~~ c("res5a", "res5b")*ml01_10_t2  # This allows residual variance on indicator X5 at T2
+
+ml01_02_t1 ~ 0*1      # This constrains the intercept of X1 to 0 at T1
+ml01_03_t1 ~ c("m2", "m2")*1     # This estimates the intercept of X2 at T1
+ml01_07_t1 ~ c("m3", "m3")*1     # This estimates the intercept of X3 at T1
+ml01_08_t1 ~ c("m4", "m4")*1     # This estimates the intercept of X4 at T1
+ml01_10_t1 ~ c("m5", "m5")*1     # This estimates the intercept of X5 at T1
+
+ml01_02_t2 ~ 0*1      # This constrains the intercept of X1 to 0 at T2
+ml01_03_t2 ~ c("m2", "m2")*1     # This estimates the intercept of X2 at T2
+ml01_07_t2 ~ c("m3", "m3")*1     # This estimates the intercept of X3 at T2
+ml01_08_t2 ~ c("m4", "m4")*1     # This estimates the intercept of X4 at T2
+ml01_10_t2 ~ c("m5", "m5")*1     # This estimates the intercept of X5 at T2
+'
+
+lcs_search_group_cg_strong <- sem(mi_lcs_search_group_cg_strong, data=df_sbsa2_wide_wb, estimator='mlr', fixed.x=FALSE, missing='fiml', 
+                             group = "group_cg", group.equal = c("intercepts", "loadings"))
+```
+
+Search for meaning: results
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+
+# model comparison tests for measurement invariance
+lavTestLRT(lcs_search_group_cg_config, lcs_search_group_cg_weak, lcs_search_group_cg_strong)
+
+# show model with varying latent change parameters 
+# -> key parameter is "d_search_1 ~1"
+# labelled parameter as "d_int_a" & "d_int_b" (a = Control group, b = Intervention groups)
+params_main_lcs_search_cg <- broom::tidy(lcs_search_group_cg_weak, conf.int = TRUE, conf.level = 0.999) %>% 
+        mutate(beta = estimate / 
+           (sd_wb_st2 %>% filter(trait=="search" & time==1) %>% pull(sd_trait))) %>% 
+        select(term, label, estimate, beta, std.all, statistic, p.value) %>% 
+        filter(term %in% c("d_search_1 ~1 "))
+kable(params_main_lcs_search, digits = 3) 
+
+# constrained to be equal in the strong measurement invariance model:
+kable(broom::tidy(lcs_search_group_cg_strong, conf.int = TRUE, conf.level = 0.999) %>% 
+        mutate(beta = estimate / 
+           (sd_wb_st2 %>% filter(trait=="search" & time==1) %>% pull(sd_trait))) %>% 
+        select(term, label, estimate, beta, std.all, statistic, p.value) %>% 
+        filter(term %in% c("d_search_1 ~1 ")), digits = 3) 
+```
+
+::: {.callout-note appearance="minimal"}
+Change in search for meaning in life only significant in the control group (not in the intervention groups) but no substantial differences according to the LRTs.
+:::
+
+```{r}
+#| echo: true
+#| fig-width: 9.5
+#| fig-height: 6.5
+# whole model (weak invariance)
+summary(lcs_search_group_cg_weak, fit.measures=TRUE, standardized=TRUE, rsquare=F)
 ```
 
 ##### Self-esteem 
@@ -26406,6 +27310,7 @@ summary(lcs_concept_group_cg_weak, fit.measures=TRUE, standardized=TRUE, rsquare
 params_main_wb_summary_cg <- bind_rows(
   params_main_lcs_swls_cg %>% mutate(trait = "Life satisfaction") %>% select(trait, group = label, estimate, beta, p.value),
   params_main_lcs_meaning_cg %>% mutate(trait = "Meaning in life") %>% select(trait, group = label, estimate, beta, p.value),
+  params_main_lcs_search_cg %>% mutate(trait = "Search for meaning") %>% select(trait, group = label, estimate, beta, p.value),
   params_main_lcs_selfes_cg %>% mutate(trait = "Self-esteem") %>% select(trait, group = label, estimate, beta, p.value),
   params_main_lcs_concept_cg %>% mutate(trait = "Self-concept clarity") %>% select(trait, group = label, estimate, beta, p.value)) %>% mutate(group = ifelse(group=="d_int_a", "Control", "Intervention"))
 
@@ -27542,7 +28447,7 @@ df_mlm_check_wb <- df_sbsa2 %>%
   mutate(time_d = time - 1,
          intv = ifelse(rando!="Waitlist-Control", 1, 0)) %>% 
   select(pid, time_d, rando, intv, 
-         swls, meaning, selfes, concept)
+         swls, meaning, search, selfes, concept)
 
 df_mlm_check_curr %>% group_by(intv, time_d) %>% tally()
 ```
@@ -27572,12 +28477,12 @@ df_mlm_check_ideal <- df_mlm_check_ideal %>%
   purrr::set_names(sort(names(b5_vars))) # ordered alphabetically
 
 df_mlm_check_wb <- df_mlm_check_wb %>% 
-  pivot_longer(c(swls, meaning, selfes, concept), 
+  pivot_longer(c(swls, meaning, search, selfes, concept), 
                names_to = "test", names_prefix = "facet", values_to = "score", values_drop_na = TRUE) %>% 
   group_nest(test) %>% 
   mutate(lmer_mods = map(data, ~lmerTest::lmer(score ~ time_d * intv + (1 | pid), data = .x))) %>% 
   pull(lmer_mods) %>% 
-  purrr::set_names(c("Self-concept clarity", "Meaning in life", "Self-esteem", "Life satisfaction"))
+  purrr::set_names(c("Self-concept clarity", "Meaning in life", "Search for meaning", "Self-esteem", "Life satisfaction"))
 ```
 
 ##### Results: current personality 
@@ -27670,10 +28575,10 @@ for (i in 2:length(df_mlm_check_wb)) {
 
 # label etc.
 df_mlm_check_wb_unlist <- df_mlm_check_wb_unlist %>% # order by BFI traits
-        mutate(outcome = rep(c("Self-concept clarity", "Meaning in life", 
+        mutate(outcome = rep(c("Self-concept clarity", "Meaning in life", "Search for meaning", 
                                "Self-esteem", "Life satisfaction"), each=4), 
                term = c(rep(c("Intercept", "time (1 vs. 2)", 
-                              "group (control vs. intv.)", "time*group"), 4))) %>% 
+                              "group (control vs. intv.)", "time*group"), 5))) %>% 
         rename(p = `Pr(>|t|)`, std_err = `Std. Error`, est = Estimate) %>% 
   select(outcome, term, est, std_err, p) %>% 
         mutate(sig = ifelse(p < .05, ifelse(p < .01, ifelse(p < .001, "***", "**"), "*"), " ")) %>% 
@@ -28072,12 +28977,13 @@ Prepare data frame for plotting:
 
 df_manip_check_wb_forplot <- df_sbsa2 %>% 
   mutate(time_d = time - 1) %>% 
-  select(pid, time_d, rando, swls, meaning, selfes, concept) %>% 
+  select(pid, time_d, rando, swls, meaning, search, selfes, concept) %>% 
   pivot_longer(-c(pid, time_d, rando), 
                cols_vary = "slowest",
                names_to = c("trait"),
                values_to = "score") %>% 
   mutate(trait = case_when(trait=="swls" ~ "Life Satisfaction", trait=="meaning" ~ "Meaning in Life", 
+                           trait=="search" ~ "Search for Meaning", 
                            trait=="selfes" ~ "Self-Esteem", trait=="concept" ~ "Self-Concept Clarity")) %>% 
   filter(!is.na(score)) %>% 
   group_by(trait, rando, time_d) %>% 
@@ -28087,8 +28993,10 @@ df_manip_check_wb_forplot <- df_sbsa2 %>%
                         labels = c("Self-Improvement", "Self-Acceptance", "Waitlist-Control")),
          Time = factor(time_d+1),
          Trait = factor(trait, 
-                        levels = c("Life Satisfaction", "Meaning in Life", "Self-Esteem", "Self-Concept Clarity"), # group facets with each trait
-                        labels = c("Life Satisfaction", "Meaning in Life", "Self-Esteem", "Self-Concept Clarity")),
+                        levels = c("Life Satisfaction", "Meaning in Life", "Search for Meaning", 
+                                   "Self-Esteem", "Self-Concept Clarity"), # group facets with each trait
+                        labels = c("Life Satisfaction", "Meaning in Life", "Search for Meaning", 
+                                   "Self-Esteem", "Self-Concept Clarity")),
          lwr95 = m_trait - qnorm(0.975)*sd_trait/sqrt(n),
          upr95 = m_trait + qnorm(0.975)*sd_trait/sqrt(n)) %>% 
   select(-c(time_d, rando, trait))
@@ -28118,7 +29026,7 @@ Plotting mean-level changes on a descriptive level: all four well-being aspects
 #| code-summary: "Show the code"
 #| cache: false
 
-ggplot(df_manip_check_wb_forplot, 
+ggplot(df_manip_check_wb_forplot %>% filter(Trait!="Search for Meaning"), 
        aes(y = m_trait, x = Time, shape = Group)) + 
   geom_point(position = position_dodge(0.3)) +
   scale_shape_manual(values=c(17, 19, 15)) + 

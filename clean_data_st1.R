@@ -382,21 +382,42 @@ df_sbsa$swls <- df_sbsa %>%
 df_sbsa$swls[is.nan(df_sbsa$swls)] <- NA
 
 # 10 item Meaning in Life Questionnaire (Steger et al., 2006)
+
 df_sbsa %>% select(starts_with("ml01"))
 df_sbsa %>% group_by(time, rando, ml01_01) %>% tally() %>% print(n=Inf)
-keys_meaning <- list(meaning = c("ml01_01", "-ml01_02", "-ml01_03", "ml01_04", "ml01_05", "ml01_06", "-ml01_07", "-ml01_08", "-ml01_09", "-ml01_10")) # does not work automatically, here
+
+# deviation from prereg: we're only using the 5 items of *presence* of meaning
+# for the main analyses, and present the 5 items for *search for meaning*
+# in supplementary analyses
+
+keys_meaning <- list(meaning = c("ml01_01", "ml01_04", "ml01_05", "ml01_06", "-ml01_09")) # does not work automatically, here
 alpha.meaning <- df_sbsa %>% 
-  select(starts_with("ml01")) %>%
+  select(c("ml01_01", "ml01_04", "ml01_05", "ml01_06", "ml01_09")) %>%
   psych::alpha(keys = keys_meaning)
 omega.meaning <- df_sbsa %>%
-  dplyr::select(starts_with("ml01")) %>% 
+  dplyr::select(c("ml01_01", "ml01_04", "ml01_05", "ml01_06", "ml01_09")) %>% 
   psych::omega(m = ., key = ifelse(str_detect(keys_meaning[[1]], "-"), -1, 1), # function now requires the 1/-1 coding
-               plot = FALSE, nfactors=3)
+               plot = FALSE, nfactors=4)
 df_sbsa$meaning <- df_sbsa %>%
-  select(starts_with("ml01")) %>%
+  select(c("ml01_01", "ml01_04", "ml01_05", "ml01_06", "ml01_09")) %>%
   psych::reverse.code(keys = keys_meaning[[1]], items = .) %>%
   rowMeans(na.rm=T)
 df_sbsa$meaning[is.nan(df_sbsa$meaning)] <- NA
+
+# search for meaning: 2, 3, 7, 8, & 10
+keys_meaning_search <- list(search = c("ml01_02", "ml01_03", "ml01_07", "ml01_08", "ml01_10")) # does not work automatically, here
+alpha.search <- df_sbsa %>% 
+  select(c("ml01_02", "ml01_03", "ml01_07", "ml01_08", "ml01_10")) %>%
+  psych::alpha(keys = keys_meaning_search)
+omega.search <- df_sbsa %>%
+  dplyr::select(c("ml01_02", "ml01_03", "ml01_07", "ml01_08", "ml01_10")) %>% 
+  psych::omega(m = ., key = ifelse(str_detect(keys_meaning_search[[1]], "-"), -1, 1), # function now requires the 1/-1 coding
+               plot = FALSE, nfactors=3)
+df_sbsa$search <- df_sbsa %>%
+  select(c("ml01_02", "ml01_03", "ml01_07", "ml01_08", "ml01_10")) %>%
+  psych::reverse.code(keys = keys_meaning_search[[1]], items = .) %>%
+  rowMeans(na.rm=T)
+df_sbsa$search[is.nan(df_sbsa$search)] <- NA
 
 # 10 item Rosenberg Self-Esteem Scale (Rosenberg et al., 1965) 
 df_sbsa %>% select(starts_with("rs01"))
@@ -580,42 +601,42 @@ for (i in 1:length(b5_vars)) {
 
 # put all measures of internal consistency in one table (for supplement)
 int_consist_traits_st1 <- tibble(
-  trait = c("lifesat", "meaning", "selfes", "concept", str_trunc(names(b5_vars), 5, ellipsis = "")[1:5]),
+  trait = c("lifesat", "meaning", "search", "selfes", "concept", str_trunc(names(b5_vars), 5, ellipsis = "")[1:5]),
   rel_alpha_current = c(# well-being 
-    alpha.swls$total$raw_alpha, alpha.meaning$total$raw_alpha, 
+    alpha.swls$total$raw_alpha, alpha.meaning$total$raw_alpha, alpha.search$total$raw_alpha, 
     alpha.selfes$total$raw_alpha, alpha.concept$total$raw_alpha, 
     # bfi dimensions current 
     alpha_extra_comb_curr$total$raw_alpha, alpha_agree_comb_curr$total$raw_alpha, 
     alpha_consc_comb_curr$total$raw_alpha, alpha_neuro_comb_curr$total$raw_alpha, 
     alpha_openn_comb_curr$total$raw_alpha), 
   rel_alpha_ideal = c(# well-being 
-    NA, NA, NA, NA,
+    NA, NA, NA, NA, NA,
     # bfi dimensions ideal 
     alpha_extra_comb_ideal$total$raw_alpha, alpha_agree_comb_ideal$total$raw_alpha, 
     alpha_consc_comb_ideal$total$raw_alpha, alpha_neuro_comb_ideal$total$raw_alpha, 
     alpha_openn_comb_ideal$total$raw_alpha),
   rel_omega_t_current = c(# well-being 
-    omega.swls$omega.tot, omega.meaning$omega.tot, 
+    omega.swls$omega.tot, omega.meaning$omega.tot, omega.search$omega.tot, 
     omega.selfes$omega.tot, omega.concept$omega.tot, 
     # bfi dimensions current 
     omega_extra_comb_curr$omega.tot, omega_agree_comb_curr$omega.tot, 
     omega_consc_comb_curr$omega.tot, omega_neuro_comb_curr$omega.tot, 
     omega_openn_comb_curr$omega.tot), 
   rel_omega_t_ideal = c(# well-being 
-    NA, NA, NA, NA,
+    NA, NA, NA, NA, NA,
     # bfi dimensions ideal 
     omega_extra_comb_ideal$omega.tot, omega_agree_comb_ideal$omega.tot, 
     omega_consc_comb_ideal$omega.tot, omega_neuro_comb_ideal$omega.tot, 
     omega_openn_comb_ideal$omega.tot),
   rel_omega_h_current = c(# well-being 
-    omega.swls$omega_h, omega.meaning$omega_h, 
+    omega.swls$omega_h, omega.meaning$omega_h, omega.search$omega_h, 
     omega.selfes$omega_h, omega.concept$omega_h, 
     # bfi dimensions current 
     omega_extra_comb_curr$omega_h, omega_agree_comb_curr$omega_h, 
     omega_consc_comb_curr$omega_h, omega_neuro_comb_curr$omega_h, 
     omega_openn_comb_curr$omega_h), 
   rel_omega_h_ideal = c(# well-being 
-    NA, NA, NA, NA,
+    NA, NA, NA, NA, NA,
     # bfi dimensions ideal 
     omega_extra_comb_ideal$omega_h, omega_agree_comb_ideal$omega_h, 
     omega_consc_comb_ideal$omega_h, omega_neuro_comb_ideal$omega_h, 
