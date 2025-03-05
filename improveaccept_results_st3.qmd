@@ -8163,34 +8163,34 @@ Gather all latent intercepts at T1 and latent change scores:
 b5_latent_df_plot <- bind_rows(
   broom::tidy(fit_lcs_extra_main_weak_group_12, conf.int = T, conf.level = .99) %>% select(term, label, estimate, std.error, conf.low, conf.high) %>% 
     filter(term %in% c("extra_t1 ~1 ", "d_extra_1 ~1 ")) %>% 
-    mutate(Trait = "Extraversion", Group = ifelse(label %in% c("d_int_a", "b5_int_a"), "Group 1", "Group 2")),
+    mutate(Trait = "Extraversion", Group = ifelse(label %in% c("d_int_a", "b5_int_a"), "Group 1:\nDiscrepancy awareness\n", "Group 2:\nDemand effects\n")),
   broom::tidy(fit_lcs_extra_main_weak_group_23, conf.int = T, conf.level = .99) %>% select(term, label, estimate, std.error, conf.low, conf.high) %>% 
     filter(term %in% c("extra_t1 ~1 ", "d_extra_1 ~1 ") & label %in% c("d_int_b", "b5_int_b")) %>% 
-    mutate(Trait = "Extraversion", Group = "Group 3"),
+    mutate(Trait = "Extraversion", Group = "Group 3:\nDevelopmental trends\n"),
   broom::tidy(fit_lcs_agree_main_weak_group_12, conf.int = T, conf.level = .99) %>% select(term, label, estimate, std.error, conf.low, conf.high) %>% 
     filter(term %in% c("agree_t1 ~1 ", "d_agree_1 ~1 ")) %>% 
-    mutate(Trait = "Agreeableness", Group = ifelse(label %in% c("d_int_a", "b5_int_a"), "Group 1", "Group 2")),
+    mutate(Trait = "Agreeableness", Group = ifelse(label %in% c("d_int_a", "b5_int_a"), "Group 1:\nDiscrepancy awareness\n", "Group 2:\nDemand effects\n")),
   broom::tidy(fit_lcs_agree_main_weak_group_23, conf.int = T, conf.level = .99) %>% select(term, label, estimate, std.error, conf.low, conf.high) %>% 
     filter(term %in% c("agree_t1 ~1 ", "d_agree_1 ~1 ") & label %in% c("d_int_b", "b5_int_b")) %>% 
-    mutate(Trait = "Agreeableness", Group = "Group 3"),
+    mutate(Trait = "Agreeableness", Group = "Group 3:\nDevelopmental trends\n"),
   broom::tidy(fit_lcs_consc_main_weak_group_12, conf.int = T, conf.level = .99) %>% select(term, label, estimate, std.error, conf.low, conf.high) %>% 
     filter(term %in% c("consc_t1 ~1 ", "d_consc_1 ~1 ")) %>% 
-    mutate(Trait = "Conscientiousness", Group = ifelse(label %in% c("d_int_a", "b5_int_a"), "Group 1", "Group 2")),
+    mutate(Trait = "Conscientiousness", Group = ifelse(label %in% c("d_int_a", "b5_int_a"), "Group 1:\nDiscrepancy awareness\n", "Group 2:\nDemand effects\n")),
   broom::tidy(fit_lcs_consc_main_weak_group_23, conf.int = T, conf.level = .99) %>% select(term, label, estimate, std.error, conf.low, conf.high) %>% 
     filter(term %in% c("consc_t1 ~1 ", "d_consc_1 ~1 ") & label %in% c("d_int_b", "b5_int_b")) %>% 
-    mutate(Trait = "Conscientiousness", Group = "Group 3"),
+    mutate(Trait = "Conscientiousness", Group = "Group 3:\nDevelopmental trends\n"),
   broom::tidy(fit_lcs_neuro_main_weak_group_12, conf.int = T, conf.level = .99) %>% select(term, label, estimate, std.error, conf.low, conf.high) %>% 
     filter(term %in% c("neuro_t1 ~1 ", "d_neuro_1 ~1 ")) %>% 
-    mutate(Trait = "Neuroticism", Group = ifelse(label %in% c("d_int_a", "b5_int_a"), "Group 1", "Group 2")),
+    mutate(Trait = "Neuroticism", Group = ifelse(label %in% c("d_int_a", "b5_int_a"), "Group 1:\nDiscrepancy awareness\n", "Group 2:\nDemand effects\n")),
   broom::tidy(fit_lcs_neuro_main_weak_group_23, conf.int = T, conf.level = .99) %>% select(term, label, estimate, std.error, conf.low, conf.high) %>% 
     filter(term %in% c("neuro_t1 ~1 ", "d_neuro_1 ~1 ") & label %in% c("d_int_b", "b5_int_b")) %>% 
-    mutate(Trait = "Neuroticism", Group = "Group 3"),
+    mutate(Trait = "Neuroticism", Group = "Group 3:\nDevelopmental trends\n"),
   broom::tidy(fit_lcs_openn_main_weak_group_12, conf.int = T, conf.level = .99) %>% select(term, label, estimate, std.error, conf.low, conf.high) %>% 
     filter(term %in% c("openn_t1 ~1 ", "d_openn_1 ~1 ")) %>% 
-    mutate(Trait = "Openness", Group = ifelse(label %in% c("d_int_a", "b5_int_a"), "Group 1", "Group 2")),
+    mutate(Trait = "Openness", Group = ifelse(label %in% c("d_int_a", "b5_int_a"), "Group 1:\nDiscrepancy awareness\n", "Group 2:\nDemand effects\n")),
   broom::tidy(fit_lcs_openn_main_weak_group_23, conf.int = T, conf.level = .99) %>% select(term, label, estimate, std.error, conf.low, conf.high) %>% 
     filter(term %in% c("openn_t1 ~1 ", "d_openn_1 ~1 ") & label %in% c("d_int_b", "b5_int_b")) %>% 
-    mutate(Trait = "Openness", Group = "Group 3"))
+    mutate(Trait = "Openness", Group = "Group 3:\nDevelopmental trends\n"))
 
 # select and mutate relevant vars
 b5_latent_df_plot <- b5_latent_df_plot %>% 
@@ -8217,8 +8217,9 @@ Plot changes (unstandardized effect size metric): all together
 
 ```{r}
 #| echo: true
-#| fig-width: 9
+#| fig-width: 10
 #| fig-height: 6
+#| cache: false
 #| code-fold: true
 #| code-summary: "Show the code"
 
@@ -8239,8 +8240,9 @@ ggplot(b5_latent_df_plot,
 Plotting model based mean-level changes: Extraversion
 ```{r}
 #| echo: true
-#| fig-width: 5
+#| fig-width: 6
 #| fig-height: 3.5
+#| cache: false
 #| code-fold: true
 #| code-summary: "Show the code"
 
@@ -8260,8 +8262,9 @@ ggplot(b5_latent_df_plot %>% filter(Trait=="Extraversion"),
 Plotting model based mean-level changes: Agreeableness
 ```{r}
 #| echo: true
-#| fig-width: 5
+#| fig-width: 6
 #| fig-height: 3.5
+#| cache: false
 #| code-fold: true
 #| code-summary: "Show the code"
 
@@ -8281,8 +8284,9 @@ ggplot(b5_latent_df_plot %>% filter(Trait=="Agreeableness"),
 Plotting model based mean-level changes: Conscientiousness
 ```{r}
 #| echo: true
-#| fig-width: 5
+#| fig-width: 6
 #| fig-height: 3.5
+#| cache: false
 #| code-fold: true
 #| code-summary: "Show the code"
 
@@ -8302,8 +8306,9 @@ ggplot(b5_latent_df_plot %>% filter(Trait=="Conscientiousness"),
 Plotting model based mean-level changes: Neuroticism
 ```{r}
 #| echo: true
-#| fig-width: 5
+#| fig-width: 6
 #| fig-height: 3.5
+#| cache: false
 #| code-fold: true
 #| code-summary: "Show the code"
 
@@ -8323,8 +8328,9 @@ ggplot(b5_latent_df_plot %>% filter(Trait=="Neuroticism"),
 Plotting model based mean-level changes: Openness
 ```{r}
 #| echo: true
-#| fig-width: 5
+#| fig-width: 6
 #| fig-height: 3.5
+#| cache: false
 #| code-fold: true
 #| code-summary: "Show the code"
 
@@ -8356,34 +8362,34 @@ Gather all latent intercepts at T1 and latent change scores:
 wb_latent_df_plot <- bind_rows(
   broom::tidy(lcs_swls_group_12_weak, conf.int = T, conf.level = .99) %>% select(term, label, estimate, std.error, conf.low, conf.high) %>% 
     filter(term %in% c("swls_t1 ~1 ", "d_swls_1 ~1 ")) %>% 
-    mutate(Trait = "Life Satisfaction", Group = ifelse(label %in% c("d_int_a", "wb_int_a"), "Group 1", "Group 2")),
+    mutate(Trait = "Life Satisfaction", Group = ifelse(label %in% c("d_int_a", "wb_int_a"), "Group 1:\nDiscrepancy awareness\n", "Group 2:\nDemand effects\n")),
   broom::tidy(lcs_swls_group_23_weak, conf.int = T, conf.level = .99) %>% select(term, label, estimate, std.error, conf.low, conf.high) %>% 
     filter(term %in% c("swls_t1 ~1 ", "d_swls_1 ~1 ") & label %in% c("d_int_b", "wb_int_b")) %>% 
-    mutate(Trait = "Life Satisfaction", Group = "Group 3"),
+    mutate(Trait = "Life Satisfaction", Group = "Group 3:\nDevelopmental trends\n"),
   broom::tidy(lcs_meaning_group_12_weak, conf.int = T, conf.level = .99) %>% select(term, label, estimate, std.error, conf.low, conf.high) %>% 
     filter(term %in% c("meaning_t1 ~1 ", "d_meaning_1 ~1 ")) %>% 
-    mutate(Trait = "Meaning in Life", Group = ifelse(label %in% c("d_int_a", "wb_int_a"), "Group 1", "Group 2")),
+    mutate(Trait = "Meaning in Life", Group = ifelse(label %in% c("d_int_a", "wb_int_a"), "Group 1:\nDiscrepancy awareness\n", "Group 2:\nDemand effects\n")),
   broom::tidy(lcs_meaning_group_23_weak, conf.int = T, conf.level = .99) %>% select(term, label, estimate, std.error, conf.low, conf.high) %>% 
     filter(term %in% c("meaning_t1 ~1 ", "d_meaning_1 ~1 ") & label %in% c("d_int_b", "wb_int_b")) %>% 
-    mutate(Trait = "Meaning in Life", Group = "Group 3"),
+    mutate(Trait = "Meaning in Life", Group = "Group 3:\nDevelopmental trends\n"),
   broom::tidy(lcs_search_group_12_weak, conf.int = T, conf.level = .99) %>% select(term, label, estimate, std.error, conf.low, conf.high) %>% 
     filter(term %in% c("search_t1 ~1 ", "d_search_1 ~1 ")) %>% 
-    mutate(Trait = "Search for Meaning", Group = ifelse(label %in% c("d_int_a", "wb_int_a"), "Group 1", "Group 2")),
+    mutate(Trait = "Search for Meaning", Group = ifelse(label %in% c("d_int_a", "wb_int_a"), "Group 1:\nDiscrepancy awareness\n", "Group 2:\nDemand effects\n")),
   broom::tidy(lcs_search_group_23_weak, conf.int = T, conf.level = .99) %>% select(term, label, estimate, std.error, conf.low, conf.high) %>% 
     filter(term %in% c("search_t1 ~1 ", "d_search_1 ~1 ") & label %in% c("d_int_b", "wb_int_b")) %>% 
-    mutate(Trait = "Search for Meaning", Group = "Group 3"),
+    mutate(Trait = "Search for Meaning", Group = "Group 3:\nDevelopmental trends\n"),
   broom::tidy(lcs_selfes_group_12_weak, conf.int = T, conf.level = .99) %>% select(term, label, estimate, std.error, conf.low, conf.high) %>% 
     filter(term %in% c("selfes_t1 ~1 ", "d_selfes_1 ~1 ")) %>% 
-    mutate(Trait = "Self-Esteem", Group = ifelse(label %in% c("d_int_a", "wb_int_a"), "Group 1", "Group 2")),
+    mutate(Trait = "Self-Esteem", Group = ifelse(label %in% c("d_int_a", "wb_int_a"), "Group 1:\nDiscrepancy awareness\n", "Group 2:\nDemand effects\n")),
   broom::tidy(lcs_selfes_group_23_weak, conf.int = T, conf.level = .99) %>% select(term, label, estimate, std.error, conf.low, conf.high) %>% 
     filter(term %in% c("selfes_t1 ~1 ", "d_selfes_1 ~1 ") & label %in% c("d_int_b", "wb_int_b")) %>% 
-    mutate(Trait = "Self-Esteem", Group = "Group 3"),
+    mutate(Trait = "Self-Esteem", Group = "Group 3:\nDevelopmental trends\n"),
   broom::tidy(lcs_concept_group_12_weak, conf.int = T, conf.level = .99) %>% select(term, label, estimate, std.error, conf.low, conf.high) %>% 
     filter(term %in% c("concept_t1 ~1 ", "d_concept_1 ~1 ")) %>% 
-    mutate(Trait = "Self-Concept Clarity", Group = ifelse(label %in% c("d_int_a", "wb_int_a"), "Group 1", "Group 2")),
+    mutate(Trait = "Self-Concept Clarity", Group = ifelse(label %in% c("d_int_a", "wb_int_a"), "Group 1:\nDiscrepancy awareness\n", "Group 2:\nDemand effects\n")),
   broom::tidy(lcs_concept_group_23_weak, conf.int = T, conf.level = .99) %>% select(term, label, estimate, std.error, conf.low, conf.high) %>% 
     filter(term %in% c("concept_t1 ~1 ", "d_concept_1 ~1 ") & label %in% c("d_int_b", "wb_int_b")) %>% 
-    mutate(Trait = "Self-Concept Clarity", Group = "Group 3"))
+    mutate(Trait = "Self-Concept Clarity", Group = "Group 3:\nDevelopmental trends\n"))
 
 # select and mutate relevant vars
 wb_latent_df_plot <- wb_latent_df_plot %>% 
@@ -8410,8 +8416,9 @@ Plot changes (unstandardized effect size metric): all together
 
 ```{r}
 #| echo: true
-#| fig-width: 6
+#| fig-width: 8
 #| fig-height: 6
+#| cache: false
 #| code-fold: true
 #| code-summary: "Show the code"
 
@@ -8422,7 +8429,6 @@ ggplot(wb_latent_df_plot %>% filter(Trait!="Search for Meaning"),
   scale_shape_manual(values=c(17, 19, 15)) + 
   geom_errorbar(aes(group = Group, color = Group, ymin = cilow, ymax = cihi), width=.3, position=position_dodge(0.3)) + 
   ylab("Mean Trait Level\n(Model-Based, 99% CI)") + 
-  ylim(2, 4) + 
   facet_wrap( ~ Trait, ncol = 2) +
   theme_bw() +
   theme(panel.grid.minor = element_blank(),
@@ -8432,8 +8438,9 @@ ggplot(wb_latent_df_plot %>% filter(Trait!="Search for Meaning"),
 Plotting model based mean-level changes: Life Satisfaction
 ```{r}
 #| echo: true
-#| fig-width: 5
+#| fig-width: 6
 #| fig-height: 3.5
+#| cache: false
 #| code-fold: true
 #| code-summary: "Show the code"
 
@@ -8453,8 +8460,9 @@ ggplot(wb_latent_df_plot %>% filter(Trait=="Life Satisfaction"),
 Plotting model based mean-level changes: Meaning in Life
 ```{r}
 #| echo: true
-#| fig-width: 5
+#| fig-width: 6
 #| fig-height: 3.5
+#| cache: false
 #| code-fold: true
 #| code-summary: "Show the code"
 
@@ -8465,7 +8473,7 @@ ggplot(wb_latent_df_plot %>% filter(Trait=="Meaning in Life"),
   scale_shape_manual(values=c(17, 19, 15)) + 
   geom_errorbar(aes(group = Group, color = Group, ymin = cilow, ymax = cihi), width=.3, position=position_dodge(0.3)) + 
   ylab("Mean Trait Level\n(Model-Based, 99% CI)") + 
-  ylim(2.5, 4) + 
+  ylim(3.5, 5) + 
   theme_bw() +
   theme(panel.grid.minor = element_blank(),
         strip.background=element_rect(fill="grey93"))
@@ -8474,8 +8482,9 @@ ggplot(wb_latent_df_plot %>% filter(Trait=="Meaning in Life"),
 Plotting model based mean-level changes: Search for Meaning
 ```{r}
 #| echo: true
-#| fig-width: 5
+#| fig-width: 6
 #| fig-height: 3.5
+#| cache: false
 #| code-fold: true
 #| code-summary: "Show the code"
 
@@ -8486,7 +8495,7 @@ ggplot(wb_latent_df_plot %>% filter(Trait=="Search for Meaning"),
   scale_shape_manual(values=c(17, 19, 15)) + 
   geom_errorbar(aes(group = Group, color = Group, ymin = cilow, ymax = cihi), width=.3, position=position_dodge(0.3)) + 
   ylab("Mean Trait Level\n(Model-Based, 99% CI)") + 
-  ylim(2.5, 4) + 
+  ylim(4, 6) + 
   theme_bw() +
   theme(panel.grid.minor = element_blank(),
         strip.background=element_rect(fill="grey93"))
@@ -8495,8 +8504,9 @@ ggplot(wb_latent_df_plot %>% filter(Trait=="Search for Meaning"),
 Plotting model based mean-level changes: Self-Esteem
 ```{r}
 #| echo: true
-#| fig-width: 5
+#| fig-width: 6
 #| fig-height: 3.5
+#| cache: false
 #| code-fold: true
 #| code-summary: "Show the code"
 
@@ -8516,8 +8526,9 @@ ggplot(wb_latent_df_plot %>% filter(Trait=="Self-Esteem"),
 Plotting model based mean-level changes: Self-Concept Clarity
 ```{r}
 #| echo: true
-#| fig-width: 5
+#| fig-width: 6
 #| fig-height: 3.5
+#| cache: false
 #| code-fold: true
 #| code-summary: "Show the code"
 
